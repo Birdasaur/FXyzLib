@@ -39,6 +39,13 @@
 <img height=200 width=200 src="media/Domes/RandomRings.png"><img height=200 width=200 src="media/Domes/PerfectDomes.png"><img height=200 width=200 src="media/Pyramids/RandomPyramids.png">
 <p>
 <h2>News</h2>
+<h3>July 7th, 2014</h3>
+CubeViewer and CubeViewerTest classes added to library binary.  CubeViewer is a composite group of 3D nodes that form a grid coordinate system.  The grid and gridline spacing is resizable and arbitrary 3D objects 
+such as the ScatterPlot class can be added to it.  By default the CubeViewer can "add" data to itself as simple 3D spheres similar to a ScatterPlot. An interesting feature is that as the camera angle is rotated the
+bounding boxes of the cube's gridded coordinate system will disappear and reappear as necessary to facilitate direct viewing of the data.  
+Also added is a CameraTransformer class that can be used to perform and react to complex rotations of the camera.  This is very helpful for taking advantage of the CubeViewer's hideable grid panels.  Demonstration 
+of the CameraTransformer class can be found in the CubeViewerTest class.
+
 <h3>June 30th, 2014</h3>
 PolyLine3D and test class added to library binary.  PolyLine3D is an object that takes a simple list of Point3D objects, a width and a color and plots a 3D line with each point being a joint 
 in the line segment chain.  Currently builds a pancake line meaning the thickness is 1 pixel.  This means at certain camera angles the line may look super thin regardless of the width.  Currently working on that. <br>
@@ -53,6 +60,7 @@ JavaFX application by default and you should see a nice helix spiral of scatter 
 <br><br>
 <h2>Features</h2>
 <ul>
+<li>Gridded Coordinate System render (CubeViewer)
 <li>PolyLine3D with adjustable width</li>
 <li>Cones</li>
 <li>Pyramids</li>
