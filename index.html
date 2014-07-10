@@ -39,6 +39,11 @@
 <img height=200 width=200 src="media/Domes/RandomRings.png"><img height=200 width=200 src="media/Domes/PerfectDomes.png"><img height=200 width=200 src="media/Pyramids/RandomPyramids.png">
 <p>
 <h2>News</h2>
+<h3>July 10th, 2014</h3>
+SphereSegment and SphereSegmentTest classes added to library binary.  SphereSegment is a class that auto-generates a Dome like MeshView with its own lighting based on parameters passed to its constructor.
+Users of the SphereSegment can make perfect Domes,extremely thin rings, arcs and arches.  This is enabled by using TriangleMesh point calculations that take into account user parameters including minimum and maximum theta 
+(for Circumference), minimum and maximum polar angle (for dome height), radius and number of segments to use (for face smoothness).
+SphereSegmentTest demonstrates how to exercise this new class by generated a bunch of random SphereSegments.
 <h3>July 7th, 2014</h3>
 CubeViewer and CubeViewerTest classes added to library binary.  CubeViewer is a composite group of 3D nodes that form a grid coordinate system.  The grid and gridline spacing is resizable and arbitrary 3D objects 
 such as the ScatterPlot class can be added to it.  By default the CubeViewer can "add" data to itself as simple 3D spheres similar to a ScatterPlot. An interesting feature is that as the camera angle is rotated the
