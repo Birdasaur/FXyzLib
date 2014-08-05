@@ -5,19 +5,18 @@
  */
 package org.fxyz.tests;
 
-import java.util.ArrayList;
 import javafx.application.Application;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
+import javafx.scene.SceneAntialiasing;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import org.fxyz.tools.Histogram;
-import org.fxyz.tools.ScatterPlot;
 
 /**
  *
@@ -39,7 +38,7 @@ public class HistogramTest extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Group sceneRoot = new Group();
-        Scene scene = new Scene(sceneRoot, sceneWidth, sceneHeight);
+        Scene scene = new Scene(sceneRoot, sceneWidth, sceneHeight, true, SceneAntialiasing.BALANCED);
         scene.setFill(Color.BLACK);
         camera = new PerspectiveCamera(true);
         camera.setNearClip(0.1);

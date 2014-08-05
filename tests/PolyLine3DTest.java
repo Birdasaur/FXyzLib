@@ -13,6 +13,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
+import javafx.scene.SceneAntialiasing;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
@@ -39,7 +40,7 @@ public class PolyLine3DTest extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Group sceneRoot = new Group();
-        Scene scene = new Scene(sceneRoot, sceneWidth, sceneHeight);
+        Scene scene = new Scene(sceneRoot, sceneWidth, sceneHeight, true, SceneAntialiasing.BALANCED);
         scene.setFill(Color.BLACK);
         camera = new PerspectiveCamera(true);        
         camera.setNearClip(0.1);
@@ -47,15 +48,12 @@ public class PolyLine3DTest extends Application {
         camera.setTranslateZ(-1000);
         scene.setCamera(camera);
         
-        ArrayList<Double> dataX = new ArrayList<>();
-        ArrayList<Double> dataY = new ArrayList<>();
-        ArrayList<Double> dataZ = new ArrayList<>();
         ArrayList<Point3D> points = new ArrayList<>();
         for(int i=-250;i<250;i++) {
             points.add(new Point3D(
-                        new Float(i),
-                        new Float(Math.sin(i)*50)+i,
-                        new Float(Math.cos(i)*50)+i));
+                        (float) i,
+                        (float) Math.sin(i)*50+i,
+                        (float) Math.cos(i)*50+i));
         }
         polyLine3D = new PolyLine3D(points,3,Color.STEELBLUE);    
         sceneRoot.getChildren().addAll(polyLine3D);

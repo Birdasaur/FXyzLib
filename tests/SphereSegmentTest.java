@@ -6,7 +6,6 @@
 
 package org.fxyz.tests;
 
-import java.util.ArrayList;
 import java.util.Random;
 import javafx.application.Application;
 import javafx.beans.property.DoubleProperty;
@@ -19,9 +18,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
-import org.fxyz.data.Point3D;
 import org.fxyz.primitives.SphereSegment;
-import org.fxyz.tools.PolyLine3D;
 
 /**
  *
