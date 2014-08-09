@@ -18,13 +18,13 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 import org.fxyz.composites.CameraTransformer;
 import org.fxyz.primitives.Torus;
 import org.jtp.fxyz.shape3d.SkyBox;
+
 
 /**
  *
@@ -38,35 +38,13 @@ public class SkyBoxTest extends Application {
     private double mouseOldY;
     private double mouseDeltaX;
     private double mouseDeltaY;
-    private final double cameraDistance = 5000;
+    private double cameraDistance = 5000;
     
-    private final Group root = new Group();
-    private SkyBox skyBox;
     private PerspectiveCamera camera;
-    private final CameraTransformer cameraTransform = new CameraTransformer();
+    private CameraTransformer cameraTransform = new CameraTransformer();
     
     @Override
-    public void start(Stage primaryStage) throws NonInvertibleTransformException {
-        
-        camera = new PerspectiveCamera(true);
-        cameraTransform.setTranslate(0, 0, 0);
-        cameraTransform.getChildren().addAll(camera);
-        camera.setNearClip(0.1);
-        camera.setFarClip(100000.0);
-        camera.setFieldOfView(35);
-        camera.setTranslateZ(-cameraDistance);
-        cameraTransform.ry.setAngle(-45.0);
-        cameraTransform.rx.setAngle(-10.0);
-        //add a Point Light for better viewing of the grid coordinate system
-        PointLight light = new PointLight(Color.WHITE);
-        
-        cameraTransform.getChildren().add(light);
-        light.setTranslateX(camera.getTranslateX());
-        light.setTranslateY(camera.getTranslateY());
-        light.setTranslateZ(camera.getTranslateZ());
-                
-        root.getChildren().add(cameraTransform);
-        
+    public void start(Stage primaryStage) {
         //Images provided via google search for "skybox image"
         // sample skybox images
         //http://www.zfight.com/misc/images/textures/envmaps/grimmnight_large.jpg
@@ -74,12 +52,9 @@ public class SkyBoxTest extends Application {
         //http://www.zfight.com/misc/images/textures/envmaps/miramar_large.jpg
         //http://www.zfight.com/misc/images/textures/envmaps/interstellar_large.jpg
         //http://www.zfight.com/misc/images/textures/envmaps/violentdays_large.jpg
-        //http://scmapdb.wdfiles.com/local--files/skybox:space/0-space-skybox.png
-        //http://img297.imageshack.us/img297/4638/spheremapgalaxyasteroid.png
+        SkyBox skyBox = new SkyBox(new Image("http://www.zfight.com/misc/images/textures/envmaps/interstellar_large.jpg"));
         
-        skyBox = new SkyBox(camera, new Image("http://www.zfight.com/misc/images/textures/envmaps/violentdays_large.jpg"));
-        
-        
+        Group root = new Group(skyBox);
        
         //Make a bunch of semi random Torusesessses(toroids?) and stuff : from torustest
         Group torusGroup = new Group();
@@ -122,9 +97,29 @@ public class SkyBoxTest extends Application {
 
         }
         
+        root.getChildren().add(torusGroup);
         Scene scene = new Scene(root, 1024, 668, true, SceneAntialiasing.BALANCED);
         scene.setFill(Color.TRANSPARENT);
+        
+        camera = new PerspectiveCamera(true);
+        cameraTransform.setTranslate(0, 0, 0);
+        cameraTransform.getChildren().addAll(camera);
+        camera.setNearClip(0.1);
+        camera.setFarClip(100000.0);
+        camera.setFieldOfView(35);
+        camera.setTranslateZ(0);
+        cameraTransform.ry.setAngle(-45.0);
+        cameraTransform.rx.setAngle(-10.0);
+        //add a Point Light for better viewing of the grid coordinate system
+        PointLight light = new PointLight(Color.WHITE);
+        
+        cameraTransform.getChildren().add(light);
+        light.setTranslateX(camera.getTranslateX());
+        light.setTranslateY(camera.getTranslateY());
+        light.setTranslateZ(camera.getTranslateZ());
         scene.setCamera(camera);
+        
+        root.getChildren().add(cameraTransform);
         
         //First person shooter keyboard movement
         scene.setOnKeyPressed(event -> {
@@ -146,7 +141,7 @@ public class SkyBoxTest extends Application {
             mousePosX = me.getSceneX();
             mousePosY = me.getSceneY();
             mouseOldX = me.getSceneX();
-            mouseOldY = me.getSceneY();            
+            mouseOldY = me.getSceneY();
         });
         scene.setOnMouseDragged((MouseEvent me) -> {
             mouseOldX = mousePosX;
@@ -167,8 +162,7 @@ public class SkyBoxTest extends Application {
             }
             if (me.isPrimaryButtonDown()) {
                 cameraTransform.ry.setAngle(((cameraTransform.ry.getAngle() + mouseDeltaX * modifierFactor * modifier * 2.0) % 360 + 540) % 360 - 180); // +
-                cameraTransform.rx.setAngle(((cameraTransform.rx.getAngle() - mouseDeltaY * modifierFactor * modifier * 2.0) % 360 + 540) % 360 - 180); // - 
-                
+                cameraTransform.rx.setAngle(((cameraTransform.rx.getAngle() - mouseDeltaY * modifierFactor * modifier * 2.0) % 360 + 540) % 360 - 180); // -                
             } else if (me.isSecondaryButtonDown()) {
                 double z = camera.getTranslateZ();
                 double newZ = z + mouseDeltaX * modifierFactor * modifier;
@@ -182,8 +176,7 @@ public class SkyBoxTest extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
         
-                
-        root.getChildren().addAll(skyBox, torusGroup);
+        
     }
 
     /**
