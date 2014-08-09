@@ -6,143 +6,268 @@
 
 package org.jtp.fxyz.shape3d;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableFloatArray;
-import javafx.collections.ObservableIntegerArray;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.ObservableList;
+import javafx.geometry.Point3D;
 import javafx.scene.AmbientLight;
 import javafx.scene.DepthTest;
 import javafx.scene.Group;
+import javafx.scene.Node;
+import javafx.scene.PerspectiveCamera;
+import javafx.scene.PointLight;
 import javafx.scene.image.Image;
+import javafx.scene.image.PixelFormat;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.CullFace;
-import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
+import javafx.scene.transform.Affine;
+import javafx.scene.transform.Transform;
 
 /**
  *
  * @author Dub-Laptop
  */
 public class SkyBox extends Group {
-
-    private final ObservableIntegerArray faces = FXCollections.observableIntegerArray();
-    private final ObservableFloatArray texCoords = FXCollections.observableFloatArray();
-    private final ObservableFloatArray points = FXCollections.observableFloatArray();
-
-    private final double WIDTH, HEIGHT, DEPTH;
-    private TriangleMesh cube;
-    private MeshView skyBox;
-    private float x0, x1, x2, x3, x4, y0, y1, y2, y3;
-    private Image texImg;
+   
+    private final CubeMesh skyBox;
+    private final PhongMaterial skyMaterial = new PhongMaterial();
+    private final Image texImg;
+    private PerspectiveCamera camera = null;
+    private final Affine affineTransform = new Affine();
     
-    public SkyBox(Image diff){
-        this(10000, diff);
+    private static final AmbientLight ambientLighting = new AmbientLight();
+    private static final PointLight pointLight = new PointLight();
+    
+    private final InvalidationListener cameraTransformedListener = (Observable observable) -> {
+        Transform ct = (camera != null) ? camera.getLocalToSceneTransform() : null;
+        if(ct != null){
+            affineTransform.setTx(ct.getTx());
+            affineTransform.setTy(ct.getTy());
+            affineTransform.setTz(ct.getTz());
+            //debuging
+            //System.out.println(ct);
+        }else{
+            throw new UnsupportedOperationException("Camera must not be null!");
+        }
+    }; 
+    
+    // is 100,000 pixels too big?
+    public SkyBox(PerspectiveCamera cam, Image diffMap){
+        this(cam, 100000.0, diffMap);
     }
 
-    private SkyBox(double size, Image diffMap) {
-        this.WIDTH = size;
-        this.HEIGHT = size;
-        this.DEPTH = size;
-        this.cube = new TriangleMesh();
-        this.skyBox = new MeshView();
+    public SkyBox(PerspectiveCamera cam, double size, Image diffMap) {         
+        this.camera = cam;        
+        this.skyBox = new CubeMesh(size);
         this.texImg = diffMap;
         
-        PhongMaterial mat = new PhongMaterial();
-        mat.setSpecularColor(Color.TRANSPARENT);
-        mat.setDiffuseMap(texImg);
+        initSkyBoxMesh();
+        initLighting();
+        initCameraTransformedListener();        
         
-        calculatePoints();
-        calculateTexCoords();
-        calculateFaces();
-        
-        skyBox.setMesh(cube);
-        skyBox.setMaterial(mat);
+    }   
+
+    /*
+        Private Methods
+    */
+       
+    private void initSkyBoxMesh(){
+        skyBox.getTransforms().add(affineTransform);        
+        skyBox.setMaterial(skyMaterial);
         skyBox.setCullFace(CullFace.NONE);
+        skyBox.setDepthTest(DepthTest.ENABLE); // do we need depthTesting? better safe than sorry?
         
-        AmbientLight light = new AmbientLight();
-        light.getScope().add(SkyBox.this);
         
-        setDepthTest(DepthTest.ENABLE);
-        getChildren().addAll(skyBox,light);
+        skyMaterial.setSpecularColor(Color.TRANSPARENT); // prevents unwanted light reflections
+        skyMaterial.setDiffuseMap(texImg);
+        
+        getChildren().add(skyBox);
+    }
+    
+    private void initLighting(){
+        // self illumination / ensures skybox is visible        
+        ambientLighting.getScope().add(SkyBox.this);
+        bindPointLightToAmbientLight(true);
+        
+        getChildren().addAll(ambientLighting, pointLight);
+    }
+    
+    private void initCameraTransformedListener(){
+        // Keep Skybox centered on Camera tx,ty,tz
+        camera.localToSceneTransformProperty().addListener(cameraTransformedListener);
+    }
+    
+    
+    /*
+        Properties
+    */
+    
+    /*
+        ambientLighting
+    */
+    
+    public AmbientLight getAmbientLighting() {
+        return ambientLighting;
     }
 
-    private void calculatePoints() {
-        float hw = (float) WIDTH / 2f;
-        float hh = (float) HEIGHT / 2f;
-        float hd = (float) DEPTH / 2f;
+    public final void setAmbientLightColor(Color value) {
+        ambientLighting.setColor(value);
+    }
 
-        points.addAll(
-                hw, hh, hd,
-                hw, hh, -hd,
-                hw, -hh, hd,
-                hw, -hh, -hd,
-                -hw, hh, hd,
-                -hw, hh, -hd,
-                -hw, -hh, hd,
-                -hw, -hh, -hd
+    public final Color getAmbientLightColor() {
+        return ambientLighting.getColor();
+    }
+
+    public final ObjectProperty<Color> ambientLightColorProperty() {
+        return ambientLighting.colorProperty();
+    }
+
+    public final void setAmbientLightOn(boolean value) {
+        ambientLighting.setLightOn(value);
+    }
+
+    public ObservableList<Node> getAmbientLightingScope() {
+        return ambientLighting.getScope();
+    }
+    
+    public void setAmbientLightingPosition(Point3D point){
+        ambientLighting.setTranslateX(point.getX());
+        ambientLighting.setTranslateY(point.getY());
+        ambientLighting.setTranslateZ(point.getZ());
+    }
+
+    public Point3D getAmbientLightPosition(){
+        return new Point3D(
+                ambientLighting.getTranslateX(), 
+                ambientLighting.getTranslateY(), 
+                ambientLighting.getTranslateZ()
         );
-        cube.getPoints().addAll(points);
-
+    }
+    
+    
+    /*
+        enable PointLight, disable Ambient / vicea versa
+    */    
+    private BooleanProperty pointLightEnabled;
+    public boolean isPointLightEnabled() {
+        return pointLightEnabledProperty().get();
+    }
+    public void setPointLightEnabled(boolean value) {
+        pointLightEnabledProperty().set(value);
+    }
+    public BooleanProperty pointLightEnabledProperty() {
+        if(pointLightEnabled == null) {
+            pointLightEnabled = new SimpleBooleanProperty(true){
+                @Override
+                protected void invalidated() {
+                    if(isPointLightEnabled()){
+                        getPointLight().setLightOn(true);
+                    }else{
+                        getPointLight().setLightOn(false);
+                    }
+                }                
+            };
+        }
+        return pointLightEnabled;
     }
 
-    private void calculateFaces() {
-        faces.addAll(
-            0, 10, 2, 5, 1, 9,
-            2, 5, 3, 4, 1, 9,
-            
-            4, 7, 5, 8, 6, 2,
-            6, 2, 5, 8, 7, 3,
-            
-            0, 13, 1, 9, 4, 12,
-            4, 12, 1, 9, 5, 8,
-            
-            2, 1, 6, 0, 3, 4,
-            3, 4, 6, 0, 7, 3,
-            
-            0, 10, 4, 11, 2, 5,
-            2, 5, 4, 11, 6, 6,
-            
-            1, 9, 3, 4, 5, 8,
-            5, 8, 3, 4, 7, 3
+    /*
+        Optional PointLight
+    */
+    
+    public PointLight getPointLight() {
+        return pointLight;
+    }
+
+    public final void setPointLightColor(Color value) {
+        pointLight.setColor(value);
+    }
+    
+    public final Color getPointLightColor() {
+        return pointLight.getColor();
+    }
+
+    public final ObjectProperty<Color> pointLightColorProperty() {
+        return pointLight.colorProperty();
+    }
+
+    public final void setPointLightOn(boolean value) {
+        pointLight.setLightOn(value);
+    }
+
+    public ObservableList<Node> getPointLightScope() {
+        return pointLight.getScope();
+    }
+    
+    public void setPointLightPosition(Point3D point){
+        pointLight.setTranslateX(point.getX());
+        pointLight.setTranslateY(point.getY());
+        pointLight.setTranslateZ(point.getZ());
+    }
+    public Point3D getPointLightPosition(){
+        return new Point3D(
+            pointLight.getTranslateX(), 
+            pointLight.getTranslateY(), 
+            pointLight.getTranslateZ()
         );
-        cube.getFaces().addAll(faces);
+    }
+    
+    public void bindPointLightToAmbientLight(boolean b){
+        if(b){// we want to bind them
+            if(!pointLight.translateXProperty().isBound()){// are they already bound?
+                
+                pointLight.translateXProperty().bind(ambientLighting.translateXProperty());
+                pointLight.translateYProperty().bind(ambientLighting.translateYProperty());
+                pointLight.translateZProperty().bind(ambientLighting.translateZProperty());
+            }
+        }else{// we dont want them bound
+            if(pointLight.translateXProperty().isBound()){// are they already bound?
+                
+                pointLight.translateXProperty().unbind();
+                pointLight.translateYProperty().unbind();
+                pointLight.translateZProperty().unbind();                
+            }
+        }
+    }
+    
+    /*
+        Material
+    */
+    public final void setSkyMap(Image value) {
+        skyMaterial.setDiffuseMap(value);
     }
 
-    private void calculateTexCoords() {
-        x0 = 0.0f; x1 = 1.0f / 4.0f; x2 = 2.0f / 4.0f; x3 =  3.0f / 4.0f; x4 = 1.0f;
-        y0 = 0.0f; y1 = 1.0f /3.0f; y2 = 2.0f / 3.0f; y3 = 1.0f;
-        //x4 = 0; x3 = iw * 0.25f; x2 = iw / 2.0f; x1 = iw * 0.75f; x0 = iw;
-        //y3 = 0; y2 = ih * 0.33f; y1 = ih * 0.66f; y0 = ih;
-        float padding = 0.001f;
-        texCoords.addAll(
-            (x1 + padding), (y0 + padding),
-            (x2 - padding), (y0 + padding),
-            (x0), (y1 + padding),
-            (x1 + padding), (y1 + padding),
-            (x2 - padding), (y1 + padding),
-            (x3), (y1 + padding),
-            (x4), (y1 + padding),
-            (x0), (y2 - padding),
-            (x1 + padding), (y2 - padding),
-            (x2 - padding), (y2 - padding),
-            (x3), (y2 - padding),
-            (x4), (y2 - padding),
-            (x1 + padding), (y3 - padding),
-            (x2), (y3 - padding)
-        );
-        cube.getTexCoords().addAll(texCoords);
+    public final Image getSkyMap() {
+        return skyMaterial.getDiffuseMap();
     }
 
-    public double getWidth() {
-        return WIDTH;
+    public final ObjectProperty<Image> skyMapProperty() {
+        return skyMaterial.diffuseMapProperty();
     }
 
-    public double getHeight() {
-        return HEIGHT;
+    public final void setSkyIlluminationMap(Image value) {
+        skyMaterial.setSelfIlluminationMap(value);
     }
 
-    public double getDepth() {
-        return DEPTH;
+    public final Image getSkyIlluminationMap() {
+        return skyMaterial.getSelfIlluminationMap();
     }
+
+    public final ObjectProperty<Image> skyIlluminationMapProperty() {
+        return skyMaterial.selfIlluminationMapProperty();
+    }
+
+    public TriangleMesh getSkyBoxMesh() {
+        return (TriangleMesh)skyBox.getMesh();
+    }
+    
+    
     
 }
