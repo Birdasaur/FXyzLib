@@ -26,7 +26,7 @@ public class TorusMesh extends MeshView {
     private static final double DEFAULT_START_ANGLE = 0.0D;
     private static final double DEFAULT_X_OFFSET = 0.0D;
     private static final double DEFAULT_Y_OFFSET = 0.0D;
-    private static final double DEFAULT_Z_OFFSET = 0.0D;
+    private static final double DEFAULT_Z_OFFSET = 1.0D;
 
     public TorusMesh() {
         this(DEFAULT_DIVISIONS, DEFAULT_T_DIVISIONS, DEFAULT_RADIUS, DEFAULT_T_RADIUS);
