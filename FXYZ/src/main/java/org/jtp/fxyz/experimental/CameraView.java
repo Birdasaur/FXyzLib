@@ -71,7 +71,7 @@ public final class CameraView extends ImageView {
 
     public CameraView(SubScene scene) {
         // Make sure "world" is a group
-        //assert scene.getRoot().getClass().equals(Group.class);
+        assert scene.getRoot().getClass().equals(Group.class);
         
         worldToView = (Group)scene.getRoot();
                
