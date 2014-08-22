@@ -9,8 +9,6 @@ package org.jtp.fxyz.tests;
 import com.sun.javafx.Utils;
 import java.util.Random;
 import javafx.application.Application;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.StringBinding;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.DepthTest;
@@ -22,12 +20,11 @@ import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
@@ -68,7 +65,7 @@ public class BillBoardBehaviorTest extends Application {
     private SkyBox skyBox;
     private PerspectiveCamera camera;
     private final CameraTransformer cameraTransform = new CameraTransformer();
-    private BillBoard bill = new BillBoard(400,400, Color.CHARTREUSE);
+    private BillBoard bill = new BillBoard();
     
     
     @Override
@@ -255,11 +252,18 @@ public class BillBoardBehaviorTest extends Application {
         });
     }
     //******************            BillBoard            ***********************
-    private class BillBoard extends Rectangle implements BillboardBehavior<BillBoard>{
+    private class BillBoard extends ImageView implements BillboardBehavior<BillBoard>{
 
-        public BillBoard(double width, double height, Paint fill) {
-            super(width, height, fill);            
+        public BillBoard() {
+            Image image = new Image("https://www.photoshopgurus.com/forum/attachments/photoshop-newbies/46366d1402986383t-how-change-opacity-png-image-alpha-background-epmthsr-png");
+            this.setFitWidth(400);
+            this.setPreserveRatio(true);
+            this.setSmooth(true);
+            this.setImage(image); 
+            
         }
+
+        
         
         @Override
         public BillBoard getBillboardNode() {
