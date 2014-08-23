@@ -1,10 +1,10 @@
 package org.jtp.fxyz.experimental;
 
+import java.util.Collection;
+import java.util.List;
 import javafx.geometry.Point3D;
 import javafx.scene.Node;
-import javafx.scene.PerspectiveCamera;
 import javafx.scene.transform.Affine;
-import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Transform;
 import javafx.scene.transform.Translate;
 
@@ -14,30 +14,24 @@ import javafx.scene.transform.Translate;
  * ie: Keeps the Node oriented towards camera.
  * 
  * @author jdub1581
- * @param <T> Type of node to be used.
+ * @param <T> Type of node to be used for (this) "Billboard".
  */
-public interface BillboardBehavior<T extends Node> {
+public interface BillboardBehavior<T extends Node>{
+    static BillboardUpdateTimer timer = new BillboardUpdateTimer();
     /**
      * 
      * @return The node to be used for this behavior.
      */
     public T getBillboardNode();    
+    //public U getSupportedClasses();
     /**
      * 
-     * @return The camera for node to look at.
+     * @return The node to look at.
      */
-    public PerspectiveCamera getCamera();
-    /**
-     * The transform used to update nodes orientation.
-     */
-    public Affine affine = new Affine();
-    public Rotate rotateX = new Rotate(0,0,0,0,Rotate.X_AXIS), 
-            rotateY = new Rotate(0,0,0,0,Rotate.Y_AXIS), 
-            rotateZ = new Rotate(0,0,0,0,Rotate.Z_AXIS);
-    public Translate translate = new Translate(0,0,1);
+    public Node getOther();
+      
     
-    BillboardUpdateTimer timer = new BillboardUpdateTimer();
-     
+    public Affine affine = new Affine();         
     /**
      *  Adds the Affine transform to Node and starts timer.
      */
@@ -48,7 +42,7 @@ public interface BillboardBehavior<T extends Node> {
                 return null;
             });
         }
-        getBillboardNode().getTransforms().addAll(affine, rotateX, rotateY, rotateZ, translate);
+        getBillboardNode().getTransforms().addAll(affine);
         timer.start();
     }
     /**
@@ -63,20 +57,20 @@ public interface BillboardBehavior<T extends Node> {
      * can change the Translate for fixed distance     * 
      */
     default void updateMatrix(){
-        Transform cam = getCamera().getLocalToSceneTransform(),
-                 self = getBillboardNode().getLocalToParentTransform();
+        Transform cam = getOther().getLocalToSceneTransform(),
+                 self = getBillboardNode().getLocalToSceneTransform();
          
-        Point3D center = new Point3D(cam.getTx(), cam.getTy(), cam.getTz());
-        Point3D eye = new Point3D(self.getTx(), self.getTy(), self.getTz());
-        Point3D up = cam.deltaTransform(0, 1, 0);
+        Point3D camPos = new Point3D(cam.getTx(), cam.getTy(), cam.getTz());
+        Point3D selfPos = new Point3D(self.getTx(), self.getTy(), self.getTz());
+        Point3D up = Direction3D.up();
         
         double forwardx, forwardy, forwardz, invMag;
         double upx, upy, upz;
         double sidex, sidey, sidez;
 
-        forwardx = eye.getX() - center.getX();
-        forwardy = eye.getY() - center.getY();
-        forwardz = eye.getZ() - center.getZ();
+        forwardx = selfPos.getX() - camPos.getX();
+        forwardy = selfPos.getY() - camPos.getY();
+        forwardz = selfPos.getZ() - camPos.getZ();
 
         invMag = 1.0 / Math.sqrt(forwardx * forwardx + forwardy * forwardy + forwardz * forwardz);
         forwardx = forwardx * invMag;
@@ -115,15 +109,12 @@ public interface BillboardBehavior<T extends Node> {
         double mzx = forwardx;
         double mzy = forwardy;
         double mzz = forwardz;
-
-        double mxt = -eye.getX() * mxx + -eye.getY() * mxy + -eye.getZ() * mxz;
-        double myt = -eye.getX() * myx + -eye.getY() * myy + -eye.getZ() * myz;
-        double mzt = -eye.getX() * mzx + -eye.getY() * mzy + -eye.getZ() * mzz;
-
         
-        affine.setMxx(mxx); affine.setMxy(myx); affine.setMzx(mzx); //affine.setTx(mxt);
-        affine.setMyx(mxy); affine.setMyy(myy); affine.setMzy(mzy); //affine.setTy(myt);
-        affine.setMzx(mxz); affine.setMzy(myz); affine.setMzz(mzz); //affine.setTz(mzt);
+        affine.setMxx(mxx); affine.setMxy(myx); affine.setMzx(mzx); 
+        affine.setMyx(mxy); affine.setMyy(myy); affine.setMzy(mzy); 
+        affine.setMzx(mxz); affine.setMzy(myz); affine.setMzz(mzz); 
+        
         
     }
+    
 }
