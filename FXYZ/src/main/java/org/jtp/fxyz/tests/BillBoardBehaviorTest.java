@@ -10,9 +10,11 @@ import com.sun.javafx.Utils;
 import java.util.Random;
 import javafx.application.Application;
 import javafx.geometry.Insets;
+import javafx.geometry.Point3D;
 import javafx.geometry.Pos;
 import javafx.scene.DepthTest;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
 import javafx.scene.Scene;
@@ -69,7 +71,7 @@ public class BillBoardBehaviorTest extends Application {
     
     
     @Override
-    public void start(Stage primaryStage) throws NonInvertibleTransformException {
+    public void start(Stage stage) throws NonInvertibleTransformException {
         
         createSubscene();
         createButtonOverlay();
@@ -77,9 +79,10 @@ public class BillBoardBehaviorTest extends Application {
         
         Scene scene = new Scene(rootPane, 1024, 668);          
         
-        primaryStage.setTitle("SkyBoxTest!");
-        primaryStage.setScene(scene);
-        primaryStage.show();                        
+        stage.setTitle("SkyBoxTest!");
+        stage.setScene(scene);
+        stage.setMaximized(true);
+        stage.show();                        
         
     }
 
@@ -113,7 +116,7 @@ public class BillBoardBehaviorTest extends Application {
        
         //Make a bunch of semi random Torusesessses(toroids?) and stuff : from torustest
         Group torusGroup = new Group();        
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < 10; i++) {
             Random r = new Random();
             //A lot of magic numbers in here that just artificially constrain the math
             float randomRadius = (float) ((r.nextFloat() * 300) + 50);
@@ -158,12 +161,14 @@ public class BillBoardBehaviorTest extends Application {
         //Enable subScene resizing
         subScene.widthProperty().bind(rootPane.widthProperty());
         subScene.heightProperty().bind(rootPane.heightProperty());
+        subScene.setFocusTraversable(true);
+        
     }
        
     private void createButtonOverlay(){
         Button b = new Button("Activate");
         b.setPrefSize(150, 40);
-       
+        b.setFocusTraversable(false);
         b.setOnAction(e->{
             if(!active){
                 bill.startBillboardBehavior();
@@ -186,7 +191,7 @@ public class BillBoardBehaviorTest extends Application {
         cameraView.setFitWidth(400);
         cameraView.setFitHeight(300);
         cameraView.setFirstPersonNavigationEabled(true);
-        
+        cameraView.setFocusTraversable(true);
         StackPane.setAlignment(cameraView, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(cameraView, new Insets(10));
         rootPane.getChildren().add(cameraView);
@@ -195,6 +200,10 @@ public class BillBoardBehaviorTest extends Application {
     }
     
     private void initFirstPersonControls(SubScene scene){
+        //make sure Subscene handles KeyEvents
+        scene.setOnMouseEntered(e->{
+            scene.requestFocus();
+        });
         //First person shooter keyboard movement
         scene.setOnKeyPressed(event -> {
             double change = 10.0;
@@ -212,6 +221,7 @@ public class BillBoardBehaviorTest extends Application {
         });
         
         scene.setOnMousePressed((MouseEvent me) -> {
+            scene.requestFocus();
             mousePosX = me.getSceneX();
             mousePosY = me.getSceneY();
             mouseOldX = me.getSceneX();
@@ -252,15 +262,19 @@ public class BillBoardBehaviorTest extends Application {
         });
     }
     //******************            BillBoard            ***********************
-    private class BillBoard extends ImageView implements BillboardBehavior<BillBoard>{
-
+    private class BillBoard extends Group implements BillboardBehavior<BillBoard>{
+        private final ImageView view = new ImageView();
+        
         public BillBoard() {
-            Image image = new Image("https://www.photoshopgurus.com/forum/attachments/photoshop-newbies/46366d1402986383t-how-change-opacity-png-image-alpha-background-epmthsr-png");
-            this.setFitWidth(400);
-            this.setPreserveRatio(true);
-            this.setSmooth(true);
-            this.setImage(image); 
+            super();
+            Image image = new Image("http://nicelyphrasedbookblog.com/wp-content/uploads/2013/08/oak-tree-with-transparent-background-hi.png");
+            this.view.setFitWidth(800);
+            this.view.setPreserveRatio(true);
+            this.view.setSmooth(true);
+            this.view.setImage(image); 
             
+            setDepthTest(DepthTest.ENABLE);
+            getChildren().addAll(view);
         }
 
         
@@ -271,7 +285,7 @@ public class BillBoardBehaviorTest extends Application {
         }
 
         @Override
-        public PerspectiveCamera getCamera() {
+        public Node getOther() {
             return camera;
         }
     

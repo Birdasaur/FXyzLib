@@ -1,12 +1,9 @@
 package org.jtp.fxyz.experimental;
 
-import java.util.Collection;
-import java.util.List;
 import javafx.geometry.Point3D;
 import javafx.scene.Node;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.Transform;
-import javafx.scene.transform.Translate;
 
 /**
  * Basic interface for Billboard Nodes. 
@@ -23,7 +20,6 @@ public interface BillboardBehavior<T extends Node>{
      * @return The node to be used for this behavior.
      */
     public T getBillboardNode();    
-    //public U getSupportedClasses();
     /**
      * 
      * @return The node to look at.
