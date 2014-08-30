@@ -1,9 +1,16 @@
-package org.jtp.fxyz.experimental;
+package main.java.org.jtp.fxyz.experimental;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Bounds;
 import javafx.geometry.Point3D;
 import javafx.scene.Node;
+import javafx.scene.shape.Shape3D;
 import javafx.scene.transform.Affine;
+import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Transform;
+import main.java.org.jtp.math.Vector3D;
+import org.jtp.fxyz.experimental.BillboardUpdateTimer;
 
 /**
  * Basic interface for Billboard Nodes. 
@@ -14,6 +21,14 @@ import javafx.scene.transform.Transform;
  * @param <T> Type of node to be used for (this) "Billboard".
  */
 public interface BillboardBehavior<T extends Node>{
+    /**
+     * Spherical means object will look at other on all axes
+     * Cylindrical means object will rotate on Y axis only
+     */
+    public enum BillboardMode{
+        SPHERICAL, 
+        CYLINDRICAL;
+    }
     static BillboardUpdateTimer timer = new BillboardUpdateTimer();
     /**
      * 
@@ -27,7 +42,7 @@ public interface BillboardBehavior<T extends Node>{
     public Node getOther();
       
     
-    public Affine affine = new Affine();         
+    public Affine affine = new Affine();  
     /**
      *  Adds the Affine transform to Node and starts timer.
      */
@@ -50,67 +65,73 @@ public interface BillboardBehavior<T extends Node>{
     }
     /**
      * Updates the transformation matrix.
-     * can change the Translate for fixed distance     * 
+     * can change the Translate for fixed distance  
      */
     default void updateMatrix(){
-        Transform cam = getOther().getLocalToSceneTransform(),
-                 self = getBillboardNode().getLocalToSceneTransform();
-         
+        Transform cam  = getOther().getLocalToSceneTransform(),
+                  self = getBillboardNode().getLocalToSceneTransform();         
+                
+        Bounds b;
+        double cX,
+               cY,
+               cZ;
+        
+        if(!(getBillboardNode() instanceof Shape3D)){
+            b = getBillboardNode().getBoundsInLocal();
+                cX = b.getWidth() / 2;
+                cY = b.getHeight() / 2;
+                cZ = b.getDepth() / 2;            
+        }else{
+            cX = self.getTx();
+            cY = self.getTy();
+            cZ = self.getTz();
+        }       
+        
         Point3D camPos = new Point3D(cam.getTx(), cam.getTy(), cam.getTz());
-        Point3D selfPos = new Point3D(self.getTx(), self.getTy(), self.getTz());
-        Point3D up = Direction3D.up();
+                Point3D selfPos = new Point3D(cX, cY, cZ);
+                
+        Vector3D up = Vector3D.UP,
+        forward = new Vector3D(
+                (selfPos.getX()) - camPos.getX(),
+                (selfPos.getY()) - camPos.getY(),
+                (selfPos.getZ()) - camPos.getZ()
+        ).toNormal(),
+        right = up.crossProduct(forward).toNormal();
+        up = forward.crossProduct(right).toNormal();
+                
+        switch(getBillboardMode()){
+            
+            case SPHERICAL:                  
+                affine.setMxx(right.x); affine.setMxy(up.x); affine.setMzx(forward.x); 
+                affine.setMyx(right.y); affine.setMyy(up.y); affine.setMzy(forward.y); 
+                affine.setMzx(right.z); affine.setMzy(up.z); affine.setMzz(forward.z);
         
-        double forwardx, forwardy, forwardz, invMag;
-        double upx, upy, upz;
-        double sidex, sidey, sidez;
-
-        forwardx = selfPos.getX() - camPos.getX();
-        forwardy = selfPos.getY() - camPos.getY();
-        forwardz = selfPos.getZ() - camPos.getZ();
-
-        invMag = 1.0 / Math.sqrt(forwardx * forwardx + forwardy * forwardy + forwardz * forwardz);
-        forwardx = forwardx * invMag;
-        forwardy = forwardy * invMag;
-        forwardz = forwardz * invMag;
-
-        invMag = 1.0 / Math.sqrt(up.getX() * up.getX() + up.getY() * up.getY() + up.getZ() * up.getZ());
-        upx = up.getX() * invMag;
-        upy = up.getY() * invMag;
-        upz = up.getZ() * invMag;
-
-        // side = Up cross forward
-        sidex = upy * forwardz - forwardy * upz;
-        sidey = upz * forwardx - upx * forwardz;
-        sidez = upx * forwardy - upy * forwardx;
-
-        invMag = 1.0 / Math.sqrt(sidex * sidex + sidey * sidey + sidez * sidez);
-        sidex *= invMag;
-        sidey *= invMag;
-        sidez *= invMag;
-
-        // recompute up = forward cross side
-        upx = forwardy * sidez - sidey * forwardz;
-        upy = forwardz * sidex - forwardx * sidez;
-        upz = forwardx * sidey - forwardy * sidex;
-
-        // transpose because we calculated the inverse of what we want
-        double mxx = sidex;
-        double mxy = sidey;
-        double mxz = sidez;
-
-        double myx = upx;
-        double myy = upy;
-        double myz = upz;
-
-        double mzx = forwardx;
-        double mzy = forwardy;
-        double mzz = forwardz;
-        
-        affine.setMxx(mxx); affine.setMxy(myx); affine.setMzx(mzx); 
-        affine.setMyx(mxy); affine.setMyy(myy); affine.setMzy(mzy); 
-        affine.setMzx(mxz); affine.setMzy(myz); affine.setMzz(mzz); 
-        
+                affine.setTx(cX * (1 - affine.getMxx()) - cY * affine.getMxy() - cZ * affine.getMxz());
+                affine.setTy(cY * (1 - affine.getMyy()) - cX * affine.getMyx() - cZ * affine.getMyz());
+                affine.setTz(cZ * (1 - affine.getMzz()) - cX * affine.getMzx() - cY * affine.getMzy());                
+                break;
+                
+            case CYLINDRICAL:                
+                affine.setMxx(right.x); affine.setMxy(0); affine.setMzx(forward.x); 
+                affine.setMyx(0); affine.setMyy(1); affine.setMzy(0); 
+                affine.setMzx(right.z); affine.setMzy(0); affine.setMzz(forward.z);
+                                
+                affine.setTx(cX * (1 - affine.getMxx()) - cY * affine.getMxy() - cZ * affine.getMxz());
+                affine.setTy(cY * (1 - affine.getMyy()) - cX * affine.getMyx() - cZ * affine.getMyz());
+                affine.setTz(cZ * (1 - affine.getMzz()) - cX * affine.getMzx() - cY * affine.getMzy());
+                break;
+        }
         
     }
     
+    ObjectProperty<BillboardMode> mode = new SimpleObjectProperty<>(BillboardMode.SPHERICAL);
+    default BillboardMode getBillboardMode(){
+        return mode.get();
+    }
+    default void setBillboardMode(BillboardMode m){
+        mode.set(m);
+    }
+    default ObjectProperty<BillboardMode> getBillboardModeProperty(){
+        return mode;
+    }
 }
