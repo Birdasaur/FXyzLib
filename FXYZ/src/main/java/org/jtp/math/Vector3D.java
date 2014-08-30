@@ -11,7 +11,7 @@ package main.java.org.jtp.math;
  */
 public final class Vector3D {
 
-    public static final Vector3D// Homogenious      public static final Vector3 // Homogenious      public static final Vector3D // Homogenious      public static final Vector3 // Homogenious      
+    public static final Vector3D// Homogenious      
             FORWARD = new Vector3D(0, 0, 1),
             BACK = new Vector3D(0, 0, -1),
             LEFT = new Vector3D(-1, 0, 0),

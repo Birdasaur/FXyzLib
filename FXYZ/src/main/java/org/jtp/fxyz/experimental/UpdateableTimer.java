@@ -14,19 +14,28 @@ import java.util.logging.Logger;
 import javafx.animation.AnimationTimer;
 
 /**
- *
+ * 
  * @author Dub
  */
-public final class BillboardUpdateTimer extends AnimationTimer{
+public abstract class UpdateableTimer extends AnimationTimer{
     private final List<Callable<Void>> updates = new ArrayList<>();
     public List<Callable<Void>> getUpdateList(){return updates;}
+    private final int maxCalls;   
+
+    public UpdateableTimer(int maxCallables) {
+        assert maxCallables > 0;
+        
+        this.maxCalls = maxCallables;
+    }    
+    
     public void addUpdate(Callable<Void> c){
-        if(updates.size() > 0){
-            //return
-        }else{
+        if(updates.size() >= 0 && updates.size() < maxCalls){
             updates.add(c);
+        }else{
+            //return
         }
     }
+    
     public void removeUpdate(Callable<Void> c){
         int idx = !updates.isEmpty() ? updates.indexOf(c) : -1;
         if(idx != -1){
@@ -40,14 +49,14 @@ public final class BillboardUpdateTimer extends AnimationTimer{
                 try {
                     u.call();
                 } catch (Exception ex) {
-                    Logger.getLogger(BillboardUpdateTimer.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(BillboardTimer.class.getName()).log(Level.SEVERE, null, ex);
                 }
             });            
         }
     }
+    
     @Override
     public void handle(long now) {
         update();
     }
-    
 }

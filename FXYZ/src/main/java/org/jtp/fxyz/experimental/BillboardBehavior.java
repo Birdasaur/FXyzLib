@@ -12,8 +12,7 @@ import main.java.org.jtp.math.Vector3D;
 
 /**
  * Basic interface for Billboard Nodes. 
- * (started with a Region but figured all Nodes should be able to look at the camera)
- * ie: Keeps the Node oriented towards camera.
+ * ie: Keeps this Node oriented towards specified Node.
  * 
  * @author jdub1581
  * @param <T> Type of node to be used for (this) "Billboard".
@@ -27,7 +26,9 @@ public interface BillboardBehavior<T extends Node>{
         SPHERICAL, 
         CYLINDRICAL;
     }
-    static BillboardUpdateTimer timer = new BillboardUpdateTimer();
+    
+    
+    static BillboardTimer timer = new BillboardTimer();
     /**
      * 
      * @return The node to be used for this behavior.
