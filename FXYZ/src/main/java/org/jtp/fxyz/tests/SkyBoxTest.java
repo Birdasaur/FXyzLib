@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package org.jtp.fxyz.tests;
+package main.java.org.jtp.fxyz.tests;
 
 import java.util.Random;
 import javafx.application.Application;
@@ -22,9 +22,9 @@ import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
+import main.java.org.jtp.fxyz.shape3d.SkyBox;
 import org.fxyz.composites.CameraTransformer;
 import org.fxyz.primitives.Torus;
-import org.jtp.fxyz.shape3d.SkyBox;
 
 /**
  *

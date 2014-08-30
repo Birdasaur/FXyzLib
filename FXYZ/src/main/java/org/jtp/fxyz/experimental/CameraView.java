@@ -1,5 +1,5 @@
 
-package org.jtp.fxyz.experimental;
+package main.java.org.jtp.fxyz.experimental;
 
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Rectangle2D;

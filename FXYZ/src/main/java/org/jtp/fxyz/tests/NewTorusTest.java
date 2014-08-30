@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.jtp.fxyz.tests;
+package main.java.org.jtp.fxyz.tests;
 
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
@@ -22,8 +22,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import main.java.org.jtp.fxyz.shape3d.TorusMesh;
 import org.fxyz.composites.CameraTransformer;
-import org.jtp.fxyz.shape3d.TorusMesh;
 
 /**
  *

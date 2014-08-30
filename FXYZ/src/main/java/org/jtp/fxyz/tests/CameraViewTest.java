@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package org.jtp.fxyz.tests;
+package main.java.org.jtp.fxyz.tests;
 
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
@@ -15,7 +15,6 @@ import javafx.application.Application;
 import static javafx.application.Application.launch;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.DepthTest;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
@@ -30,13 +29,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.transform.NonInvertibleTransformException;
-import javafx.scene.transform.Rotate;
-import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import main.java.org.jtp.fxyz.experimental.CameraView;
+import main.java.org.jtp.fxyz.shape3d.TorusMesh;
 import org.fxyz.composites.CameraTransformer;
-import org.jtp.fxyz.experimental.CameraView;
-import org.jtp.fxyz.shape3d.TorusMesh;
 
 /**
  *

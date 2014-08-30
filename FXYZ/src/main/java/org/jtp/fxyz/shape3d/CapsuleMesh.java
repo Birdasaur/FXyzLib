@@ -1,6 +1,6 @@
 
 
-package org.jtp.fxyz.shape3d;
+package main.java.org.jtp.fxyz.shape3d;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;

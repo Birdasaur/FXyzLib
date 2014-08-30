@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package org.jtp.fxyz.experimental;
+package main.java.org.jtp.fxyz.experimental;
 
 import java.util.ArrayList;
 import java.util.List;

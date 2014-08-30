@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package org.jtp.fxyz.shape3d;
+package main.java.org.jtp.fxyz.shape3d;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -20,9 +20,6 @@ import javafx.scene.Node;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
 import javafx.scene.image.Image;
-import javafx.scene.image.PixelFormat;
-import javafx.scene.image.PixelWriter;
-import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.CullFace;

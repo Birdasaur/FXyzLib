@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package org.jtp.fxyz.tests;
+package main.java.org.jtp.fxyz.tests;
 
 import com.sun.javafx.Utils;
 import java.util.Random;
@@ -24,8 +24,8 @@ import javafx.scene.shape.DrawMode;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
+import main.java.org.jtp.fxyz.shape3d.SpheroidMesh;
 import org.fxyz.composites.CameraTransformer;
-import org.jtp.fxyz.shape3d.SpheroidMesh;
 
 /**
  *

@@ -4,15 +4,13 @@
  * and open the template in the editor.
  */
 
-package org.jtp.fxyz.shape3d;
+package main.java.org.jtp.fxyz.shape3d;
 
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.DepthTest;
-import javafx.scene.image.Image;
-import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;

@@ -4,13 +4,12 @@
  * and open the template in the editor.
  */
 
-package org.jtp.fxyz.tests;
+package main.java.org.jtp.fxyz.tests;
 
 import com.sun.javafx.Utils;
 import java.util.Random;
 import javafx.application.Application;
 import javafx.geometry.Insets;
-import javafx.geometry.Point3D;
 import javafx.geometry.Pos;
 import javafx.scene.DepthTest;
 import javafx.scene.Group;
@@ -21,21 +20,23 @@ import javafx.scene.Scene;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 import org.fxyz.composites.CameraTransformer;
-import org.fxyz.primitives.Torus;
-import org.jtp.fxyz.experimental.BillboardBehavior;
-import org.jtp.fxyz.experimental.CameraView;
-import org.jtp.fxyz.shape3d.SkyBox;
+import main.java.org.jtp.fxyz.experimental.BillboardBehavior;
+import main.java.org.jtp.fxyz.experimental.CameraView;
+import main.java.org.jtp.fxyz.shape3d.SkyBox;
+import main.java.org.jtp.fxyz.shape3d.TorusMesh;
 
 /**
  *
@@ -67,15 +68,15 @@ public class BillBoardBehaviorTest extends Application {
     private SkyBox skyBox;
     private PerspectiveCamera camera;
     private final CameraTransformer cameraTransform = new CameraTransformer();
-    private BillBoard bill = new BillBoard();
+    private final BillBoard bill = new BillBoard();
     
     
     @Override
     public void start(Stage stage) throws NonInvertibleTransformException {
         
-        createSubscene();
-        createButtonOverlay();
+        createSubscene();        
         createCameraView();
+        createOverlay();
         
         Scene scene = new Scene(rootPane, 1024, 668);          
         
@@ -130,10 +131,8 @@ public class BillBoardBehaviorTest extends Application {
             if(i == 0){                
                 torusGroup.getChildren().add(bill);
             }
-            Torus torus = new Torus(randomRadius, randomTubeRadius,
-                    randomTubeDivisions, randomRadiusDivisions,
-                    randomColor, ambientRandom, fillRandom);
-            torus.setDepthTest(DepthTest.ENABLE);
+            TorusMesh torus = new TorusMesh(randomTubeDivisions, randomRadiusDivisions, randomRadius, randomTubeRadius);
+            
             double translationX = Math.random() * 1024 * 1.95;
             if (Math.random() >= 0.5) {
                 translationX *= -1;
@@ -165,7 +164,7 @@ public class BillBoardBehaviorTest extends Application {
         
     }
        
-    private void createButtonOverlay(){
+    private void createOverlay(){
         Button b = new Button("Activate");
         b.setPrefSize(150, 40);
         b.setFocusTraversable(false);
@@ -180,10 +179,24 @@ public class BillBoardBehaviorTest extends Application {
                 b.setText("Enable");
             }
         });
+        CheckBox c = new CheckBox("Toggle Cylindrical Mode");
+        c.setFont(Font.font(24));
+        c.setFocusTraversable(false);
+        c.setOnAction(e->{
+            if(c.isSelected()){
+                bill.setBillboardMode(BillboardBehavior.BillboardMode.CYLINDRICAL);
+            }else{
+                bill.setBillboardMode(BillboardBehavior.BillboardMode.SPHERICAL);
+            }
+        });
         
         StackPane.setAlignment(b, Pos.TOP_LEFT);
         StackPane.setMargin(b, new Insets(10));
-        rootPane.getChildren().add(b);
+        
+        StackPane.setAlignment(c, Pos.CENTER_LEFT);
+        StackPane.setMargin(c, new Insets(10));
+        
+        rootPane.getChildren().addAll(b, c);
     }
     
     private void createCameraView(){
@@ -192,8 +205,12 @@ public class BillBoardBehaviorTest extends Application {
         cameraView.setFitHeight(300);
         cameraView.setFirstPersonNavigationEabled(true);
         cameraView.setFocusTraversable(true);
+        cameraView.getCamera().setTranslateZ(-2500);
+        cameraView.getCamera().setTranslateX(500);
+        
         StackPane.setAlignment(cameraView, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(cameraView, new Insets(10));
+        
         rootPane.getChildren().add(cameraView);
         
         cameraView.startViewing();
@@ -221,12 +238,15 @@ public class BillBoardBehaviorTest extends Application {
         });
         
         scene.setOnMousePressed((MouseEvent me) -> {
-            scene.requestFocus();
+            if(!scene.isFocused()){
+                scene.requestFocus();
+            }
             mousePosX = me.getSceneX();
             mousePosY = me.getSceneY();
             mouseOldX = me.getSceneX();
             mouseOldY = me.getSceneY();            
         });
+        
         scene.setOnMouseDragged((MouseEvent me) -> {
             mouseOldX = mousePosX;
             mouseOldY = mousePosY;
@@ -262,22 +282,17 @@ public class BillBoardBehaviorTest extends Application {
         });
     }
     //******************            BillBoard            ***********************
-    private class BillBoard extends Group implements BillboardBehavior<BillBoard>{
-        private final ImageView view = new ImageView();
+    private class BillBoard extends ImageView implements BillboardBehavior<BillBoard>{      
         
         public BillBoard() {
             super();
             Image image = new Image("http://nicelyphrasedbookblog.com/wp-content/uploads/2013/08/oak-tree-with-transparent-background-hi.png");
-            this.view.setFitWidth(800);
-            this.view.setPreserveRatio(true);
-            this.view.setSmooth(true);
-            this.view.setImage(image); 
-            
+            setFitWidth(800);
+            setPreserveRatio(true);
+            setSmooth(true);
+            setImage(image);  
             setDepthTest(DepthTest.ENABLE);
-            getChildren().addAll(view);
-        }
-
-        
+        }       
         
         @Override
         public BillBoard getBillboardNode() {
@@ -287,8 +302,10 @@ public class BillBoardBehaviorTest extends Application {
         @Override
         public Node getOther() {
             return camera;
-        }
-    
+        }    
     }
+    
+    
+    
     
 }

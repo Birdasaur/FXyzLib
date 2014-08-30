@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package org.jtp.fxyz.tests;
+package main.java.org.jtp.fxyz.tests;
 
 import javafx.application.Application;
 import javafx.geometry.Point3D;
@@ -18,8 +18,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import main.java.org.jtp.fxyz.shape3d.Line3DMesh;
 import org.fxyz.composites.CameraTransformer;
-import org.jtp.fxyz.shape3d.Line3DMesh;
 
 /**
  *
