@@ -31,10 +31,10 @@ public class CubeViewer extends Group {
     public Group scatterDataGroup = new Group();
 
     private double axesSize = 1000;
-    private double gridLineSpacing = 100;
-    private double scatterRadius = 1;
-    final double axesThickness = 5;
-    final double gridSize = 2;
+    public double gridLineSpacing = 100;
+    public double scatterRadius = 1;
+    public double axesThickness = 5;
+    public double gridSize = 2;
     final double gridLinesOpacity = 0.1;
     final double gridPanelsOpacity = 0.5;
     private boolean selfLightEnabled = true;
@@ -53,12 +53,22 @@ public class CubeViewer extends Group {
     public Rectangle z1AxisRectangle;
     public Rectangle z2AxisRectangle;
 
+    public Color x1AxisRectangleColor = new Color(0.5, 1.0, 0.5, gridPanelsOpacity);
+    public Color x2AxisRectangleColor = new Color(0.5, 1.0, 0.5, gridPanelsOpacity);
+    public Color y1AxisRectangleColor = new Color(0.5, 0.5, 1.0, gridPanelsOpacity);
+    public Color y2AxisRectangleColor = new Color(0.5, 0.5, 1.0, gridPanelsOpacity);    
+    public Color z1AxisRectangleColor = new Color(1.0, 0.5, 0.5, gridPanelsOpacity);    
+    public Color z2AxisRectangleColor = new Color(1.0, 0.5, 0.5, gridPanelsOpacity);
+    
     public boolean showx1AxisRectangle = true;
     public boolean showx2AxisRectangle = true;
     public boolean showy1AxisRectangle = true;
     public boolean showy2AxisRectangle = true;
     public boolean showz1AxisRectangle = true;
     public boolean showz2AxisRectangle = true;    
+    
+    public Group sphereGroup = new Group();
+    public boolean showSphereGroup = true;
     
     public Group xAxesGroup = new Group();
     public Group yAxesGroup = new Group();
@@ -105,6 +115,18 @@ public class CubeViewer extends Group {
         selfLightEnabled = selfLight;        
         init();
     }
+   
+    public CubeViewer(double axesSize, double spacing, boolean selfLight, 
+                    double scatterRadius, double axesThickness, double gridSize) {
+        this.axesSize = axesSize;
+        gridLineSpacing = spacing;
+        selfLightEnabled = selfLight;        
+        this.scatterRadius = scatterRadius;
+        this.axesThickness = axesThickness;
+        this.gridSize = gridSize;
+        
+        init();
+    }
     
     private void init(){
         buildAxes(axesSize, axesThickness);
@@ -121,13 +143,13 @@ public class CubeViewer extends Group {
     
     private void buildPanels(double size) {
         //@SMP TODO might be easier to just replace the Rectangle side panels with really flat Box 3D objects
-        x1AxisRectangle = new Rectangle(size, size, new Color(0.5, 1.0, 0.5, gridPanelsOpacity));
-        x2AxisRectangle = new Rectangle(size, size, new Color(0.5, 1.0, 0.5, gridPanelsOpacity));
-        y1AxisRectangle = new Rectangle(size, size, new Color(0.5, 0.5, 1.0, gridPanelsOpacity));
-        y2AxisRectangle = new Rectangle(size, size, new Color(0.5, 0.5, 1.0, gridPanelsOpacity));
-        z1AxisRectangle = new Rectangle(size, size, new Color(1.0, 0.5, 0.5, gridPanelsOpacity));
-        z2AxisRectangle = new Rectangle(size, size, new Color(1.0, 0.5, 0.5, gridPanelsOpacity));
-
+        x1AxisRectangle = new Rectangle(size, size, x1AxisRectangleColor);
+        x2AxisRectangle = new Rectangle(size, size, x2AxisRectangleColor);
+        y1AxisRectangle = new Rectangle(size, size, y1AxisRectangleColor);
+        y2AxisRectangle = new Rectangle(size, size, y2AxisRectangleColor);
+        z1AxisRectangle = new Rectangle(size, size, z1AxisRectangleColor);
+        z2AxisRectangle = new Rectangle(size, size, z2AxisRectangleColor);
+        
         x1AxisRectangle.setTranslateX(-size / 2);
         x1AxisRectangle.setTranslateY(-size / 2);
         x1AxisRectangle.setTranslateZ(-size / 2);
@@ -448,8 +470,9 @@ public class CubeViewer extends Group {
         bottom4Sphere.setTranslateX(size / 2);
         bottom4Sphere.setTranslateY(size / 2);
         bottom4Sphere.setTranslateZ(-size / 2);
-        getChildren().addAll(top1Sphere, top2Sphere, top3Sphere, top4Sphere);
-        getChildren().addAll(bottom1Sphere, bottom2Sphere, bottom3Sphere, bottom4Sphere);
+        sphereGroup.getChildren().addAll(top1Sphere, top2Sphere, top3Sphere, top4Sphere,
+                    bottom1Sphere, bottom2Sphere, bottom3Sphere, bottom4Sphere);
+        getChildren().add(sphereGroup);
     }
 
     public void adjustPanelsByPos(double rx, double ry, double rz) {
@@ -688,7 +711,33 @@ public class CubeViewer extends Group {
         }       
     }
 
+    public void setX1PanelColor(Color color) {
+        x1AxisRectangleColor = color;
+        x1AxisRectangle.setFill(color);
+    }
+    public void setX2PanelColor(Color color) {
+        x2AxisRectangleColor = color;
+        x2AxisRectangle.setFill(color);
+    }
+    public void setY1PanelColor(Color color) {
+        y1AxisRectangleColor = color;
+        y1AxisRectangle.setFill(color);
+    }
+    public void setY2PanelColor(Color color) {
+        y2AxisRectangleColor = color;
+        y2AxisRectangle.setFill(color);
+    }
+    public void setZ1PanelColor(Color color) {
+        z1AxisRectangleColor = color;
+        z1AxisRectangle.setFill(color);
+    }
+    public void setZ2PanelColor(Color color) {
+        z2AxisRectangleColor = color;
+        z2AxisRectangle.setFill(color);
+    }
+    
     public void showAll(boolean visible) {
+        showSphereGroup(visible);
         showXAxesGroup(visible);
         showYAxesGroup(visible);
         showZAxesGroup(visible);
@@ -710,6 +759,10 @@ public class CubeViewer extends Group {
         showYX2GridLinesGroup(visible);
         showZY2GridLinesGroup(visible);
         showZX2GridLinesGroup(visible);      
+    }
+    public void showSphereGroup(boolean visible) {
+        showSphereGroup = visible;
+        sphereGroup.setVisible(visible);
     }
     
     public void showX1Panel(boolean visible) {
