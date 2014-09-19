@@ -7,13 +7,18 @@
 package org.fxyz.shapes.composites;
 
 import java.util.ArrayList;
+import java.util.List;
 import javafx.scene.AmbientLight;
 import javafx.scene.DepthTest;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Material;
+import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
+import javafx.scene.shape.Shape3D;
 import javafx.scene.shape.Sphere;
+import org.fxyz.utils.ListOfOne;
 
 /**
  *
@@ -25,10 +30,10 @@ import javafx.scene.shape.Sphere;
  */
 public class ScatterPlot extends Group {
     
-    private ArrayList<Double> xAxisData = new ArrayList<>();
-    private ArrayList<Double> yAxisData = new ArrayList<>();
-    private ArrayList<Double> zAxisData = new ArrayList<>();  
-    private ArrayList<Color> colorMap = new ArrayList<>();
+    private List<Double> xAxisData = new ArrayList<>();
+    private List<Double> yAxisData = new ArrayList<>();
+    private List<Double> zAxisData = new ArrayList<>();  
+    private List<Color> colorMap = new ArrayList<>();
     //A sub group for holding the nodes that represent the data in 3D
     public Group scatterDataGroup = new Group();    
 //    public PointLight selfLight = new PointLight(Color.WHITE);
@@ -60,7 +65,11 @@ public class ScatterPlot extends Group {
         }
         setDepthTest(DepthTest.ENABLE);        
     }   
-    public void setXYZData(ArrayList<Double> xData, ArrayList<Double> yData, ArrayList<Double> zData) {
+    public void setXYZData(List<Double> xData, List<Double> yData, List<Double> zData) {
+        setXYZData(xData, yData, zData, new ListOfOne<>(Color.WHITE, xData.size()));
+    }    
+    
+    public void setXYZData(List<Double> xData, List<Double> yData, List<Double> zData, List<Color> colors) {
         xAxisData = xData;
         yAxisData = yData;
         zAxisData = zData;
@@ -69,7 +78,7 @@ public class ScatterPlot extends Group {
         //later we could maybe dynamically determine the smallest axis and then
         //uses 0's for the other axes that are larger.
         for(int i=0;i<xAxisData.size();i++) {
-            final Node dataSphere = createDefaultNode(nodeRadius);
+            final Shape3D dataSphere = createDefaultNode(nodeRadius);
             double translateY = 0.0;
             double translateZ = 0.0;            
             if(!yAxisData.isEmpty() && yAxisData.size() > i)
@@ -79,21 +88,22 @@ public class ScatterPlot extends Group {
             dataSphere.setTranslateX(xAxisData.get(i));
             dataSphere.setTranslateY(translateY);
             dataSphere.setTranslateZ(translateZ);
+            dataSphere.setMaterial(new PhongMaterial(colors.get(i)));
             scatterDataGroup.getChildren().add(dataSphere);
         }        
-    }    
+    }   
     
      /**
      * @return the xAxisData
      */
-    public ArrayList<Double> getxAxisData() {
+    public List<Double> getxAxisData() {
         return xAxisData;
     }
 
     /**
      * @param data the xAxisData to set
      */
-    public void setxAxisData(ArrayList<Double> data) {
+    public void setxAxisData(List<Double> data) {
         xAxisData = data;
         scatterDataGroup.getChildren().clear();
         for(int i=0;i<xAxisData.size();i++) {
@@ -116,14 +126,14 @@ public class ScatterPlot extends Group {
     /**
      * @return the yAxisData
      */
-    public ArrayList<Double> getyAxisData() {
+    public List<Double> getyAxisData() {
         return yAxisData;
     }
 
     /**
      * @param data the yAxisData to set
      */
-    public void setyAxisData(ArrayList<Double> data) {
+    public void setyAxisData(List<Double> data) {
         yAxisData = data;
         scatterDataGroup.getChildren().clear();
         for(int i=0;i<yAxisData.size();i++) {
@@ -146,14 +156,14 @@ public class ScatterPlot extends Group {
     /**
      * @return the zAxisData
      */
-    public ArrayList<Double> getzAxisData() {
+    public List<Double> getzAxisData() {
         return zAxisData;
     }
 
     /**
      * @param data the zAxisData to set
      */
-    public void setzAxisData(ArrayList<Double> data) {
+    public void setzAxisData(List<Double> data) {
         zAxisData = data;
         scatterDataGroup.getChildren().clear();
         for(int i=0;i<zAxisData.size();i++) {
@@ -172,7 +182,7 @@ public class ScatterPlot extends Group {
             scatterDataGroup.getChildren().add(dataSphere);
         }       
     }
-    private Node createDefaultNode(double radius) {
+    private Shape3D createDefaultNode(double radius) {
         switch(defaultNodeType) {
             case SPHERE: return new Sphere(radius);
             case CUBE: return new Box(radius, radius, radius);
