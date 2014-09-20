@@ -75,12 +75,8 @@ public class TorusTest extends Application {
             int randomTubeDivisions = (int) ((r.nextFloat()*64) + 1);
             int randomRadiusDivisions = (int) ((r.nextFloat()*64) + 1);
             Color randomColor = new Color(r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble());
-            boolean ambientRandom = r.nextBoolean();
-            boolean fillRandom = r.nextBoolean();
             
-            Torus torus = new Torus(randomRadius, randomTubeRadius, 
-                    randomTubeDivisions,randomRadiusDivisions,
-                    randomColor,ambientRandom,fillRandom);
+            Torus torus = new Torus(randomTubeDivisions, randomRadiusDivisions, randomRadius, randomTubeRadius, randomColor);
                     
             double translationX = Math.random()*sceneWidth*1.95;
             if(Math.random() >= 0.5) translationX *= -1;

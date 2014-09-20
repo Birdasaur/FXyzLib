@@ -25,7 +25,7 @@ import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
-import org.fxyz.shapes.primitives.SpheroidMesh;
+import org.fxyz.shapes.Spheroid;
 
 /**
  *
@@ -56,19 +56,8 @@ public class SpheroidTest extends Application {
             float randomMinorRadius = (float) ((r.nextFloat() * 300) + 50);
             int randomDivisions = (int) ((r.nextFloat() * 64) + 1);
             Color randomColor = new Color(r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble());
-            boolean fillRandom = r.nextBoolean();
             
-            
-            SpheroidMesh sm = new SpheroidMesh(randomDivisions, randomMajorRadius, randomMinorRadius);
-            sm.setDepthTest(DepthTest.ENABLE);
-            sm.setMaterial(new PhongMaterial(
-                    randomColor,
-                    null,
-                    null,
-                    null,
-                    null
-            ));
-            sm.setDrawMode(fillRandom ? DrawMode.LINE : DrawMode.FILL);
+            Spheroid sm = new Spheroid(randomDivisions, randomMajorRadius, randomMinorRadius, randomColor);               
             
             double translationX = Math.random() * 1024 * 1.95;
             if (Math.random() >= 0.5) {
@@ -93,6 +82,7 @@ public class SpheroidTest extends Application {
         }
         root.getChildren().add(spheroidGroup);
         
+        System.out.println(spheroidGroup.getChildren().size());
         
         camera = new PerspectiveCamera(true);
         cameraTransform.setTranslate(0, 0, 0);
