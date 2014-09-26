@@ -188,16 +188,7 @@ public class CubeWorld extends Group {
             newCyl.setMaterial(phong);
             newCyl.setTranslateX((-size / 2) + i);
             newCyl.setTranslateZ(-size / 2);
-            //xy1Cyls.add(newCyl);
-            ArrayList<Point3D> endPoints = new ArrayList<>();
-            endPoints.add(new Point3D((float) (-size/2)+i,
-                                      (float) -size/2, 
-                                      (float) -size / 2));
-            endPoints.add(new Point3D((float) (size/2)+i, 
-                                      (float) size/2, 
-                                      (float) size / 2));            
-            PolyLine3D polyLine3D = new PolyLine3D(endPoints, 25, gridLinesWallColor);
-            xy1Cyls.add(polyLine3D);
+            xy1Cyls.add(newCyl);
         }
         xy1GridLinesGroup = new Group(xy1Cyls);
         //Now build the grids for the mirror image
