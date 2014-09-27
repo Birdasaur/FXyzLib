@@ -22,7 +22,7 @@ import org.fxyz.cameras.AdvancedCamera;
  *
  * @author Dub
  */
-public abstract class CameraController {
+public abstract class CameraController{
 
     public AdvancedCamera camera;    
     private Scene scene;
