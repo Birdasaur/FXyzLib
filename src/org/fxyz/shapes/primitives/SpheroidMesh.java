@@ -26,6 +26,7 @@ public class SpheroidMesh extends MeshView{
     private static final int   DEFAULT_DIVISIONS = 64;
 
     public SpheroidMesh() {
+        setMesh(createSpheroid(getDivisions(), getMajorRadius(), getMinorRadius()));
         setCullFace(CullFace.BACK);
         setDepthTest(DepthTest.ENABLE);
         
