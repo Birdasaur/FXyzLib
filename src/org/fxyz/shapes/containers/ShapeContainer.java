@@ -14,7 +14,7 @@ import javafx.scene.shape.MeshView;
 /**
  *
  * @author Dub
- * @param <T> Type of Mesh to be used
+ * @param <T>
  */
 public class ShapeContainer<T extends MeshView> extends Group implements ShapeContainerBase<T> {
     

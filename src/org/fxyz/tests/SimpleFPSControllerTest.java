@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package org.fxyz.tests;
 
 import java.util.Random;
@@ -11,43 +10,38 @@ import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.SceneAntialiasing;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.DrawMode;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.AdvancedCamera;
+import org.fxyz.cameras.controllers.CameraController;
 import org.fxyz.cameras.controllers.FPSController;
-import org.fxyz.shapes.Capsule;
+import org.fxyz.shapes.Torus;
 
 /**
  *
  * @author Dub
  */
-public class CapsuleTest extends Application {
-        
-        
-    private AdvancedCamera camera;
-    private FPSController controller;
+public class SimpleFPSControllerTest extends Application {
     
-    private final Group root = new Group();
-   
     @Override
     public void start(Stage stage) {
-        
-        Group capsuleGroup = new Group();        
-        for (int i = 0; i < 50; i++) {
+        Group root = new Group();
+        //Make a bunch of semi random Torusesessses(toroids?) and stuff : from torustest
+        Group torusGroup = new Group();
+        for (int i = 0; i < 30; i++) {
             Random r = new Random();
             //A lot of magic numbers in here that just artificially constrain the math
-            float randomRadius = (float) ((r.nextFloat() * 150) + 50);
-            float randomHeight = (float) ((r.nextFloat() * 300) + 50);
+            float randomRadius = (float) ((r.nextFloat() * 300) + 50);
+            float randomTubeRadius = (float) ((r.nextFloat() * 100) + 1);
+            int randomTubeDivisions = (int) ((r.nextFloat() * 64) + 1);
+            int randomRadiusDivisions = (int) ((r.nextFloat() * 64) + 1);
             Color randomColor = new Color(r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble());
-            
-            Capsule cap = new Capsule(randomRadius, randomHeight, randomColor);               
-            cap.setEmissiveLightingColor(randomColor);
-            cap.setEmissiveLightingOn(r.nextBoolean());
-            cap.setDrawMode(r.nextBoolean() ? DrawMode.FILL : DrawMode.LINE);
+
+            Torus torus = new Torus(randomTubeDivisions, randomRadiusDivisions, randomRadius, randomTubeRadius, randomColor);
+            torus.setEmissiveLightingColor(randomColor);
+            torus.setEmissiveLightingOn(r.nextBoolean());
             
             double translationX = Math.random() * 1024 * 1.95;
             if (Math.random() >= 0.5) {
@@ -66,35 +60,33 @@ public class CapsuleTest extends Application {
             Rotate rotateY = new Rotate(Math.random() * 360, Rotate.Y_AXIS);
             Rotate rotateZ = new Rotate(Math.random() * 360, Rotate.Z_AXIS);
 
-            cap.getTransforms().addAll(translate, rotateX, rotateY, rotateZ);
-            
-            capsuleGroup.getChildren().add(cap);
+            torus.getTransforms().addAll(translate, rotateX, rotateY, rotateZ);
+            //torus.getTransforms().add(translate);
+            torusGroup.getChildren().add(torus);
+
         }
-        root.getChildren().add(capsuleGroup);
-                
-        camera = new AdvancedCamera();
-        controller = new FPSController();
+        root.getChildren().add(torusGroup);
         
-        camera.setNearClip(0.1);
-        camera.setFarClip(10000.0);
-        camera.setFieldOfView(42);
-        camera.setController(controller);
         
-        Scene scene = new Scene(new StackPane(root), 1024, 668, true, SceneAntialiasing.BALANCED);
-        scene.setCamera(camera);
+        Scene scene = new Scene(root, 1400, 1000, true, SceneAntialiasing.BALANCED);
         scene.setFill(Color.BLACK);
         
-        controller.setScene(scene);
-                
-        stage.setTitle("Hello World!");
+        stage.setTitle("SimpleFPSControllerTest");
         stage.setScene(scene);
         stage.show();
-        stage.setFullScreen(true);
-        stage.setFullScreenExitHint("");
+        stage.setMaximized(true);
+        
+        FPSController controller = new FPSController();
+        controller.setScene(scene);
+        
+        AdvancedCamera camera = new AdvancedCamera();
+        camera.setController(controller);
+        
+        root.getChildren().add(camera);
+        
+        scene.setCamera(camera);
     }
 
-   
-    
     /**
      * @param args the command line arguments
      */

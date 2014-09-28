@@ -30,7 +30,7 @@ public abstract class CameraController implements Transformable {
     public AdvancedCamera camera;
     private Scene scene;
     private SubScene subScene;
-    private double previousX, previousY, speed = 1.0;
+    private double previousX, previousY, speedModifier = 1.0;
     private final AnimationTimer timer;
     private boolean enable;
     
@@ -94,7 +94,7 @@ public abstract class CameraController implements Transformable {
     
     public abstract void handleMiddleMouseClick(MouseEvent e);
 
-    public abstract void handleMouseMoved(MouseEvent event, Point2D moveDelta, double modifier);
+    public abstract void handleMouseMoved(MouseEvent event, double modifier);
 
     public abstract void handleScrollEvent(ScrollEvent event);
 
@@ -107,7 +107,7 @@ public abstract class CameraController implements Transformable {
         } else if (t.getEventType() == KeyEvent.KEY_RELEASED) {
             handleKeyEvent(t, true);
         }
-        speed = getSpeedModifier(t);
+        speedModifier = getSpeedModifier(t);
     }
 
     private void handleMouseEvent(MouseEvent t) {
@@ -115,23 +115,23 @@ public abstract class CameraController implements Transformable {
         if (t.getEventType() == MouseEvent.MOUSE_PRESSED) {
             handleMousePress(t);
         } else if (t.getEventType() == MouseEvent.MOUSE_DRAGGED) {
-            Point2D d = getMouseDelta(t);
+            Point2D d = getDragDelta(t);
 
             switch (t.getButton()) {
                 case PRIMARY:
-                    handlePrimaryMouseDrag(t, d, speed);
+                    handlePrimaryMouseDrag(t, d, speedModifier);
                     break;
                 case MIDDLE:
-                    handleMiddleMouseDrag(t, d, speed);
+                    handleMiddleMouseDrag(t, d, speedModifier);
                     break;
                 case SECONDARY:
-                    handleSecondaryMouseDrag(t, d, speed);
+                    handleSecondaryMouseDrag(t, d, speedModifier);
                     break;
                 default:
                     throw new AssertionError();
             }
         } else if (t.getEventType() == MouseEvent.MOUSE_MOVED) {
-            handleMouseMoved(t, getMouseDelta(t), speed);
+            handleMouseMoved(t, speedModifier);
         } else if(t.getEventType() == MouseEvent.MOUSE_CLICKED){
             switch (t.getButton()) {
                 case PRIMARY:
@@ -167,7 +167,7 @@ public abstract class CameraController implements Transformable {
         event.consume();
     }
 
-    private Point2D getMouseDelta(MouseEvent event) {
+    private Point2D getDragDelta(MouseEvent event) {
         Point2D res = new Point2D(event.getSceneX() - previousX, event.getSceneY() - previousY);
         previousX = event.getSceneX();
         previousY = event.getSceneY();
