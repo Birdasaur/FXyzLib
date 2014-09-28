@@ -16,7 +16,7 @@ import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.AdvancedCamera;
 import org.fxyz.cameras.controllers.CameraController;
-import org.fxyz.cameras.controllers.SimpleFPSController;
+import org.fxyz.cameras.controllers.FPSController;
 import org.fxyz.shapes.Torus;
 
 /**
@@ -76,7 +76,7 @@ public class SimpleFPSControllerTest extends Application {
         stage.show();
         stage.setMaximized(true);
         
-        SimpleFPSController controller = new SimpleFPSController();
+        FPSController controller = new FPSController();
         controller.setScene(scene);
         
         AdvancedCamera camera = new AdvancedCamera();

@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package org.fxyz.cameras.controllers;
 
 import javafx.animation.AnimationTimer;
@@ -16,43 +15,91 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.transform.Affine;
+import javafx.util.Callback;
 import org.fxyz.cameras.AdvancedCamera;
+import org.fxyz.extras.Transformable;
+import org.fxyz.geometry.Vector3D;
 
 /**
  *
  * @author Dub
  */
-public abstract class CameraController{
+public abstract class CameraController implements Transformable {
 
-    public AdvancedCamera camera;    
+    public AdvancedCamera camera;
     private Scene scene;
     private SubScene subScene;
     private double previousX, previousY, speedModifier = 1.0;
     private final AnimationTimer timer;
+    private boolean enable;
     
+    private Vector3D fd,fr,ud,ur,rd,rr;
+    public Callback<Affine, Vector3D> forwardDir = (a) -> {
+        fd = new Vector3D(a.getMzx(), a.getMzy(), a.getMzz());
+        return fd;
+    };
+    public Callback<Affine, Vector3D> getForwardMatrixRow = (a) -> {
+        fr = new Vector3D(a.getMxz(), a.getMyz(), a.getMzz());
+        return fr;
+    };
     
-    public CameraController() {
+    public Callback<Affine, Vector3D> upDir = (a) -> {
+        ud = new Vector3D(a.getMyx(), a.getMyy(), a.getMyz());
+        return ud;
+    };
+    public Callback<Affine, Vector3D> getUpMatrixRow = (a) -> {
+        ur = new Vector3D(a.getMxy(), a.getMyy(), a.getMzy());
+        return ur;
+    };
+    
+    public Callback<Affine, Vector3D> rightDir = (a) -> {
+        fd = new Vector3D(a.getMxx(), a.getMxy(), a.getMxz());
+        return fd;
+    };
+    public Callback<Affine, Vector3D> getRightMatrixRow = (a) -> {
+        fd = new Vector3D(a.getMxx(), a.getMyx(), a.getMzx());
+        return fd;
+    };
+
+    public CameraController(boolean enableTransforms) {
+        enable = enableTransforms;
         timer = new AnimationTimer() {
             @Override
             public void handle(long l) {
+                if (enable) {
+                    initialize();
+                    enable = false;
+                }
                 update();
             }
         };
     }
-    
+
     //Abstract Methods
     public abstract void update(); // called each frame handle movement/ button clicks here
-    
+
     // Following methods should update values for use in update method etc...
-    public abstract void handleKeyEvent(KeyEvent event, boolean handle); 
+    public abstract void handleKeyEvent(KeyEvent event, boolean handle);
+
     public abstract void handlePrimaryMouseDrag(MouseEvent event, Point2D dragDelta, double modifier);
+
     public abstract void handleMiddleMouseDrag(MouseEvent event, Point2D dragDelta, double modifier);
+
     public abstract void handleSecondaryMouseDrag(MouseEvent event, Point2D dragDelta, double modifier);
+    
+    public abstract void handlePrimaryMouseClick(MouseEvent e);
+    
+    public abstract void handleSecondaryMouseClick(MouseEvent e);
+    
+    public abstract void handleMiddleMouseClick(MouseEvent e);
+
     public abstract void handleMouseMoved(MouseEvent event, double modifier);
-    public abstract void handleScrollEvent(ScrollEvent event);    
+
+    public abstract void handleScrollEvent(ScrollEvent event);
+
     public abstract double getSpeedModifier(KeyEvent event);
-    
-    
+
     //Self contained Methods
     private void handleKeyEvent(KeyEvent t) {
         if (t.getEventType() == KeyEvent.KEY_PRESSED) {
@@ -62,14 +109,14 @@ public abstract class CameraController{
         }
         speedModifier = getSpeedModifier(t);
     }
-    
+
     private void handleMouseEvent(MouseEvent t) {
-        
+
         if (t.getEventType() == MouseEvent.MOUSE_PRESSED) {
             handleMousePress(t);
         } else if (t.getEventType() == MouseEvent.MOUSE_DRAGGED) {
             Point2D d = getDragDelta(t);
-            
+
             switch (t.getButton()) {
                 case PRIMARY:
                     handlePrimaryMouseDrag(t, d, speedModifier);
@@ -83,8 +130,22 @@ public abstract class CameraController{
                 default:
                     throw new AssertionError();
             }
-        }else if(t.getEventType() == MouseEvent.MOUSE_MOVED){
+        } else if (t.getEventType() == MouseEvent.MOUSE_MOVED) {
             handleMouseMoved(t, speedModifier);
+        } else if(t.getEventType() == MouseEvent.MOUSE_CLICKED){
+            switch (t.getButton()) {
+                case PRIMARY:
+                    handlePrimaryMouseClick(t);
+                    break;
+                case MIDDLE:
+                    handleMiddleMouseClick(t);
+                    break;
+                case SECONDARY:
+                    handleSecondaryMouseClick(t);
+                    break;
+                default:
+                    throw new AssertionError();
+            }
         }
     }
 
@@ -105,12 +166,12 @@ public abstract class CameraController{
         previousY = event.getSceneY();
         event.consume();
     }
-    
+
     private Point2D getDragDelta(MouseEvent event) {
         Point2D res = new Point2D(event.getSceneX() - previousX, event.getSceneY() - previousY);
         previousX = event.getSceneX();
         previousY = event.getSceneY();
-        
+
         return res;
     }
 
@@ -140,6 +201,10 @@ public abstract class CameraController{
     public SubScene getSubScene() {
         return subScene;
     }
-    
-    
+
+    @Override
+    public RotateOrder getRotateOrder() {
+        return RotateOrder.USE_AFFINE;
+    }
+
 }

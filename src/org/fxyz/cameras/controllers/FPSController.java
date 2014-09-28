@@ -10,29 +10,23 @@ import javafx.scene.Node;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import org.fxyz.extras.Transformable;
+import org.fxyz.geometry.Vector3D;
 
 /**
  *
  * @author Dub
  */
-public class SimpleFPSController extends CameraController implements Transformable{
-    private boolean fwd, strafeL, strafeR, back, up, down, shift, mouseLookEnabled, enable;
+public class FPSController extends CameraController{
+    private boolean fwd, strafeL, strafeR, back, up, down, shift, mouseLookEnabled;
     private double speed = 5.0;
-    
-    public SimpleFPSController() {
-        super();
-        enable = true;        
-    }
-    
-    
+            
+    public FPSController() {
+        super(true);     
+    }    
     
     @Override
     public void update() {
-        if(enable){
-            initialize();      
-            enable = false;
-        }
+        
         if(fwd && !back){
             moveForward();
         }
@@ -141,51 +135,69 @@ public class SimpleFPSController extends CameraController implements Transformab
         }
     }
 
-    @Override
-    public RotateOrder getRotateOrder() {
-        return RotateOrder.USE_AFFINE;
-    }
+    
     
     
 
-    private void moveForward() {        
-        affine.setTx(affine.getTx() + speed * affine.getMxz());
-        affine.setTy(affine.getTy() + speed * affine.getMyz());
-        affine.setTz(affine.getTz() + speed * affine.getMzz());   
+    private void moveForward() {     
+        Vector3D f = getForwardMatrixRow.call(affine);
+        affine.setTx(affine.getTx() + speed * f.x);
+        affine.setTy(affine.getTy() + speed * f.y);
+        affine.setTz(affine.getTz() + speed * f.z);   
     }
 
     private void strafeLeft() {
-        affine.setTx(affine.getTx() + speed * -affine.getMxx());
-        affine.setTy(affine.getTy() + speed * -affine.getMyx());
-        affine.setTz(affine.getTz() + speed * -affine.getMzx());
+        Vector3D r = getRightMatrixRow.call(affine);
+        affine.setTx(affine.getTx() + speed * -r.x);
+        affine.setTy(affine.getTy() + speed * -r.y);
+        affine.setTz(affine.getTz() + speed * -r.z);
     }
 
     private void strafeRight() {
-        affine.setTx(affine.getTx() + speed * affine.getMxx());
-        affine.setTy(affine.getTy() + speed * affine.getMyx());
-        affine.setTz(affine.getTz() + speed * affine.getMzx());
+        Vector3D r = getRightMatrixRow.call(affine);
+        affine.setTx(affine.getTx() + speed * r.x);
+        affine.setTy(affine.getTy() + speed * r.y);
+        affine.setTz(affine.getTz() + speed * r.z);
     }
 
     private void moveBack() {
-        affine.setTx(affine.getTx() + speed * -affine.getMxz());
-        affine.setTy(affine.getTy() + speed * -affine.getMyz());
-        affine.setTz(affine.getTz() + speed * -affine.getMzz());
+        Vector3D f = getForwardMatrixRow.call(affine);
+        affine.setTx(affine.getTx() + speed * -f.x);
+        affine.setTy(affine.getTy() + speed * -f.y);
+        affine.setTz(affine.getTz() + speed * -f.z);
     }
 
     private void moveUp() {
-        affine.setTx(affine.getTx() + speed * -affine.getMxy());
-        affine.setTy(affine.getTy() + speed * -affine.getMyy());
-        affine.setTz(affine.getTz() + speed * -affine.getMzy());
+        Vector3D u = getUpMatrixRow.call(affine);
+        affine.setTx(affine.getTx() + speed * -u.x);
+        affine.setTy(affine.getTy() + speed * -u.y);
+        affine.setTz(affine.getTz() + speed * -u.z);
     }
 
     private void moveDown() {
-        affine.setTx(affine.getTx() + speed * affine.getMxy());
-        affine.setTy(affine.getTy() + speed * affine.getMyy());
-        affine.setTz(affine.getTz() + speed * affine.getMzy());
+        Vector3D u = getUpMatrixRow.call(affine);
+        affine.setTx(affine.getTx() + speed * u.x);
+        affine.setTy(affine.getTy() + speed * u.y);
+        affine.setTz(affine.getTz() + speed * u.z);
     }
 
     public void setMouseLookEnabled(boolean b){
         throw new UnsupportedOperationException("this feature is not implemented yet");
+    }
+
+    @Override
+    public void handlePrimaryMouseClick(MouseEvent t) {
+        
+    }
+
+    @Override
+    public void handleMiddleMouseClick(MouseEvent t) {
+       
+    }
+
+    @Override
+    public void handleSecondaryMouseClick(MouseEvent t) {
+        
     }
     
 }
