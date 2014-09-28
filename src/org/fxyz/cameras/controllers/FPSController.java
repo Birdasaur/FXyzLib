@@ -107,7 +107,20 @@ public class FPSController extends CameraController {
 
     @Override
     public void handlePrimaryMouseDrag(MouseEvent event, Point2D dragDelta, double modifier) {
-        //do nothing        
+        if (!mouseLookEnabled) {
+            Translate tr = new Translate(affine.getTx(), affine.getTy(), affine.getTz());
+            
+            affine.setToIdentity();
+            
+            rotateY.setAngle(
+                    MathUtils.clamp(((rotateY.getAngle() + dragDelta.getX() * (speed * 0.5)) % 360 + 540) % 360 - 180, -360, 360)
+            ); // horizontal                
+            rotateX.setAngle(
+                    MathUtils.clamp(((rotateX.getAngle() - dragDelta.getY() * (speed * 0.5)) % 360 + 540) % 360 - 180, -90, 90)
+            ); // vertical
+            
+            affine.prepend(tr.createConcatenation(rotateY.createConcatenation(rotateX)));
+        }     
     }
 
     @Override
