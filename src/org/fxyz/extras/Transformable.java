@@ -178,12 +178,7 @@ public interface Transformable<T extends Node> {
                             getTransformableNode().getTransforms().addAll(t, p, rotateX, rotateY, rotateZ, s, ip);
                             break;
                         case USE_AFFINE:
-                            getTransformableNode().getTransforms().addAll(t, p, rotateZ, rotateY, rotateX, s, ip, affine);
-                            //t.setOnTransformChanged(e->{affine.append(t);});
-                            //rotateX.setOnTransformChanged(e->{affine.append(rotateX);});
-                            //rotateY.setOnTransformChanged(e->{affine.append(rotateY);});
-                            //rotateZ.setOnTransformChanged(e->{affine.append(rotateZ);});
-                            //s.setOnTransformChanged(e->{affine.append(s);});
+                            getTransformableNode().getTransforms().addAll(affine);
                             break;
                     }
                 
