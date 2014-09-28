@@ -22,11 +22,13 @@ import org.fxyz.utils.ListOfOne;
 
 /**
  *
- * @author Sean
- * @description Provides a simple but configurable Group object whose children
+ * Provides a simple but configurable Group object whose children
  * are each nodes rendered in 3D space.  The data structure allows for each
  * of the three axes to be independently changed there by affording the user to
  * create variations on the view dynamically.
+ * 
+ * @author Sean
+ * 
  */
 public class ScatterPlot extends Group {
     

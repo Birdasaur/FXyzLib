@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package org.fxyz.tests;
 
 import java.util.Random;
@@ -11,44 +10,23 @@ import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.SceneAntialiasing;
-import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.DrawMode;
-import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.AdvancedCamera;
 import org.fxyz.cameras.controllers.FPSController;
-import org.fxyz.extras.Skybox;
 import org.fxyz.shapes.Torus;
 
 /**
  *
  * @author Dub
  */
-public class SkyBoxTest extends Application {
-            
-    private Group root;
-    private Skybox skyBox;
-    private AdvancedCamera camera;
-    private FPSController controller;
-    
-    // Supply Image Paths or a NullPointer will occur
-    private final Image 
-            top = new Image(SkyBoxTest.class.getResource("res/top.png").toExternalForm()),
-            bottom = new Image(SkyBoxTest.class.getResource("res/bottom.png").toExternalForm()),
-            left = new Image(SkyBoxTest.class.getResource("res/left.png").toExternalForm()),
-            right = new Image(SkyBoxTest.class.getResource("res/right.png").toExternalForm()),
-            front = new Image(SkyBoxTest.class.getResource("res/front.png").toExternalForm()),
-            back = new Image(SkyBoxTest.class.getResource("res/back.png").toExternalForm());
+public class FPSControllerTest extends Application {
     
     @Override
-    public void start(Stage stage) throws Exception {
-                        
-        root = new Group();
-              
-        
+    public void start(Stage stage) {
+        Group root = new Group();
         //Make a bunch of semi random Torusesessses(toroids?) and stuff : from torustest
         Group torusGroup = new Group();
         for (int i = 0; i < 30; i++) {
@@ -63,7 +41,6 @@ public class SkyBoxTest extends Application {
             Torus torus = new Torus(randomTubeDivisions, randomRadiusDivisions, randomRadius, randomTubeRadius, randomColor);
             torus.setEmissiveLightingColor(randomColor);
             torus.setEmissiveLightingOn(r.nextBoolean());
-            torus.setDrawMode(r.nextBoolean() ? DrawMode.FILL : DrawMode.LINE);
             
             double translationX = Math.random() * 1024 * 1.95;
             if (Math.random() >= 0.5) {
@@ -83,39 +60,31 @@ public class SkyBoxTest extends Application {
             Rotate rotateZ = new Rotate(Math.random() * 360, Rotate.Z_AXIS);
 
             torus.getTransforms().addAll(translate, rotateX, rotateY, rotateZ);
+            //torus.getTransforms().add(translate);
             torusGroup.getChildren().add(torus);
 
         }
+        root.getChildren().add(torusGroup);
+        
         
         Scene scene = new Scene(root, 1400, 1000, true, SceneAntialiasing.BALANCED);
         scene.setFill(Color.BLACK);
-        
-        controller = new FPSController();
-        controller.setScene(scene);
-        controller.setMouseLookEnabled(true);
-        
-        camera = new AdvancedCamera();
-        camera.setFarClip(100000);
-        camera.setController(controller);
-        scene.setCamera(camera);
         
         stage.setTitle("SimpleFPSControllerTest");
         stage.setScene(scene);
         stage.show();
         stage.setFullScreen(true);
-                       
-        skyBox = new Skybox(
-                top,
-                bottom,
-                left,
-                right,
-                front,
-                back,
-                100000,
-                camera
-        );
-        root.getChildren().addAll(camera, skyBox, torusGroup);
-        root.setAutoSizeChildren(true);
+        
+        FPSController controller = new FPSController();
+        controller.setScene(scene);
+        controller.setMouseLookEnabled(true);
+        
+        AdvancedCamera camera = new AdvancedCamera();
+        camera.setController(controller);
+        
+        root.getChildren().add(camera);
+        
+        scene.setCamera(camera);
     }
 
     /**

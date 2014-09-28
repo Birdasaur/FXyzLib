@@ -7,9 +7,9 @@
 package org.fxyz.geometry;
 
 /**
- *
+ * Just a useful data structure for X,Y,Z triplets.
  * @author Sean
- * @Description Just a useful data structure for X,Y,Z triplets.
+ * 
 
  */
 public class Point3D {

@@ -21,8 +21,7 @@ import org.fxyz.shapes.primitives.TorusMesh;
 
 /**
  *
- * @author JDub https://github.com/jdub1581
- * @refactored by Sean refactored again by jdub
+ * @author jdub1581
  */
 public class Torus extends ShapeContainer<TorusMesh> {
 
