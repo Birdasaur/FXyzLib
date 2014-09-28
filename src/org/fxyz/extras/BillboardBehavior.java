@@ -112,7 +112,7 @@ public interface BillboardBehavior<T extends Node>{
                 
             case CYLINDRICAL:                
                 affine.setMxx(right.x); affine.setMxy(0); affine.setMzx(forward.x); 
-                affine.setMyx(0); affine.setMyy(1); affine.setMzy(0); 
+                affine.setMyx(0);       affine.setMyy(1); affine.setMzy(0); 
                 affine.setMzx(right.z); affine.setMzy(0); affine.setMzz(forward.z);
                                 
                 affine.setTx(cX * (1 - affine.getMxx()) - cY * affine.getMxy() - cZ * affine.getMxz());

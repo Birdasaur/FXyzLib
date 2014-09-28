@@ -8,7 +8,7 @@ import org.fxyz.geometry.Vector3D;
  *
  * @author Dub
  */
-public class VectorUtils {
+public class MathUtils {
     public static final double DBL_EPSILON = 2.220446049250313E-16d; 
     public static final double ZERO_TOLERANCE = 0.0001d;
     public static final double ONE_THIRD = 1d / 3d;
@@ -72,5 +72,11 @@ public class VectorUtils {
         }
         storez = Math.asin(cartCoords.getY() / storex);
         return new Vector3D(storex, storey, storez);
+    }
+    public static float clamp(float input, float min, float max) {
+        return (input < min) ? min : (input > max) ? max : input;
+    }
+    public static double clamp(double input, double min, double max) {
+        return (input < min) ? min : (input > max) ? max : input;
     }
 }
