@@ -5,12 +5,12 @@
  */
 package org.fxyz.cameras.controllers;
 
+import org.fxyz.utils.AnimationPreference;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.transform.Translate;
 import org.fxyz.geometry.Vector3D;
 import org.fxyz.utils.MathUtils;
 
@@ -21,10 +21,12 @@ import org.fxyz.utils.MathUtils;
 public class FPSController extends CameraController {
 
     private boolean fwd, strafeL, strafeR, back, up, down, shift, mouseLookEnabled;
-    private double speed = 5.0;
+    private double speed = 1.0;
+    private final double maxSpeed = 5.0, minSpeed = 1.0;
+    
 
     public FPSController() {
-        super(true);
+        super(true, AnimationPreference.TIMER);        
     }
 
     @Override
@@ -68,8 +70,11 @@ public class FPSController extends CameraController {
                     strafeR = true;
                     break;
                 case SHIFT:
-                    speed = 15.0;
                     shift = true;
+                    if(up || down){
+                        break;
+                    }
+                    speed = maxSpeed;                    
                     break;
                 case SPACE:
                     if (!shift) {
@@ -94,7 +99,7 @@ public class FPSController extends CameraController {
                     strafeR = false;
                     break;
                 case SHIFT:
-                    speed = 5.0;
+                    speed = minSpeed;
                     shift = false;
                     break;
                 case SPACE:
@@ -106,37 +111,41 @@ public class FPSController extends CameraController {
     }
 
     @Override
-    public void handlePrimaryMouseDrag(MouseEvent event, Point2D dragDelta, double modifier) {
+    protected void handlePrimaryMouseDrag(MouseEvent event, Point2D dragDelta, double modifier) {
         if (!mouseLookEnabled) {
-            Translate tr = new Translate(affine.getTx(), affine.getTy(), affine.getTz());
+            t.setX(getPosition().getX());
+            t.setY(getPosition().getY());
+            t.setZ(getPosition().getZ());
             
             affine.setToIdentity();
             
             rotateY.setAngle(
-                    MathUtils.clamp(((rotateY.getAngle() + dragDelta.getX() * (speed * 0.5)) % 360 + 540) % 360 - 180, -360, 360)
+                    MathUtils.clamp(((rotateY.getAngle() + dragDelta.getX() * (1.0 * 0.25)) % 360 + 540) % 360 - 180, -360, 360)
             ); // horizontal                
             rotateX.setAngle(
-                    MathUtils.clamp(((rotateX.getAngle() - dragDelta.getY() * (speed * 0.5)) % 360 + 540) % 360 - 180, -90, 90)
+                    MathUtils.clamp(((rotateX.getAngle() - dragDelta.getY() * (1.0 * 0.25)) % 360 + 540) % 360 - 180, -90, 90)
             ); // vertical
             
-            affine.prepend(tr.createConcatenation(rotateY.createConcatenation(rotateX)));
+            affine.prepend(t.createConcatenation(rotateY.createConcatenation(rotateX)));
         }     
     }
 
     @Override
-    public void handleMiddleMouseDrag(MouseEvent event, Point2D dragDelta, double modifier) {
+    protected void handleMiddleMouseDrag(MouseEvent event, Point2D dragDelta, double modifier) {
         // do nothing for now        
     }
 
     @Override
-    public void handleSecondaryMouseDrag(MouseEvent event, Point2D dragDelta, double modifier) {
+    protected void handleSecondaryMouseDrag(MouseEvent event, Point2D dragDelta, double modifier) {
         // do nothing for now
     }
 
     @Override
-    public void handleMouseMoved(MouseEvent event, Point2D moveDelta, double speed) {
+    protected void handleMouseMoved(MouseEvent event, Point2D moveDelta, double speed) {
         if (mouseLookEnabled) {
-            Translate tr = new Translate(affine.getTx(), affine.getTy(), affine.getTz());
+            t.setX(getPosition().getX());
+            t.setY(getPosition().getY());
+            t.setZ(getPosition().getZ());
             
             affine.setToIdentity();
             
@@ -147,19 +156,20 @@ public class FPSController extends CameraController {
                     MathUtils.clamp(((rotateX.getAngle() - moveDelta.getY() * (speed * 0.05)) % 360 + 540) % 360 - 180, -90, 90)
             ); // vertical
             
-            affine.prepend(tr.createConcatenation(rotateY.createConcatenation(rotateX)));
+            affine.prepend(t.createConcatenation(rotateY.createConcatenation(rotateX)));
+            
         }
     }
 
     
 
     @Override
-    public void handleScrollEvent(ScrollEvent event) {
+    protected void handleScrollEvent(ScrollEvent event) {
         //do nothing for now, use for Zoom?
     }
 
     @Override
-    public double getSpeedModifier(KeyEvent event) {
+    protected double getSpeedModifier(KeyEvent event) {
         return speed;
     }
 
@@ -172,46 +182,40 @@ public class FPSController extends CameraController {
         }
     }
 
-    private void moveForward() {
-        Vector3D f = getForwardMatrixRow.call(affine);
-        affine.setTx(affine.getTx() + speed * f.x);
-        affine.setTy(affine.getTy() + speed * f.y);
-        affine.setTz(affine.getTz() + speed * f.z);
+    private void moveForward() {      
+        affine.setTx(getPosition().getX() + speed * getForwardMatrixRow().x);
+        affine.setTy(getPosition().getY() + speed * getForwardMatrixRow().y);
+        affine.setTz(getPosition().getZ() + speed * getForwardMatrixRow().z);
     }
 
     private void strafeLeft() {
-        Vector3D r = getRightMatrixRow.call(affine);
-        affine.setTx(affine.getTx() + speed * -r.x);
-        affine.setTy(affine.getTy() + speed * -r.y);
-        affine.setTz(affine.getTz() + speed * -r.z);
+        affine.setTx(getPosition().getX() + speed * -getRightMatrixRow().x);
+        affine.setTy(getPosition().getY() + speed * -getRightMatrixRow().y);
+        affine.setTz(getPosition().getZ() + speed * -getRightMatrixRow().z);
     }
 
     private void strafeRight() {
-        Vector3D r = getRightMatrixRow.call(affine);
-        affine.setTx(affine.getTx() + speed * r.x);
-        affine.setTy(affine.getTy() + speed * r.y);
-        affine.setTz(affine.getTz() + speed * r.z);
+        affine.setTx(getPosition().getX() + speed * getRightMatrixRow().x);
+        affine.setTy(getPosition().getY() + speed * getRightMatrixRow().y);
+        affine.setTz(getPosition().getZ() + speed * getRightMatrixRow().z);
     }
 
     private void moveBack() {
-        Vector3D f = getForwardMatrixRow.call(affine);
-        affine.setTx(affine.getTx() + speed * -f.x);
-        affine.setTy(affine.getTy() + speed * -f.y);
-        affine.setTz(affine.getTz() + speed * -f.z);
+        affine.setTx(getPosition().getX() + speed * -getForwardMatrixRow().x);
+        affine.setTy(getPosition().getY() + speed * -getForwardMatrixRow().y);
+        affine.setTz(getPosition().getZ() + speed * -getForwardMatrixRow().z);
     }
 
     private void moveUp() {
-        Vector3D u = getUpMatrixRow.call(affine);
-        affine.setTx(affine.getTx() + speed * -u.x);
-        affine.setTy(affine.getTy() + speed * -u.y);
-        affine.setTz(affine.getTz() + speed * -u.z);
+        affine.setTx(getPosition().getX() + speed * -getUpMatrixRow().x);
+        affine.setTy(getPosition().getY() + speed * -getUpMatrixRow().y);
+        affine.setTz(getPosition().getZ() + speed * -getUpMatrixRow().z);
     }
 
     private void moveDown() {
-        Vector3D u = getUpMatrixRow.call(affine);
-        affine.setTx(affine.getTx() + speed * u.x);
-        affine.setTy(affine.getTy() + speed * u.y);
-        affine.setTz(affine.getTz() + speed * u.z);
+        affine.setTx(getPosition().getX() + speed * getUpMatrixRow().x);
+        affine.setTy(getPosition().getY() + speed * getUpMatrixRow().y);
+        affine.setTz(getPosition().getZ() + speed * getUpMatrixRow().z);
     }
 
     public void setMouseLookEnabled(boolean b) {
@@ -219,18 +223,38 @@ public class FPSController extends CameraController {
     }
 
     @Override
-    public void handlePrimaryMouseClick(MouseEvent t) {
-        System.out.println("Primary Button Clicked!");
+    protected void handlePrimaryMouseClick(MouseEvent t) {
+        //System.out.println("Primary Button Clicked!");
     }
 
     @Override
-    public void handleMiddleMouseClick(MouseEvent t) {
-        System.out.println("Middle Button Clicked!");
+    protected void handleMiddleMouseClick(MouseEvent t) {
+        //System.out.println("Middle Button Clicked!");
     }
 
     @Override
-    public void handleSecondaryMouseClick(MouseEvent t) {
-        System.out.println("Secondary Button Clicked!");
+    protected void handleSecondaryMouseClick(MouseEvent t) {
+        //System.out.println("Secondary Button Clicked!");
+    }
+
+    @Override
+    protected void handlePrimaryMousePress(MouseEvent e) {
+        
+    }
+
+    @Override
+    protected void handleSecondaryMousePress(MouseEvent e) {
+       
+    }
+
+    @Override
+    protected void handleMiddleMousePress(MouseEvent e) {
+        
+    }
+
+    @Override
+    protected void updateTransition(double now) {
+        
     }
 
 }

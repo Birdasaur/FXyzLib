@@ -40,8 +40,8 @@ public class CapsuleTest extends Application {
         for (int i = 0; i < 50; i++) {
             Random r = new Random();
             //A lot of magic numbers in here that just artificially constrain the math
-            float randomRadius = (float) ((r.nextFloat() * 300) + 50);
-            float randomHeight = (float) ((r.nextFloat() * 300) + 50);
+            float randomRadius = (float) ((r.nextFloat() * 100) + 25);
+            float randomHeight = (float) ((r.nextFloat() * 300) + 75);
             Color randomColor = new Color(r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble());
             
             Capsule cap = new Capsule(randomRadius, randomHeight, randomColor);               

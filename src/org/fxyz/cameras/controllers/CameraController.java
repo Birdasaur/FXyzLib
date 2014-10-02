@@ -5,7 +5,12 @@
  */
 package org.fxyz.cameras.controllers;
 
+import org.fxyz.utils.AnimationPreference;
+import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.animation.Transition;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.SubScene;
@@ -15,11 +20,9 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.transform.Affine;
-import javafx.util.Callback;
+import javafx.util.Duration;
 import org.fxyz.cameras.AdvancedCamera;
 import org.fxyz.extras.Transformable;
-import org.fxyz.geometry.Vector3D;
 
 /**
  *
@@ -31,74 +34,81 @@ public abstract class CameraController implements Transformable {
     private Scene scene;
     private SubScene subScene;
     private double previousX, previousY, speed = 1.0;
-    private final AnimationTimer timer;
+    private AnimationTimer timer;
+    private Timeline timeline;
+    private Transition transition;
     private boolean enable;
-    
-    private Vector3D fd,fr,ud,ur,rd,rr;
-    public Callback<Affine, Vector3D> forwardDir = (a) -> {
-        fd = new Vector3D(a.getMzx(), a.getMzy(), a.getMzz());
-        return fd;
-    };
-    public Callback<Affine, Vector3D> getForwardMatrixRow = (a) -> {
-        fr = new Vector3D(a.getMxz(), a.getMyz(), a.getMzz());
-        return fr;
-    };
-    
-    public Callback<Affine, Vector3D> upDir = (a) -> {
-        ud = new Vector3D(a.getMyx(), a.getMyy(), a.getMyz());
-        return ud;
-    };
-    public Callback<Affine, Vector3D> getUpMatrixRow = (a) -> {
-        ur = new Vector3D(a.getMxy(), a.getMyy(), a.getMzy());
-        return ur;
-    };
-    
-    public Callback<Affine, Vector3D> rightDir = (a) -> {
-        fd = new Vector3D(a.getMxx(), a.getMxy(), a.getMxz());
-        return fd;
-    };
-    public Callback<Affine, Vector3D> getRightMatrixRow = (a) -> {
-        fd = new Vector3D(a.getMxx(), a.getMyx(), a.getMzx());
-        return fd;
-    };
+    private AnimationPreference animPref;
 
-    public CameraController(boolean enableTransforms) {
+    public CameraController(boolean enableTransforms, AnimationPreference movementType) {
         enable = enableTransforms;
-        timer = new AnimationTimer() {
-            @Override
-            public void handle(long l) {
-                if (enable) {
-                    initialize();
-                    enable = false;
-                }
-                update();
-            }
-        };
+        animPref = movementType;
+        switch (animPref) {
+            case TIMELINE:
+                timeline = new Timeline();
+                timeline.setCycleCount(Animation.INDEFINITE);
+                break;
+            case TIMER:
+                timer = new AnimationTimer() {
+                    @Override
+                    public void handle(long l) {
+                        if (enable) {
+                            initialize();
+                            enable = false;
+                        }
+                        update();
+                    }
+                };
+                break;
+            case TRANSITION:
+                transition = new Transition() {
+                    {setCycleDuration(Duration.seconds(1));}
+                    @Override
+                    protected void interpolate(double frac) {
+                        updateTransition(frac);
+                    }
+                };
+                transition.setCycleCount(Animation.INDEFINITE);
+                break;
+            case ANIMATION:
+                
+                break;
+        }
+
     }
 
     //Abstract Methods
-    public abstract void update(); // called each frame handle movement/ button clicks here
+    protected abstract void update(); // called each frame handle movement/ button clicks here
+
+    protected abstract void updateTransition(double now);
 
     // Following methods should update values for use in update method etc...
-    public abstract void handleKeyEvent(KeyEvent event, boolean handle);
 
-    public abstract void handlePrimaryMouseDrag(MouseEvent event, Point2D dragDelta, double modifier);
+    protected abstract void handleKeyEvent(KeyEvent event, boolean handle);
 
-    public abstract void handleMiddleMouseDrag(MouseEvent event, Point2D dragDelta, double modifier);
+    protected abstract void handlePrimaryMouseDrag(MouseEvent event, Point2D dragDelta, double modifier);
 
-    public abstract void handleSecondaryMouseDrag(MouseEvent event, Point2D dragDelta, double modifier);
-    
-    public abstract void handlePrimaryMouseClick(MouseEvent e);
-    
-    public abstract void handleSecondaryMouseClick(MouseEvent e);
-    
-    public abstract void handleMiddleMouseClick(MouseEvent e);
+    protected abstract void handleMiddleMouseDrag(MouseEvent event, Point2D dragDelta, double modifier);
 
-    public abstract void handleMouseMoved(MouseEvent event, Point2D moveDelta, double modifier);
+    protected abstract void handleSecondaryMouseDrag(MouseEvent event, Point2D dragDelta, double modifier);
 
-    public abstract void handleScrollEvent(ScrollEvent event);
+    protected abstract void handlePrimaryMouseClick(MouseEvent e);
 
-    public abstract double getSpeedModifier(KeyEvent event);
+    protected abstract void handleSecondaryMouseClick(MouseEvent e);
+
+    protected abstract void handleMiddleMouseClick(MouseEvent e);
+
+    protected abstract void handlePrimaryMousePress(MouseEvent e);
+
+    protected abstract void handleSecondaryMousePress(MouseEvent e);
+
+    protected abstract void handleMiddleMousePress(MouseEvent e);
+
+    protected abstract void handleMouseMoved(MouseEvent event, Point2D moveDelta, double modifier);
+
+    protected abstract void handleScrollEvent(ScrollEvent event);
+
+    protected abstract double getSpeedModifier(KeyEvent event);
 
     //Self contained Methods
     private void handleKeyEvent(KeyEvent t) {
@@ -113,6 +123,19 @@ public abstract class CameraController implements Transformable {
     private void handleMouseEvent(MouseEvent t) {
 
         if (t.getEventType() == MouseEvent.MOUSE_PRESSED) {
+            switch (t.getButton()) {
+                case PRIMARY:
+                    handlePrimaryMousePress(t);
+                    break;
+                case MIDDLE:
+                    handleMiddleMousePress(t);
+                    break;
+                case SECONDARY:
+                    handleSecondaryMousePress(t);
+                    break;
+                default:
+                    throw new AssertionError();
+            }
             handleMousePress(t);
         } else if (t.getEventType() == MouseEvent.MOUSE_DRAGGED) {
             Point2D d = getMouseDelta(t);
@@ -132,7 +155,7 @@ public abstract class CameraController implements Transformable {
             }
         } else if (t.getEventType() == MouseEvent.MOUSE_MOVED) {
             handleMouseMoved(t, getMouseDelta(t), speed);
-        } else if(t.getEventType() == MouseEvent.MOUSE_CLICKED){
+        } else if (t.getEventType() == MouseEvent.MOUSE_CLICKED) {
             switch (t.getButton()) {
                 case PRIMARY:
                     handlePrimaryMouseClick(t);
@@ -181,7 +204,28 @@ public abstract class CameraController implements Transformable {
 
     public void setCamera(AdvancedCamera camera) {
         this.camera = camera;
-        timer.start();
+        switch (animPref) {
+            case TIMELINE:
+                timeline.getKeyFrames().addAll(
+                        new KeyFrame(Duration.millis(15), e -> {
+                            new Timeline(new KeyFrame[]{
+                                new KeyFrame(Duration.ONE, ev ->{
+                                    update();
+                                })
+                            }).play();
+                        })
+                );
+                timeline.play();                
+                break;
+            case TIMER:
+                timer.start();
+                break;
+            case TRANSITION:
+                transition.play();
+                break;
+            case ANIMATION:
+                break;
+        }
     }
 
     public void setScene(Scene scene) {
@@ -194,11 +238,11 @@ public abstract class CameraController implements Transformable {
         setEventHandlers(subScene);
     }
 
-    public Scene getScene() {
+    protected Scene getScene() {
         return scene;
     }
 
-    public SubScene getSubScene() {
+    protected SubScene getSubScene() {
         return subScene;
     }
 

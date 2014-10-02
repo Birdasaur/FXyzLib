@@ -3,11 +3,15 @@
  */
 package org.fxyz.extras;
 
+import javafx.geometry.Point3D;
 import javafx.scene.Node;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
+import javafx.scene.transform.Transform;
 import javafx.scene.transform.Translate;
+import javafx.util.Callback;
+import org.fxyz.geometry.Vector3D;
 
 /**
  * An Interface implementation of Xform found in the Molecule Sample
@@ -82,7 +86,58 @@ public interface Transformable<T extends Node> {
         ip.setZ(-z);
     }
     
+    //advanced transform
     public Affine affine = new Affine();
+    
+    //Vectors: fwd, right, up   Point3D: pos
+    
+    //Forward / look direction    
+    Callback<Transform, Vector3D> forwardDirCallback = (a) -> {
+        return new Vector3D(a.getMzx(), a.getMzy(), a.getMzz());
+    };
+    Callback<Transform, Vector3D> forwardMatrixRowCallback = (a) -> {
+        return new Vector3D(a.getMxz(), a.getMyz(), a.getMzz());
+    };
+    // up direction
+    Callback<Transform, Vector3D> upDirCallback = (a) -> {
+        return new Vector3D(a.getMyx(), a.getMyy(), a.getMyz());
+    };
+    Callback<Transform, Vector3D> upMatrixRowCallback = (a) -> {
+        return new Vector3D(a.getMxy(), a.getMyy(), a.getMzy());
+    };
+    // right direction
+    Callback<Transform, Vector3D> rightDirCallback = (a) -> {
+        return new Vector3D(a.getMxx(), a.getMxy(), a.getMxz());
+    };
+    Callback<Transform, Vector3D> rightMatrixRowCallback = (a) -> {         
+        return new Vector3D(a.getMxx(), a.getMyx(), a.getMzx());
+    };
+    //position
+    Callback<Transform, Point3D> positionCallback = (a) ->{
+        return new Point3D(a.getTx(), a.getTy(), a.getTz());
+    };
+    
+    default Vector3D getForwardDirection(){
+        return forwardDirCallback.call(getTransformableNode().getLocalToSceneTransform());
+    }
+    default Vector3D getForwardMatrixRow(){
+        return forwardMatrixRowCallback.call(getTransformableNode().getLocalToSceneTransform());
+    }
+    default Vector3D getRightDirection(){
+        return rightDirCallback.call(getTransformableNode().getLocalToSceneTransform());
+    }
+    default Vector3D getRightMatrixRow(){
+        return rightMatrixRowCallback.call(getTransformableNode().getLocalToSceneTransform());
+    }
+    default Vector3D getUpDirection(){
+        return upDirCallback.call(getTransformableNode().getLocalToSceneTransform());
+    }
+    default Vector3D getUpMatrixRow(){
+        return upMatrixRowCallback.call(getTransformableNode().getLocalToSceneTransform());
+    }
+    default Point3D getPosition(){
+        return positionCallback.call(getTransformableNode().getLocalToSceneTransform());
+    }
     
     public default void reset() {
         t.setX(0.0);
@@ -100,12 +155,15 @@ public interface Transformable<T extends Node> {
         ip.setX(0.0);
         ip.setY(0.0);
         ip.setZ(0.0);
+        
         affine.setMxx(1);
         affine.setMxy(0);
         affine.setMxz(0);
+        
         affine.setMyx(0);
         affine.setMyy(1);
         affine.setMyz(0);
+        
         affine.setMzx(0);
         affine.setMzy(0);
         affine.setMzz(1);
@@ -146,7 +204,8 @@ public interface Transformable<T extends Node> {
                            "ip = (" +
                            ip.getX() + ", " + 
                            ip.getY() + ", " + 
-                           ip.getZ() + ")");
+                           ip.getZ() + ")" +
+                           "affine = " + affine);        
     }
     
     
