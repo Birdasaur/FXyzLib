@@ -76,13 +76,13 @@ public final class CameraView extends ImageView {
         worldToView = (Group)scene.getRoot();
                
         camera = new PerspectiveCamera(true);
-        cameraTransform.setTranslate(0, 0, -500);
+//        cameraTransform.setTranslate(0, 0, -500);
         cameraTransform.getChildren().add(camera);
         camera.setNearClip(0.1);
         camera.setFarClip(15000.0);
         camera.setTranslateZ(-1500);
-        cameraTransform.ry.setAngle(-45.0);
-        cameraTransform.rx.setAngle(-10.0);
+//        cameraTransform.ry.setAngle(-45.0);
+//        cameraTransform.rx.setAngle(-10.0);
 
         params.setCamera(camera);
         
