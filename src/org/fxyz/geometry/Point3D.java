@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.fxyz.geometry;
 
 /**
@@ -18,6 +12,9 @@ public class Point3D {
     public float y = 0;
     public float z = 0;
 
+    public float r = 0;
+    public float phi = 0;
+    public float theta = 0;
     /* 
     * @param X,Y,Z are all floats to align with TriangleMesh needs 
     */
@@ -25,5 +22,41 @@ public class Point3D {
         this.x = x;
         this.y = y;
         this.z = z;
-    }    
+    
+        r=(float)Math.sqrt(x*x+y*y+z*z);
+        phi=(float)Math.atan2(y,x);
+        theta=(float)Math.acos(z/r);
+    }
+    
+    public Point3D add(Point3D point) {
+        return add(point.x, point.y, point.z);
+    }
+    
+    public Point3D add(float x, float y, float z) {
+        return new Point3D(this.x + x, this.y + y, this.z+ z);
+    }
+    
+    public Point3D multiply(float factor) {
+        return new Point3D(this.x * factor, this.y * factor, this.z * factor);
+    }
+    
+    public Point3D normalize() {
+        final float mag = magnitude();
+
+        if (mag == 0.0) {
+            return new Point3D(0f, 0f, 0f);
+        }
+
+        return new Point3D(x / mag, y / mag, z / mag);
+    }
+    
+    public float magnitude() {
+        return (float)Math.sqrt(x * x + y * y + z * z);
+    }
+
+    @Override
+    public String toString() {
+        return "Point3D{" + "x=" + x + ", y=" + y + ", z=" + z + '}';
+    }
+    
 }
