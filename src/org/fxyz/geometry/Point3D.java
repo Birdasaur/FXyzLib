@@ -1,5 +1,7 @@
 package org.fxyz.geometry;
 
+import java.util.stream.Stream;
+
 /**
  *
  * @author Sean
@@ -27,6 +29,9 @@ public class Point3D {
         phi=(float)Math.atan2(y,x);
         theta=(float)Math.acos(z/r);
     }
+    
+    public Stream<Float> getCoordinates() { return getCoordinates(1f); }
+    public Stream<Float> getCoordinates(float fact) { return Stream.of(fact*x,fact*y,fact*z); }
     
     public Point3D add(Point3D point) {
         return add(point.x, point.y, point.z);

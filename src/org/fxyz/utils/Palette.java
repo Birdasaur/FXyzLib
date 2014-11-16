@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.scene.image.PixelWriter;
@@ -46,13 +47,13 @@ public class Palette {
         return imgPalette;
     }
     
-    public float[] getTextureLocation(int iPoint){
+    public Stream<Float> getTextureLocation(int iPoint){
         if(width==0 || height==0){
-            return new float[]{0,0};
+            return Stream.of(0f,0f);
         }
         int y = iPoint/width; 
         int x = iPoint-width*y;
-        return new float[]{(((float)x)/((float)width)),(((float)y)/((float)height))};
+        return Stream.of((((float)x)/((float)width)),(((float)y)/((float)height)));
     }
     
     private void saveImage(){

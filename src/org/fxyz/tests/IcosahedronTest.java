@@ -71,7 +71,7 @@ public class IcosahedronTest extends Application {
         
         rotateY = new Rotate(0, 0, 0, 0, Rotate.Y_AXIS);
         Group group = new Group();
-        group.getChildren().add(cameraTransform);     
+        group.getChildren().add(cameraTransform);    
         ico = new IcosahedronMesh(6,65536,1f,dens);
         ico.getTransforms().addAll(new Rotate(30,Rotate.X_AXIS),rotateY);
         
@@ -160,7 +160,7 @@ public class IcosahedronTest extends Application {
         primaryStage.show();        
         
         timerEffect.start();
-        timeline.play();
+//        timeline.play();
     }
     /**
      * @param args the command line arguments
