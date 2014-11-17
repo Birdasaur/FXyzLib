@@ -68,9 +68,7 @@ public class Palette {
     private Color getColor(int iColor){
         
         //TODO: add already defined nice palettes
-        
-        java.awt.Color c = java.awt.Color.getHSBColor((float) iColor / (float) numColors, 1.0f, 1.0f);
-        return Color.rgb(c.getRed(), c.getGreen(), c.getBlue());
+        return Color.hsb(360*(double) iColor / (double) numColors, 1d, 1d);
         
 //        return Color.rgb((iColor >> 16) & 0xFF, (iColor >> 8) & 0xFF, iColor & 0xFF);
     }

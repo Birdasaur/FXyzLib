@@ -200,7 +200,7 @@ public class IcosahedronMesh extends MeshView {
         // read vertices from level-1
         if(level==0){
             points0 = IntStream.range(0, baseVertices.size()/3)
-                        .mapToObj(i -> new Point3D(baseVertices.get(3*i), baseVertices.get(3*i+1), baseVertices.get(3*i+2)))
+                    .mapToObj(i -> new Point3D(baseVertices.get(3*i), baseVertices.get(3*i+1), baseVertices.get(3*i+2)))
                         .flatMap(p->p.getCoordinates(diameter)).collect(toFloatArray); 
             numVertices=baseVertices.size()/3;
         } else if(m0!=null) {
@@ -340,8 +340,8 @@ System.out.println("level: "+level+", v: "+numVertices+", f: "+numFaces);
     }
     
     private void updateExtremes(){
-        max=points2.stream().mapToDouble(p->density.get().eval(p)).max().orElse(1.0);
-        min=points2.stream().mapToDouble(p->density.get().eval(p)).min().orElse(0.0);
+        max=points2.parallelStream().mapToDouble(p->density.get().eval(p)).max().orElse(1.0);
+        min=points2.parallelStream().mapToDouble(p->density.get().eval(p)).min().orElse(0.0);
         if(max==min){
             max=1.0+min;
         }
