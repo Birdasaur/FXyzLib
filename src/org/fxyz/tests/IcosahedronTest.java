@@ -73,7 +73,7 @@ public class IcosahedronTest extends Application {
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
         long time=System.currentTimeMillis();
-        ico = new IcosahedronMesh(9,65536,1f,dens);
+        ico = new IcosahedronMesh(6,65536,1f,dens);
         ico.getTransforms().addAll(new Rotate(30,Rotate.X_AXIS),rotateY);
         System.out.println("t: "+(System.currentTimeMillis()-time));
         group.getChildren().add(ico);
