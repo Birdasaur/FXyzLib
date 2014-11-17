@@ -78,6 +78,8 @@ public class IcosahedronMesh extends MeshView {
         
         levelProperty().addListener((obs,i0,i1)->{
             if(mesh!=null && i1!=null && i1.intValue()>=0){
+                mesh=null;
+                setMesh(null);
                 mesh=createSphere(getLevel(), getDiameter());
                 setMesh(mesh);
             }
@@ -201,7 +203,9 @@ public class IcosahedronMesh extends MeshView {
         if(level==0){
             points0 = IntStream.range(0, baseVertices.size()/3)
                         .mapToObj(i -> new Point3D(baseVertices.get(3*i), baseVertices.get(3*i+1), baseVertices.get(3*i+2)))
-                        .flatMap(p->p.getCoordinates(diameter)).collect(toFloatArray); 
+                        .flatMapToDouble(p->p.getCoordinates(diameter))
+                        .collect(FloatCollector::new, FloatCollector::add, FloatCollector::join)
+                        .toArray(); 
             numVertices=baseVertices.size()/3;
         } else if(m0!=null) {
             points0=new float[numVertices*m0.getPointElementSize()];
@@ -251,19 +255,24 @@ public class IcosahedronMesh extends MeshView {
         });
         numVertices=points2.size();
         numFaces=faces2.size();
-System.out.println("level: "+level+", v: "+numVertices+", f: "+numFaces);
-        
+        if(level==getLevel()){
+            System.out.println("level: "+level+", v: "+numVertices+", f: "+numFaces);
+        }
         // new mesh
         TriangleMesh m = new TriangleMesh();
         // vertices for level
+           
         float[] vertexArray = points2.stream()
-            .flatMap(Point3D::getCoordinates).collect(toFloatArray);       
+            .flatMapToDouble(Point3D::getCoordinates)
+            .collect(FloatCollector::new, FloatCollector::add, FloatCollector::join).toArray();        // 611
         m.getPoints().setAll(vertexArray);
         
         if(level==getLevel()){
             // textures for level
             float[] textureArray = IntStream.range(0,getColors()).boxed()
-                .flatMap(i -> palette.getTextureLocation(i)).collect(toFloatArray);
+                .flatMapToDouble(i -> palette.getTextureLocation(i))
+                .collect(FloatCollector::new, FloatCollector::add, FloatCollector::join)
+                .toArray();
             m.getTexCoords().setAll(textureArray);
             
             updateExtremes();
@@ -323,7 +332,9 @@ System.out.println("level: "+level+", v: "+numVertices+", f: "+numFaces);
     private void updateVertices(float factor){
         if(mesh!=null){
             float[] vertexArray = points2.stream()
-                .flatMap(p->p.getCoordinates(factor)).collect(toFloatArray);       
+                .flatMapToDouble(p->p.getCoordinates(factor))
+                .collect(FloatCollector::new, FloatCollector::add, FloatCollector::join)
+                .toArray();       
             mesh.getPoints().setAll(vertexArray);
         
         }
@@ -331,7 +342,9 @@ System.out.println("level: "+level+", v: "+numVertices+", f: "+numFaces);
     private void updateTexture(){
         if(mesh!=null){
             float[] textureArray = IntStream.range(0,getColors()).boxed()
-                .flatMap(i -> palette.getTextureLocation(i)).collect(toFloatArray);
+                .flatMapToDouble(i -> palette.getTextureLocation(i))
+                .collect(FloatCollector::new, FloatCollector::add, FloatCollector::join)
+                .toArray();
             mesh.getTexCoords().setAll(textureArray);
         }
     }
@@ -363,13 +376,40 @@ System.out.println("level: "+level+", v: "+numVertices+", f: "+numFaces);
     /*
         Collector to generate a float[] array from a Stream<float>
     */
-    private final Collector<Float, ?, float[]> toFloatArray = 
-            Collectors.collectingAndThen(Collectors.toList(), (floatList) -> {
+    private final Collector<Double, ?, float[]> toFloatArray = 
+            Collectors.collectingAndThen(Collectors.toList(), (List<Double> floatList) -> {
         float[] array = new float[floatList.size()];
-        for (ListIterator<Float> iterator = floatList.listIterator(); iterator.hasNext();) {
-            array[iterator.nextIndex()] = iterator.next();
+        for (ListIterator<Double> iterator = floatList.listIterator(); iterator.hasNext();) {
+            array[iterator.nextIndex()] = iterator.next().floatValue();
         }
         return array;
     });
     
+    private static class FloatCollector {
+        
+        private float[] curr=new float[64];
+        private int size;
+        
+        public void add(double d) {
+            if(curr.length==size){
+                curr=Arrays.copyOf(curr, size*2);
+            }
+            curr[size++]=(float)d;
+        }
+        
+        public void join(FloatCollector other) {
+            if(size+other.size > curr.length) {
+                curr=Arrays.copyOf(curr, size+other.size);
+            }
+            System.arraycopy(other.curr, 0, curr, size, other.size);
+            size+=other.size;
+        }
+        
+        public float[] toArray() {
+            if(size!=curr.length){
+                curr=Arrays.copyOf(curr, size);
+            }
+            return curr;
+        }
+    }
 }

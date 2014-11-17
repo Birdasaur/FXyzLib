@@ -145,8 +145,8 @@ public class IcosahedronTest extends Application {
 //                    dens = p->10*cont1*Math.pow(Math.abs(p.x),cont1)*Math.pow(Math.abs(p.y),cont2)*Math.pow(p.z,2);
                     ico.setDensity(dens);
 //                    ico.setColors((int)Math.pow(2,count.get()%16));
-//                    ico.setLevel(count.get()%7);
-//                    ico.setDiameter(1f+10*(float)cont1);
+//                    ico.setLevel(count.get()%8);
+//                    ico.setDiameter(0.5f+10*(float)cont1);
                     lastEffect = now;
                 }
             }

@@ -1,5 +1,6 @@
 package org.fxyz.geometry;
 
+import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
 /**
@@ -30,8 +31,8 @@ public class Point3D {
         theta=(float)Math.acos(z/r);
     }
     
-    public Stream<Float> getCoordinates() { return getCoordinates(1f); }
-    public Stream<Float> getCoordinates(float fact) { return Stream.of(fact*x,fact*y,fact*z); }
+    public DoubleStream getCoordinates() { return DoubleStream.of(x,y,z); }
+    public DoubleStream getCoordinates(float factor) { return DoubleStream.of(factor*x,factor*y,factor*z); }
     
     public Point3D add(Point3D point) {
         return add(point.x, point.y, point.z);

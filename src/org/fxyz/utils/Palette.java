@@ -3,6 +3,7 @@ package org.fxyz.utils;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javafx.embed.swing.SwingFXUtils;
@@ -47,13 +48,13 @@ public class Palette {
         return imgPalette;
     }
     
-    public Stream<Float> getTextureLocation(int iPoint){
+    public DoubleStream getTextureLocation(int iPoint){
         if(width==0 || height==0){
-            return Stream.of(0f,0f);
+            return DoubleStream.of(0f,0f);
         }
         int y = iPoint/width; 
         int x = iPoint-width*y;
-        return Stream.of((((float)x)/((float)width)),(((float)y)/((float)height)));
+        return DoubleStream.of((((float)x)/((float)width)),(((float)y)/((float)height)));
     }
     
     private void saveImage(){
