@@ -200,7 +200,7 @@ public class IcosahedronMesh extends MeshView {
         // read vertices from level-1
         if(level==0){
             points0 = IntStream.range(0, baseVertices.size()/3)
-                    .mapToObj(i -> new Point3D(baseVertices.get(3*i), baseVertices.get(3*i+1), baseVertices.get(3*i+2)))
+                        .mapToObj(i -> new Point3D(baseVertices.get(3*i), baseVertices.get(3*i+1), baseVertices.get(3*i+2)))
                         .flatMap(p->p.getCoordinates(diameter)).collect(toFloatArray); 
             numVertices=baseVertices.size()/3;
         } else if(m0!=null) {
@@ -258,19 +258,19 @@ System.out.println("level: "+level+", v: "+numVertices+", f: "+numFaces);
         // vertices for level
         float[] vertexArray = points2.stream()
             .flatMap(Point3D::getCoordinates).collect(toFloatArray);       
-        m.getPoints().addAll(vertexArray);
+        m.getPoints().setAll(vertexArray);
         
         if(level==getLevel()){
             // textures for level
             float[] textureArray = IntStream.range(0,getColors()).boxed()
                 .flatMap(i -> palette.getTextureLocation(i)).collect(toFloatArray);
-            m.getTexCoords().addAll(textureArray);
+            m.getTexCoords().setAll(textureArray);
             
             updateExtremes();
         }
               
         // faces for level
-        int[] faces = faces2.stream().map(f->{
+        int[] faces = faces2.parallelStream().map(f->{
                 int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
                 int t0=0, t1=0, t2=0;
                 if(level==getLevel()){
@@ -280,7 +280,7 @@ System.out.println("level: "+level+", v: "+numVertices+", f: "+numFaces);
                 }
                 return IntStream.of(p0, t0, p1, t1, p2, t2);
             }).flatMapToInt(i->i).toArray();
-         m.getFaces().addAll(faces);
+         m.getFaces().setAll(faces);
          
         return m;
     }
@@ -320,22 +320,19 @@ System.out.println("level: "+level+", v: "+numVertices+", f: "+numFaces);
         return f;
     }
     
-    private void updateVertices(float fact){
+    private void updateVertices(float factor){
         if(mesh!=null){
-            mesh.getPoints().clear();
-            // vertices for level
             float[] vertexArray = points2.stream()
-            .flatMap(p->p.getCoordinates(fact)).collect(toFloatArray);       
-            mesh.getPoints().addAll(vertexArray);
+                .flatMap(p->p.getCoordinates(factor)).collect(toFloatArray);       
+            mesh.getPoints().setAll(vertexArray);
         
         }
     }
     private void updateTexture(){
         if(mesh!=null){
-            mesh.getTexCoords().clear();
             float[] textureArray = IntStream.range(0,getColors()).boxed()
                 .flatMap(i -> palette.getTextureLocation(i)).collect(toFloatArray);
-            mesh.getTexCoords().addAll(textureArray);
+            mesh.getTexCoords().setAll(textureArray);
         }
     }
     
@@ -352,15 +349,14 @@ System.out.println("level: "+level+", v: "+numVertices+", f: "+numFaces);
         // textures for level
         if(mesh!=null){
             updateExtremes();
-            mesh.getFaces().clear();
-            int[] faces = faces2.stream().map(f->{
+            int[] faces = faces2.parallelStream().map(f->{
                 int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
                 int t0=mapDensity(points2.get(p0));
                 int t1=mapDensity(points2.get(p1));
                 int t2=mapDensity(points2.get(p2));
                 return IntStream.of(p0, t0, p1, t1, p2, t2);
             }).flatMapToInt(i->i).toArray();
-            mesh.getFaces().addAll(faces);
+            mesh.getFaces().setAll(faces);
         }
     }
     
