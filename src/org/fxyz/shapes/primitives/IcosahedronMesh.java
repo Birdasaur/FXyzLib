@@ -260,13 +260,9 @@ public class IcosahedronMesh extends MeshView {
         // new mesh
         TriangleMesh m = new TriangleMesh();
         // vertices for level
-        long time=System.currentTimeMillis();
         float[] vertexArray = points2.stream()
             .flatMapToDouble(Point3D::getCoordinates)
             .collect(()->new FloatCollector(points2.size()*3), FloatCollector::add, FloatCollector::join).toArray();
-        if(level==getLevel()){
-            System.out.println("t0: "+(System.currentTimeMillis()-time));
-        }
         m.getPoints().setAll(vertexArray);
         
         if(level==getLevel()){
