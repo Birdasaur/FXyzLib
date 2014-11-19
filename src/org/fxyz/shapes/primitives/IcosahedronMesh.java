@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javafx.beans.property.FloatProperty;
@@ -22,6 +20,7 @@ import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Point3D;
+import org.fxyz.utils.FloatCollector;
 import org.fxyz.utils.Palette;
 
 /**
@@ -187,8 +186,8 @@ public class IcosahedronMesh extends MeshView {
     /*
         ICOSPHERE
     */
-    private List<Point3D> points2 = new ArrayList<>();
-    private List<Point3D> faces2 = new ArrayList<>();
+    private final List<Point3D> points2 = new ArrayList<>();
+    private final List<Point3D> faces2 = new ArrayList<>();
     private int numVertices, numFaces;
     private float[] points0;
     private int[] faces0;
@@ -264,7 +263,7 @@ public class IcosahedronMesh extends MeshView {
         long time=System.currentTimeMillis();
         float[] vertexArray = points2.stream()
             .flatMapToDouble(Point3D::getCoordinates)
-            .collect(()->new FloatCollector(points2.size()*3), FloatCollector::add, FloatCollector::join).toArray();        // 611
+            .collect(()->new FloatCollector(points2.size()*3), FloatCollector::add, FloatCollector::join).toArray();
         if(level==getLevel()){
             System.out.println("t0: "+(System.currentTimeMillis()-time));
         }
@@ -376,51 +375,4 @@ public class IcosahedronMesh extends MeshView {
         }
     }
     
-    /*
-        Collector to generate a float[] array from a Stream<float>
-    */
-    private final Collector<Double, ?, float[]> toFloatArray = 
-            Collectors.collectingAndThen(Collectors.toList(), (List<Double> floatList) -> {
-        float[] array = new float[floatList.size()];
-        for (ListIterator<Double> iterator = floatList.listIterator(); iterator.hasNext();) {
-            array[iterator.nextIndex()] = iterator.next().floatValue();
-        }
-        return array;
-    });
-    
-    private static class FloatCollector {
-        
-        private float[] curr=new float[64];
-        private int size;
-        
-        public FloatCollector(){
-            
-        }
-        public FloatCollector(int size){
-            if(curr.length<size){
-                curr=Arrays.copyOf(curr, size);
-            }
-        }
-        public void add(double d) {
-            if(curr.length==size){
-                curr=Arrays.copyOf(curr, size*2);
-            }
-            curr[size++]=(float)d;
-        }
-        
-        public void join(FloatCollector other) {
-            if(size+other.size > curr.length) {
-                curr=Arrays.copyOf(curr, size+other.size);
-            }
-            System.arraycopy(other.curr, 0, curr, size, other.size);
-            size+=other.size;
-        }
-        
-        public float[] toArray() {
-            if(size!=curr.length){
-                curr=Arrays.copyOf(curr, size);
-            }
-            return curr;
-        }
-    }
 }
