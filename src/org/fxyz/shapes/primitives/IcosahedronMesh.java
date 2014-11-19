@@ -261,17 +261,20 @@ public class IcosahedronMesh extends MeshView {
         // new mesh
         TriangleMesh m = new TriangleMesh();
         // vertices for level
-           
+        long time=System.currentTimeMillis();
         float[] vertexArray = points2.stream()
             .flatMapToDouble(Point3D::getCoordinates)
-            .collect(FloatCollector::new, FloatCollector::add, FloatCollector::join).toArray();        // 611
+            .collect(()->new FloatCollector(points2.size()*3), FloatCollector::add, FloatCollector::join).toArray();        // 611
+        if(level==getLevel()){
+            System.out.println("t0: "+(System.currentTimeMillis()-time));
+        }
         m.getPoints().setAll(vertexArray);
         
         if(level==getLevel()){
             // textures for level
             float[] textureArray = IntStream.range(0,getColors()).boxed()
                 .flatMapToDouble(i -> palette.getTextureLocation(i))
-                .collect(FloatCollector::new, FloatCollector::add, FloatCollector::join)
+                .collect(()->new FloatCollector(getColors()*2), FloatCollector::add, FloatCollector::join)
                 .toArray();
             m.getTexCoords().setAll(textureArray);
             
@@ -333,7 +336,7 @@ public class IcosahedronMesh extends MeshView {
         if(mesh!=null){
             float[] vertexArray = points2.stream()
                 .flatMapToDouble(p->p.getCoordinates(factor))
-                .collect(FloatCollector::new, FloatCollector::add, FloatCollector::join)
+                .collect(()->new FloatCollector(points2.size()*3), FloatCollector::add, FloatCollector::join)
                 .toArray();       
             mesh.getPoints().setAll(vertexArray);
         
@@ -343,7 +346,7 @@ public class IcosahedronMesh extends MeshView {
         if(mesh!=null){
             float[] textureArray = IntStream.range(0,getColors()).boxed()
                 .flatMapToDouble(i -> palette.getTextureLocation(i))
-                .collect(FloatCollector::new, FloatCollector::add, FloatCollector::join)
+                .collect(()->new FloatCollector(getColors()*2), FloatCollector::add, FloatCollector::join)
                 .toArray();
             mesh.getTexCoords().setAll(textureArray);
         }
@@ -390,6 +393,14 @@ public class IcosahedronMesh extends MeshView {
         private float[] curr=new float[64];
         private int size;
         
+        public FloatCollector(){
+            
+        }
+        public FloatCollector(int size){
+            if(curr.length<size){
+                curr=Arrays.copyOf(curr, size);
+            }
+        }
         public void add(double d) {
             if(curr.length==size){
                 curr=Arrays.copyOf(curr, size*2);
