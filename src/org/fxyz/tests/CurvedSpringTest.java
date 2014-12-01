@@ -2,9 +2,6 @@ package org.fxyz.tests;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import javafx.animation.AnimationTimer;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
@@ -14,19 +11,19 @@ import javafx.scene.SceneAntialiasing;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 import org.fxyz.cameras.CameraTransformer;
-import org.fxyz.shapes.primitives.IcosahedronMesh;
+import org.fxyz.shapes.primitives.CurvedSpringMesh;
 import org.fxyz.utils.DensityFunction;
 
 /**
  *
  * @author jpereda
  */
-public class IcosahedronTest extends Application {
+public class CurvedSpringTest extends Application {
     private PerspectiveCamera camera;
     private final double sceneWidth = 600;
     private final double sceneHeight = 600;
@@ -38,13 +35,9 @@ public class IcosahedronTest extends Application {
     private double mouseOldY;
     private double mouseDeltaX;
     private double mouseDeltaY;
-    private IcosahedronMesh ico;
+    private CurvedSpringMesh spring;
     private Rotate rotateY;
-    
-    private DensityFunction dens = p->
-                (float)(3d*Math.pow(Math.sin(p.phi),2)*Math.pow(Math.abs(Math.cos(p.theta)),0.1)+
-                Math.pow(Math.cos(p.phi),2)*Math.pow(Math.abs(Math.sin(p.theta)),0.1));
-//    private Density dens = p->p.x*p.y*p.z;
+    private DensityFunction dens = p->p.x;
     private long lastEffect;
     
     @Override
@@ -59,12 +52,13 @@ public class IcosahedronTest extends Application {
         cameraTransform.getChildren().add(camera);
         camera.setNearClip(0.1);
         camera.setFarClip(10000.0);
-        camera.setTranslateZ(-5);
+        camera.setTranslateZ(-60);
         cameraTransform.ry.setAngle(-45.0);
         cameraTransform.rx.setAngle(-10.0);
         //add a Point Light for better viewing of the grid coordinate system
         PointLight light = new PointLight(Color.WHITE);
         cameraTransform.getChildren().add(light);
+//        cameraTransform.getChildren().add(new AmbientLight(Color.RED));
         light.setTranslateX(camera.getTranslateX());
         light.setTranslateY(camera.getTranslateY());
         light.setTranslateZ(camera.getTranslateZ());        
@@ -73,20 +67,23 @@ public class IcosahedronTest extends Application {
         rotateY = new Rotate(0, 0, 0, 0, Rotate.Y_AXIS);
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
-        ico = new IcosahedronMesh(5,1f);
-//                ico.setDrawMode(DrawMode.LINE);
-    // NONE
-//        ico.setTextureModeNone(Color.ROYALBLUE);
-    // IMAGE
-        ico.setTextureModeImage(getClass().getResource("res/0ZKMx.png").toExternalForm());
-    // DENSITY
-//        ico.setTextureModeVertices(256*256,dens);
-    // FACES
-//        ico.setTextureModeFaces(256*256);
-
         
-        ico.getTransforms().addAll(new Rotate(30,Rotate.X_AXIS),rotateY);
-        group.getChildren().add(ico);
+        spring = new CurvedSpringMesh(5d,1d,0.2d,30d,30d*Math.PI,
+                                1000,60,0,0);
+//        spring.setDrawMode(DrawMode.LINE);
+        
+    // NONE
+//        spring.setTextureModeNone(Color.ROYALBLUE);
+    // IMAGE
+        spring.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
+    // DENSITY
+        spring.setTextureModeVertices(256*256,dens);
+    // FACES
+//        spring.setTextureModeFaces(256*256);
+ 
+        spring.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
+        
+        group.getChildren().add(spring);
         
         sceneRoot.getChildren().addAll(group);        
         
@@ -147,31 +144,34 @@ public class IcosahedronTest extends Application {
 
             @Override
             public void handle(long now) {
-                if (now > lastEffect + 50_000_000l) {
-                    double cont1=0.1+(count.get()%60)/10d;
-                    double cont2=0.1+(count.getAndIncrement()%30)/10d;
-                    dens = p->(float)(3d*Math.pow(Math.sin(p.phi),2)*Math.pow(Math.abs(Math.cos(p.theta)),cont1)+
-                            Math.pow(Math.cos(p.phi),2)*Math.pow(Math.abs(Math.sin(p.theta)),cont2));
-//                    dens = p->10*cont1*Math.pow(Math.abs(p.x),cont1)*Math.pow(Math.abs(p.y),cont2)*Math.pow(p.z,2);
-//                    ico.setDensity(dens);
-//                    ico.setColors((int)Math.pow(2,count.get()%16));
-//                    ico.setLevel(count.get()%8);
-//                    ico.setDiameter(0.5f+10*(float)cont1);
+                if (now > lastEffect + 20_000_000l) {
+                    dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
+                    spring.setDensity(dens);
+//                    spring.setPitch(20+5*(count.get()%10));
+                    
+//                    if(count.get()%10<5){
+//                        spring.setDrawMode(DrawMode.LINE);
+//                    } else {
+//                        spring.setDrawMode(DrawMode.FILL);
+//                    }
+//                    spring.setLength(100+20*(count.get()%10));
+//                    spring.setColors((int)Math.pow(2,count.get()%16));
+//                    spring.setMajorRadius(5d+(count.get()%10));
+//                    spring.setMinorRadius(1d+(count.get()%10)/4d);
+//                    spring.setWireRadius(0.1d+(count.get()%6)/10d);
+                    count.getAndIncrement();
                     lastEffect = now;
                 }
             }
         };
         
-        Timeline timeline = new Timeline();
-        timeline.setCycleCount(Timeline.INDEFINITE);
-        timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(50), new KeyValue(rotateY.angleProperty(), 360)));
-               
-        primaryStage.setTitle("F(X)yz - Moving Contour Plot Test");
+        
+        primaryStage.setTitle("F(X)yz - Spring");
         primaryStage.setScene(scene);
-        primaryStage.show();        
+        primaryStage.show();   
         
         timerEffect.start();
-//        timeline.play();
+        
     }
     /**
      * @param args the command line arguments

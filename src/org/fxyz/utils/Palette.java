@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.scene.image.PixelWriter;
@@ -86,7 +85,7 @@ public class Palette {
         return height;
     }
 
-    public Image getImgPalette() {
+    public Image getPaletteImage() {
         return imgPalette;
     }
     
