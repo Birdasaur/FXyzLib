@@ -9,13 +9,12 @@ import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Point3D;
-import org.fxyz.utils.TriangleMeshHelper;
 import org.fxyz.utils.TriangleMeshHelper.TextureType;
 
 /**
  *  Spring based on this model:  http://math.stackexchange.com/a/461637
  *  Wrapped around a torus: http://math.stackexchange.com/a/324553
- *  Using Frenet-Serret trihedron: http://mathematica.stackexchange.com/a/18612
+    *  Using Frenet-Serret trihedron: http://mathematica.stackexchange.com/a/18612
  */
 public class CurvedSpringMesh extends TexturedMesh {
 
@@ -354,6 +353,7 @@ public class CurvedSpringMesh extends TexturedMesh {
             float startAngle, float xOffset, float yOffset, float zOffset) {
  
         listVertices.clear();
+        listTextures.clear();
         listFaces.clear();
         
         final int pointSize = 3;
@@ -373,9 +373,9 @@ public class CurvedSpringMesh extends TexturedMesh {
         // Create points and texCoords
         for (int u = cropWire; u <= subDivWire-cropWire; u++) { // -Pi - +Pi
             float du = (float) (((double)u)*2d*Math.PI / ((double)subDivWire));
-            if(cropWire>0 || (cropWire==0 && u<subDivWire)){
-                double cdu=Math.cos(du), sdu=Math.sin(du); 
-                for (int t = cropLength; t <= subDivLength-cropLength; t++) {  // 0 - length
+            double cdu=Math.cos(du), sdu=Math.sin(du); 
+            for (int t = cropLength; t <= subDivLength-cropLength; t++) {  // 0 - length
+                if(cropWire>0 || (cropWire==0 && u<subDivWire)){
                     float dt = (float) t / subDivLength * length/pitch;
                     double cdt=Math.cos(dt), chdt=Math.cos(h*dt), c2hdt=Math.cos(2*h*dt), c3hdt=Math.cos(3*h*dt), c4hdt=Math.cos(4*h*dt);
                     double sdt=Math.sin(dt), shdt=Math.sin(h*dt);
@@ -419,12 +419,23 @@ public class CurvedSpringMesh extends TexturedMesh {
                         4*r2*((1 + 3*h2 - h4)*r2 + 3*(2 + h2)*R2)*c2hdt + 
                         r3*(8*R*c3hdt - (-1 + h2)*r*c3hdt)));                    
                     listVertices.add(new Point3D(pointX, pointY, pointZ));
-                    if(getTextureType().equals(TextureType.IMAGE)){
-                        texCoords[index] = (((float)(t-cropLength))/((float)(subDivLength-2f*cropLength)));
-                        texCoords[index + 1] = (((float)(u-cropWire))/((float)(subDivWire-2f*cropWire)));
-                        index+=2;
-                    }
                 }
+                if(getTextureType().equals(TextureType.IMAGE)){
+                    texCoords[index] = (((float)(t-cropLength))/((float)(subDivLength-2f*cropLength)));
+                    texCoords[index + 1] = (((float)(u-cropWire))/((float)(subDivWire-2f*cropWire)));
+                    index+=2;
+                }
+            }
+        }
+        // Create textures
+        for (int u = cropWire; u < subDivWire-cropWire; u++) { // -Pi - +Pi
+            for (int t = cropLength; t < subDivLength-cropLength; t++) { // 0 - length
+                int p00 = (u-cropWire) * numDivLength + (t-cropLength);
+                int p01 = p00 + 1;
+                int p10 = p00 + numDivLength;
+                int p11 = p10 + 1;
+                listTextures.add(new Point3D(p00,p10,p11));
+                listTextures.add(new Point3D(p11,p01,p00));            
             }
         }
         // Create faces

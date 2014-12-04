@@ -275,33 +275,45 @@ public class SegmentedTorusMesh extends TexturedMesh {
             float minorRadius, float tubeStartAngle, float xOffset, float yOffset, float zOffset) {
  
         listVertices.clear();
+        listTextures.clear();
         listFaces.clear();
         
         final int texCoordSize = 2;
         int numDivX = subDivX + 1-2*crop;
         int numDivY = subDivY + 1-2*crop;
-        int numVerts =(crop>0)? numDivY * numDivX:subDivX*subDivY;
         float pointX, pointY, pointZ;
-        float texCoords[] = new float[numVerts * texCoordSize];
+        float texCoords[] = new float[numDivY * numDivX * texCoordSize];
         int index=0;
         // Create points and texCoords
         for (int y = crop; y <= subDivY-crop; y++) {
             float dy = (float) y / subDivY;
-            if(crop>0 || (crop==0 && y<subDivY)){
-                for (int x = crop; x <= subDivX-crop; x++) {
-                    float dx = (float) x / subDivX;
-                    if(crop>0 || (crop==0 && x<subDivX)){
-                        pointX = (float) ((meanRadius+minorRadius*Math.cos((-1d+2d*dy)*Math.PI))*(Math.cos((-1d+2d*dx)*Math.PI)+ xOffset));
-                        pointZ = (float) ((meanRadius+minorRadius*Math.cos((-1d+2d*dy)*Math.PI))*(Math.sin((-1d+2d*dx)*Math.PI)+ yOffset));
-                        pointY = (float) (minorRadius*Math.sin((-1d+2d*dy)*Math.PI)*zOffset);
-                        listVertices.add(new Point3D(pointX, pointY, pointZ));
-                        if(getTextureType().equals(TextureType.IMAGE)){
-                            texCoords[index] = (((float)(x-crop))/((float)(subDivX-2f*crop)));
-                            texCoords[index +1] = (((float)(y-crop))/((float)(subDivY-2f*crop)));
-                            index+=2;
-                        } 
-                    }
+            for (int x = crop; x <= subDivX-crop; x++) {
+                float dx = (float) x / subDivX;
+                if(crop>0 || (crop==0 && x<subDivX && y<subDivY)){
+                    pointX = (float) ((meanRadius+minorRadius*Math.cos((-1d+2d*dy)*Math.PI))*(Math.cos((-1d+2d*dx)*Math.PI)+ xOffset));
+                    pointZ = (float) ((meanRadius+minorRadius*Math.cos((-1d+2d*dy)*Math.PI))*(Math.sin((-1d+2d*dx)*Math.PI)+ yOffset));
+                    pointY = (float) (minorRadius*Math.sin((-1d+2d*dy)*Math.PI)*zOffset);
+                    listVertices.add(new Point3D(pointX, pointY, pointZ));
                 }
+                if(getTextureType().equals(TextureType.IMAGE)){
+                    texCoords[index] = (((float)(x-crop))/((float)(subDivX-2f*crop)));
+                    texCoords[index +1] = (((float)(y-crop))/((float)(subDivY-2f*crop)));
+                    index+=2;
+                } 
+            }
+        }
+        for(int f=0; f<texCoords.length/2; f++){
+            System.out.println("t: "+texCoords[2*f]+", "+texCoords[2*f+1]);
+        }
+        // Create textures
+        for (int y = crop; y < subDivY-crop; y++) {
+            for (int x = crop; x < subDivX-crop; x++) {
+                int p00 = (y-crop) * numDivX + (x-crop);
+                int p01 = p00 + 1;
+                int p10 = p00 + numDivX;
+                int p11 = p10 + 1;
+                listTextures.add(new Point3D(p00,p10,p11));                
+                listTextures.add(new Point3D(p11,p01,p00));
             }
         }
         // Create faces
@@ -324,7 +336,6 @@ public class SegmentedTorusMesh extends TexturedMesh {
                 listFaces.add(new Point3D(p11,p01,p00));
             }
         }
-        
         if(getTextureType().equals(TextureType.IMAGE)){
             return createMesh(texCoords);
         }
