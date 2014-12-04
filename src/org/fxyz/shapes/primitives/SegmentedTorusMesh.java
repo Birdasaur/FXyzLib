@@ -302,9 +302,6 @@ public class SegmentedTorusMesh extends TexturedMesh {
                 } 
             }
         }
-        for(int f=0; f<texCoords.length/2; f++){
-            System.out.println("t: "+texCoords[2*f]+", "+texCoords[2*f+1]);
-        }
         // Create textures
         for (int y = crop; y < subDivY-crop; y++) {
             for (int x = crop; x < subDivX-crop; x++) {
