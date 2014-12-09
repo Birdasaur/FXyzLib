@@ -3,6 +3,7 @@ package org.fxyz.tests;
 import java.util.concurrent.atomic.AtomicInteger;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.scene.AmbientLight;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
@@ -44,7 +45,7 @@ public class CurvedSpringTest extends Application {
     public void start(Stage primaryStage) throws Exception {
         Group sceneRoot = new Group();
         Scene scene = new Scene(sceneRoot, sceneWidth, sceneHeight, true, SceneAntialiasing.BALANCED);
-        scene.setFill(Color.BLACK);
+        scene.setFill(Color.WHITE);
         camera = new PerspectiveCamera(true);        
      
         //setup camera transform for rotational support
@@ -58,7 +59,7 @@ public class CurvedSpringTest extends Application {
         //add a Point Light for better viewing of the grid coordinate system
         PointLight light = new PointLight(Color.WHITE);
         cameraTransform.getChildren().add(light);
-//        cameraTransform.getChildren().add(new AmbientLight(Color.RED));
+        cameraTransform.getChildren().add(new AmbientLight(Color.WHITE));
         light.setTranslateX(camera.getTranslateX());
         light.setTranslateY(camera.getTranslateY());
         light.setTranslateZ(camera.getTranslateZ());        
@@ -68,16 +69,18 @@ public class CurvedSpringTest extends Application {
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
         
-        spring = new CurvedSpringMesh(5d,1d,0.2d,30d,30d*Math.PI,
+        spring = new CurvedSpringMesh(5d,1d,0.3d,30d,30d*Math.PI,
                                 1000,60,0,0);
 //        spring.setDrawMode(DrawMode.LINE);
         
     // NONE
 //        spring.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
-        spring.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
+//        spring.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
+    // PATTERN
+       spring.setTextureModePattern(1d);
     // DENSITY
-        spring.setTextureModeVertices(256*256,dens);
+//        spring.setTextureModeVertices(256*256,dens);
     // FACES
 //        spring.setTextureModeFaces(256*256);
  
@@ -144,21 +147,22 @@ public class CurvedSpringTest extends Application {
 
             @Override
             public void handle(long now) {
-                if (now > lastEffect + 20_000_000l) {
+                if (now > lastEffect + 500_000_000l) {
                     dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
-                    spring.setDensity(dens);
+//                    spring.setDensity(dens);
 //                    spring.setPitch(20+5*(count.get()%10));
                     
-//                    if(count.get()%10<5){
-//                        spring.setDrawMode(DrawMode.LINE);
-//                    } else {
-//                        spring.setDrawMode(DrawMode.FILL);
-//                    }
+                    if(count.get()%100<50){
+                        spring.setDrawMode(DrawMode.LINE);
+                    } else {
+                        spring.setDrawMode(DrawMode.FILL);
+                    }
 //                    spring.setLength(100+20*(count.get()%10));
 //                    spring.setColors((int)Math.pow(2,count.get()%16));
 //                    spring.setMajorRadius(5d+(count.get()%10));
 //                    spring.setMinorRadius(1d+(count.get()%10)/4d);
 //                    spring.setWireRadius(0.1d+(count.get()%6)/10d);
+                    spring.setPatternScale(1d+(count.get()%10)*5d);
                     count.getAndIncrement();
                     lastEffect = now;
                 }

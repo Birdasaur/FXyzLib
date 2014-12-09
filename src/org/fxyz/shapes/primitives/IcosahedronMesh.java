@@ -144,7 +144,7 @@ public class IcosahedronMesh extends TexturedMesh {
         ICOSPHERE
     */
     private int numVertices, numTexCoords, numFaces;
-    private float[] points0, texCoords;
+    private float[] points0;
     private int[] faces0;
     private List<Point2D> texCoord1;
     
@@ -170,15 +170,15 @@ public class IcosahedronMesh extends TexturedMesh {
         if(getTextureType().equals(TextureType.IMAGE)){
             // read textures from level -1
             if(level==0){
-                texCoords = baseTexCoords;
+                textureCoords = baseTexCoords;
                 numTexCoords=baseTexCoords.length/2;
             } else if(m0!=null){
-                texCoords=new float[numTexCoords*m0.getTexCoordElementSize()];
-                m0.getTexCoords().toArray(texCoords);
+                textureCoords=new float[numTexCoords*m0.getTexCoordElementSize()];
+                m0.getTexCoords().toArray(textureCoords);
             }
 
             texCoord1 = IntStream.range(0, numTexCoords)
-                        .mapToObj(i -> new Point2D(texCoords[2*i], texCoords[2*i+1]))
+                        .mapToObj(i -> new Point2D(textureCoords[2*i], textureCoords[2*i+1]))
                         .collect(Collectors.toList());
         }
         
@@ -252,15 +252,12 @@ public class IcosahedronMesh extends TexturedMesh {
             });
             map.clear();
 
-            texCoords=texCoord1.stream().flatMapToDouble(p->DoubleStream.of(p.getX(),p.getY()))
+            textureCoords=texCoord1.stream().flatMapToDouble(p->DoubleStream.of(p.getX(),p.getY()))
                     .collect(()->new FloatCollector(texCoord1.size()*2), FloatCollector::add, FloatCollector::join).toArray();
-            numTexCoords=texCoords.length/2;
+            numTexCoords=textureCoords.length/2;
         }
         if(level==getLevel()){
 //            System.out.println("level: "+level+", v: "+numVertices+", f: "+numFaces);
-        }
-        if(getTextureType().equals(TextureType.IMAGE)){
-            return createMesh(texCoords);
         }
         return createMesh();
     }

@@ -356,21 +356,19 @@ public class CurvedSpringMesh extends TexturedMesh {
         listTextures.clear();
         listFaces.clear();
         
-        final int pointSize = 3;
-        final int texCoordSize = 2;
         int numDivLength = subDivLength + 1-2*cropLength;
-        int numDivWire = subDivWire + 1-2*cropWire;
-        int numVerts = numDivWire * numDivLength;
         float pointX, pointY, pointZ;
-        float texCoords[] = new float[numVerts * texCoordSize];
-        int index=0;
         double R=majorRadius;
         double r=minorRadius;
         double h=pitch;
         double a=wireRadius;
         
+        float norm=(float)Math.sqrt(pitch*pitch+majorRadius*majorRadius);
+        areaMesh.setWidth(norm * length/pitch);
+        areaMesh.setHeight(2*Math.PI*wireRadius);
+        
         double h2=h*h, h4=h2*h2, r2=r*r, r3=r2*r, r4=r3*r, R2=R*R, R3=R2*R, R4=R3*R;
-        // Create points and texCoords
+        // Create points
         for (int u = cropWire; u <= subDivWire-cropWire; u++) { // -Pi - +Pi
             float du = (float) (((double)u)*2d*Math.PI / ((double)subDivWire));
             double cdu=Math.cos(du), sdu=Math.sin(du); 
@@ -420,13 +418,11 @@ public class CurvedSpringMesh extends TexturedMesh {
                         r3*(8*R*c3hdt - (-1 + h2)*r*c3hdt)));                    
                     listVertices.add(new Point3D(pointX, pointY, pointZ));
                 }
-                if(getTextureType().equals(TextureType.IMAGE)){
-                    texCoords[index] = (((float)(t-cropLength))/((float)(subDivLength-2f*cropLength)));
-                    texCoords[index + 1] = (((float)(u-cropWire))/((float)(subDivWire-2f*cropWire)));
-                    index+=2;
-                }
             }
         }
+        // Create texture coordinates
+        createTexCoords(subDivLength-2*cropLength,subDivWire-2*cropWire);
+        
         // Create textures
         for (int u = cropWire; u < subDivWire-cropWire; u++) { // -Pi - +Pi
             for (int t = cropLength; t < subDivLength-cropLength; t++) { // 0 - length
@@ -451,9 +447,6 @@ public class CurvedSpringMesh extends TexturedMesh {
                 listFaces.add(new Point3D(p00,p10,p11));
                 listFaces.add(new Point3D(p11,p01,p00));            
             }
-        }
-        if(getTextureType().equals(TextureType.IMAGE)){
-            return createMesh(texCoords);
         }
         return createMesh();
     }

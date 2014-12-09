@@ -59,7 +59,7 @@ public class Palette {
     private void saveImage(){
         try {
             // save
-            ImageIO.write(SwingFXUtils.fromFXImage(imgPalette, null), "jpg", new File("palette_"+numColors+".jpg"));
+            ImageIO.write(SwingFXUtils.fromFXImage(imgPalette, null), "png", new File("palette_"+numColors+".png"));
         } catch (IOException ex) { 
             System.out.println("Error saving image");
         }

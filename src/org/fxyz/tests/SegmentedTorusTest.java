@@ -3,6 +3,7 @@ package org.fxyz.tests;
 import java.util.concurrent.atomic.AtomicInteger;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.scene.AmbientLight;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
@@ -58,7 +59,7 @@ public class SegmentedTorusTest extends Application {
         //add a Point Light for better viewing of the grid coordinate system
         PointLight light = new PointLight(Color.WHITE);
         cameraTransform.getChildren().add(light);
-//        cameraTransform.getChildren().add(new AmbientLight(Color.RED));
+        cameraTransform.getChildren().add(new AmbientLight(Color.WHITE));
         light.setTranslateX(camera.getTranslateX());
         light.setTranslateY(camera.getTranslateY());
         light.setTranslateZ(camera.getTranslateZ());        
@@ -73,11 +74,13 @@ public class SegmentedTorusTest extends Application {
     // NONE
 //        torus.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
-//        torus.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
+//        torus.setTextureModeImage(getClass().getResource("res/grid.png").toExternalForm());
+    // PATTERN
+       torus.setTextureModePattern(1.0d);
     // DENSITY
 //        torus.setTextureModeVertices(256*256,dens);
     // FACES
-        torus.setTextureModeFaces(256*256);
+//        torus.setTextureModeFaces(256*256);
         
         torus.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
         
@@ -142,7 +145,7 @@ public class SegmentedTorusTest extends Application {
 
             @Override
             public void handle(long now) {
-                if (now > lastEffect + 50_000_000l) {
+                if (now > lastEffect + 1_000_000_000l) {
 //                    dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
 //                    torus.setDensity(dens);
                     
@@ -152,9 +155,10 @@ public class SegmentedTorusTest extends Application {
 //                        torus.setDrawMode(DrawMode.FILL);
 //                    }
 //                    spring.setLength(100+20*(count.get()%10));
-                    torus.setColors((int)Math.pow(2,count.get()%16));
+//                    torus.setColors((int)Math.pow(2,count.get()%16));
 //                    torus.setMajorRadius(500+100*(count.get()%10));
 //                    torus.setMinorRadius(150+10*(count.get()%10));
+                    torus.setPatternScale(1d+(count.get()%10)*5d);
                     count.getAndIncrement();
                     lastEffect = now;
                 }
@@ -162,7 +166,7 @@ public class SegmentedTorusTest extends Application {
         };
         
         
-        primaryStage.setTitle("F(X)yz - Spring");
+        primaryStage.setTitle("F(X)yz - Torus");
         primaryStage.setScene(scene);
         primaryStage.show();   
         

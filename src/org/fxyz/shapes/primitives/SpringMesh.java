@@ -9,7 +9,6 @@ import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Point3D;
-import org.fxyz.utils.TriangleMeshHelper.TextureType;
 
 /**
  *  Spring based on this model:  http://math.stackexchange.com/a/461637
@@ -339,37 +338,29 @@ public class SpringMesh extends TexturedMesh {
         listTextures.clear();
         listFaces.clear();
         
-        final int pointSize = 3;
-        final int texCoordSize = 2;
-        final int faceSize = 6;
         int numDivLength = subDivLength + 1-2*cropLength;
-        int numDivWire = subDivWire + 1-2*cropWire;
-        int numVerts = numDivWire * numDivLength;
         float pointX, pointY, pointZ;
-        float texCoords[] = new float[numVerts * texCoordSize];
-        int index=0;
         
         float norm=(float)Math.sqrt(pitch*pitch+meanRadius*meanRadius);
-//        float trans=(float)Math.cos(Math.PI/3d);
-        // Create points and texCoords
+        areaMesh.setWidth(norm * length/pitch);
+        areaMesh.setHeight(2*Math.PI*wireRadius);
+        // Create points
         for (int u = cropWire; u <= subDivWire-cropWire; u++) { // -Pi - +Pi
-            float du = (float) (((double)u) / ((double)subDivWire));
+            float du = (float) (((float)u) / ((float)subDivWire));
             for (int t = cropLength; t <= subDivLength-cropLength; t++) {  // 0 - length
                 if(cropWire>0 || (cropWire==0 && u<subDivWire)){
-                    float dt = (float) t / subDivLength * length/pitch;
+                    float dt = ((float) t / ((float)subDivLength)) * length/pitch;
                     double cdt=Math.cos(dt), sdt=Math.sin(dt);
                     pointX = (float) (meanRadius*cdt-wireRadius*cdt*Math.cos((-1d+2d*du)*Math.PI)+wireRadius*pitch*sdt*Math.sin((-1d+2d*du)*Math.PI)/norm);
                     pointY = (float) (meanRadius*sdt-wireRadius*sdt*Math.cos((-1d+2d*du)*Math.PI)-wireRadius*pitch*cdt*Math.sin((-1d+2d*du)*Math.PI)/norm);
                     pointZ = (float) (pitch*dt+wireRadius*meanRadius*Math.sin((-1d+2d*du)*Math.PI)/norm);
                     listVertices.add(new Point3D(pointX, pointY, pointZ));
                 }
-                if(getTextureType().equals(TextureType.IMAGE)){
-                    texCoords[index] = (((float)(t-cropLength))/((float)(subDivLength-2f*cropLength)));
-                    texCoords[index + 1] = (((float)(u-cropWire))/((float)(subDivWire-2f*cropWire)));
-                    index+=2;
-                }
             }
         }
+        // Create texture coordinates
+        createTexCoords(subDivLength-2*cropLength,subDivWire-2*cropWire);
+
         // Create textures
         for (int u = cropWire; u < subDivWire-cropWire; u++) { // -Pi - +Pi
             for (int t = cropLength; t < subDivLength-cropLength; t++) { // 0 - length
@@ -394,9 +385,6 @@ public class SpringMesh extends TexturedMesh {
                 listFaces.add(new Point3D(p00,p10,p11));
                 listFaces.add(new Point3D(p11,p01,p00));            
             }
-        }
-        if(getTextureType().equals(TextureType.IMAGE)){
-            return createMesh(texCoords);
         }
         return createMesh();
     }

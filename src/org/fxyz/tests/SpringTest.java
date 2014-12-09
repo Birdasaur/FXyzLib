@@ -3,6 +3,7 @@ package org.fxyz.tests;
 import java.util.concurrent.atomic.AtomicInteger;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.scene.AmbientLight;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
@@ -13,6 +14,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
@@ -58,7 +60,7 @@ public class SpringTest extends Application {
         //add a Point Light for better viewing of the grid coordinate system
         PointLight light = new PointLight(Color.WHITE);
         cameraTransform.getChildren().add(light);
-//        cameraTransform.getChildren().add(new AmbientLight(Color.RED));
+//        cameraTransform.getChildren().add(new AmbientLight(Color.WHITE));
         light.setTranslateX(camera.getTranslateX());
         light.setTranslateY(camera.getTranslateY());
         light.setTranslateZ(camera.getTranslateZ());        
@@ -72,12 +74,14 @@ public class SpringTest extends Application {
                                 1000,60,0,0);
 //        spring.setDrawMode(DrawMode.LINE);
         
-    // NONE
+//    // NONE
 //        spring.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
 //        spring.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
+    // PATTERN
+       spring.setTextureModePattern(5d);
     // DENSITY
-        spring.setTextureModeVertices(256*256,dens);
+//        spring.setTextureModeVertices(256*256,dens);
     // FACES
 //        spring.setTextureModeFaces(256*256);
         
@@ -144,17 +148,18 @@ public class SpringTest extends Application {
 
             @Override
             public void handle(long now) {
-                if (now > lastEffect + 20_000_000l) {
-                    dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
-                    spring.setDensity(dens);
+                if (now > lastEffect + 500_000_000l) {
+//                    dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
+//                    spring.setDensity(dens);
 //                    spring.setPitch(20+5*(count.get()%10));
                     
-                    if(count.get()%100<50){
-                        spring.setDrawMode(DrawMode.LINE);
-                    } else {
-                        spring.setDrawMode(DrawMode.FILL);
-                    }
+//                    if(count.get()%100<50){
+//                        spring.setDrawMode(DrawMode.LINE);
+//                    } else {
+//                        spring.setDrawMode(DrawMode.FILL);
+//                    }
 //                    spring.setLength(100+20*(count.get()%10));
+                    spring.setPatternScale(1d+(count.get()%10)*2d);
 //                    spring.setColors((int)Math.pow(2,count.get()%16));
 //                    spring.setMeanRadius(50+10*count.get()%10);
                     count.getAndIncrement();

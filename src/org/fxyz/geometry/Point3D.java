@@ -39,7 +39,15 @@ public class Point3D {
     }
     
     public Point3D add(float x, float y, float z) {
-        return new Point3D(this.x + x, this.y + y, this.z+ z);
+        return new Point3D(this.x + x, this.y + y, this.z + z);
+    }
+    
+    public Point3D substract(Point3D point) {
+        return substract(point.x, point.y, point.z);
+    }
+    
+    public Point3D substract(float x, float y, float z) {
+        return new Point3D(this.x - x, this.y - y, this.z - z);
     }
     
     public Point3D multiply(float factor) {
@@ -60,6 +68,24 @@ public class Point3D {
         return (float)Math.sqrt(x * x + y * y + z * z);
     }
 
+    public float dotProduct(Point3D point) {
+        return dotProduct(point.x, point.y, point.z);
+    }
+    
+    public float dotProduct(float x, float y, float z) {
+        return this.x * x + this.y * y + this.z * z;
+    }
+    
+    public Point3D crossProduct(Point3D point) {
+        return crossProduct(point.x, point.y, point.z);
+    }
+    
+    public Point3D crossProduct(float x, float y, float z) {
+        return new Point3D(-this.z * y + this.y * z, 
+                            this.z * x - this.x * z, 
+                           -this.y * x + this.x * y);
+    }
+    
     @Override
     public String toString() {
         return "Point3D{" + "x=" + x + ", y=" + y + ", z=" + z + '}';

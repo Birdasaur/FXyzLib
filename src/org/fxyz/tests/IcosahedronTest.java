@@ -73,14 +73,14 @@ public class IcosahedronTest extends Application {
         rotateY = new Rotate(0, 0, 0, 0, Rotate.Y_AXIS);
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
-        ico = new IcosahedronMesh(5,1f);
+        ico = new IcosahedronMesh(7,1f);
 //                ico.setDrawMode(DrawMode.LINE);
     // NONE
 //        ico.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
-        ico.setTextureModeImage(getClass().getResource("res/0ZKMx.png").toExternalForm());
+//        ico.setTextureModeImage(getClass().getResource("res/0ZKMx.png").toExternalForm());
     // DENSITY
-//        ico.setTextureModeVertices(256*256,dens);
+        ico.setTextureModeVertices(256*256,dens);
     // FACES
 //        ico.setTextureModeFaces(256*256);
 

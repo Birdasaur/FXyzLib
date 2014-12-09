@@ -9,7 +9,6 @@ import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Point3D;
-import org.fxyz.utils.TriangleMeshHelper.TextureType;
 
 /**
  * SegmentedTorusMesh is based in TorusMesh, but allows cutting the torus in two 
@@ -278,13 +277,13 @@ public class SegmentedTorusMesh extends TexturedMesh {
         listTextures.clear();
         listFaces.clear();
         
-        final int texCoordSize = 2;
         int numDivX = subDivX + 1-2*crop;
-        int numDivY = subDivY + 1-2*crop;
         float pointX, pointY, pointZ;
-        float texCoords[] = new float[numDivY * numDivX * texCoordSize];
-        int index=0;
-        // Create points and texCoords
+        
+        areaMesh.setWidth(2d*Math.PI*(meanRadius+minorRadius));
+        areaMesh.setHeight(2d*Math.PI*minorRadius);
+        
+        // Create points
         for (int y = crop; y <= subDivY-crop; y++) {
             float dy = (float) y / subDivY;
             for (int x = crop; x <= subDivX-crop; x++) {
@@ -295,13 +294,11 @@ public class SegmentedTorusMesh extends TexturedMesh {
                     pointY = (float) (minorRadius*Math.sin((-1d+2d*dy)*Math.PI)*zOffset);
                     listVertices.add(new Point3D(pointX, pointY, pointZ));
                 }
-                if(getTextureType().equals(TextureType.IMAGE)){
-                    texCoords[index] = (((float)(x-crop))/((float)(subDivX-2f*crop)));
-                    texCoords[index +1] = (((float)(y-crop))/((float)(subDivY-2f*crop)));
-                    index+=2;
-                } 
             }
         }
+        // Create texture coordinates
+        createTexCoords(subDivX-2*crop,subDivY-2*crop);
+        
         // Create textures
         for (int y = crop; y < subDivY-crop; y++) {
             for (int x = crop; x < subDivX-crop; x++) {
@@ -332,9 +329,6 @@ public class SegmentedTorusMesh extends TexturedMesh {
                 listFaces.add(new Point3D(p00,p10,p11));                
                 listFaces.add(new Point3D(p11,p01,p00));
             }
-        }
-        if(getTextureType().equals(TextureType.IMAGE)){
-            return createMesh(texCoords);
         }
         return createMesh();
     }

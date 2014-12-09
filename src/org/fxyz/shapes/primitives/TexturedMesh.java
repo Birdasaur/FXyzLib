@@ -3,18 +3,22 @@ package org.fxyz.shapes.primitives;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.MeshView;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.utils.DensityFunction;
 import org.fxyz.utils.TriangleMeshHelper;
 import static org.fxyz.utils.TriangleMeshHelper.DEFAULT_COLORS;
 import static org.fxyz.utils.TriangleMeshHelper.DEFAULT_DENSITY_FUNCTION;
+import static org.fxyz.utils.TriangleMeshHelper.DEFAULT_PATTERN_SCALE;
 import org.fxyz.utils.TriangleMeshHelper.TextureType;
 
 /**
@@ -33,61 +37,79 @@ import org.fxyz.utils.TriangleMeshHelper.TextureType;
  */
 public abstract class TexturedMesh extends MeshView {
     
-    private final TriangleMeshHelper helper = new TriangleMeshHelper();
+    private TriangleMeshHelper helper = new TriangleMeshHelper();
     protected TriangleMesh mesh;
     
     protected final List<Point3D> listVertices = new ArrayList<>();
     protected final List<Point3D> listTextures = new ArrayList<>();
     protected final List<Point3D> listFaces = new ArrayList<>();
+    protected float[] textureCoords;
+    
+    protected final Rectangle rectMesh=new Rectangle(0,0);
+    protected final Rectangle areaMesh=new Rectangle(0,0);
     
     protected TexturedMesh(){
         textureType.set(TextureType.NONE);
     }
     
-    private final ObjectProperty<TriangleMeshHelper.TextureType> textureType = new SimpleObjectProperty<TriangleMeshHelper.TextureType>(){
+    private final ObjectProperty<TextureType> textureType = new SimpleObjectProperty<TextureType>(){
 
         @Override
         protected void invalidated() {
             if(mesh!=null){
-                updateMesh();
+                updateTexture();
+                updateTextureOnFaces();
             }
         }
         
     };
 
     public void setTextureModeNone() {
-        setTextureType(TriangleMeshHelper.TextureType.NONE);
+        helper.setTextureType(TextureType.NONE);
+        setTextureType(TextureType.NONE);
     }
     
     public void setTextureModeNone(Color color) {
         if(color!=null){
+            helper.setTextureType(TextureType.NONE);
             setMaterial(helper.getMaterialWithColor(color));
         }
-        setTextureType(TriangleMeshHelper.TextureType.NONE);
+        setTextureType(helper.getTextureType());
     }
     
     public void setTextureModeImage(String image) {
         if(image!=null && !image.isEmpty()){
+            helper.setTextureType(TextureType.IMAGE);
             setMaterial(helper.getMaterialWithImage(image));
+            setTextureType(helper.getTextureType());
         }
-        setTextureType(TriangleMeshHelper.TextureType.IMAGE);
     }
+    
+    public void setTextureModePattern(double scale) {
+        helper.setTextureType(TextureType.PATTERN);
+        patternScale.set(scale);
+        setMaterial(helper.getMaterialWithPattern());
+        setTextureType(helper.getTextureType());
+    }
+    
     public void setTextureModeVertices(int colors, DensityFunction dens) {
+        helper.setTextureType(TextureType.COLORED_VERTICES);
         setColors(colors);
         setDensity(dens);
-        setTextureType(TriangleMeshHelper.TextureType.COLORED_VERTICES);
+        setTextureType(helper.getTextureType());
     }
     
     public void setTextureModeFaces(int colors) {
+        helper.setTextureType(TextureType.COLORED_FACES);
         setColors(colors);
-        setTextureType(TriangleMeshHelper.TextureType.COLORED_FACES);
+        setTextureType(helper.getTextureType());
     }
     
-    public TriangleMeshHelper.TextureType getTextureType() {
+    public TextureType getTextureType() {
         return textureType.get();
     }
 
-    public void setTextureType(TriangleMeshHelper.TextureType value) {
+    public void setTextureType(TextureType value) {
         textureType.set(value);
     }
 
@@ -95,6 +117,26 @@ public abstract class TexturedMesh extends MeshView {
         return textureType;
     }
     
+    private final DoubleProperty patternScale = new SimpleDoubleProperty(DEFAULT_PATTERN_SCALE){
+
+        @Override
+        protected void invalidated() {
+            updateTexture();
+        }
+        
+    };
+    
+    public final double getPatternScale(){
+        return patternScale.get();
+    }
+    
+    public final void setPatternScale(double scale){
+        patternScale.set(scale);
+    }
+    
+    public DoubleProperty patternScaleProperty(){
+        return patternScale;
+    }
     
     private final IntegerProperty colors = new SimpleIntegerProperty(DEFAULT_COLORS){
 
@@ -149,18 +191,30 @@ public abstract class TexturedMesh extends MeshView {
     }
     private void updateTexture(){
         if(mesh!=null){
-            mesh.getTexCoords().setAll(helper.getTextureArray());
             switch(textureType.get()){
                 case NONE: 
                     mesh.getTexCoords().setAll(0f,0f);
                     break;
                 case IMAGE: 
+                    mesh.getTexCoords().setAll(textureCoords);
+                    break;
+                case PATTERN: 
+                    if(areaMesh.getHeight()>0 && areaMesh.getWidth()>0){
+                        mesh.getTexCoords().setAll(
+                            helper.updateTexCoordsWithPattern((int)rectMesh.getWidth(),
+                                    (int)rectMesh.getHeight(),patternScale.get(),
+                                    areaMesh.getHeight()/areaMesh.getWidth()));
+                    } else {
+                        mesh.getTexCoords().setAll(
+                            helper.updateTexCoordsWithPattern((int)rectMesh.getWidth(),
+                                    (int)rectMesh.getHeight(),patternScale.get()));
+                    }
                     break;
                 case COLORED_VERTICES:
-                    mesh.getTexCoords().setAll(helper.getTextureArray());
+                    mesh.getTexCoords().setAll(helper.getTexturePaletteArray());
                     break;
                 case COLORED_FACES:
-                    mesh.getTexCoords().setAll(helper.getTextureArray());
+                    mesh.getTexCoords().setAll(helper.getTexturePaletteArray());
                     break;
             }
         }
@@ -180,6 +234,9 @@ public abstract class TexturedMesh extends MeshView {
                         mesh.getFaces().setAll(helper.updateFacesWithVertices(listFaces));
                     }
                     break;
+                case PATTERN: 
+                    mesh.getFaces().setAll(helper.updateFacesWithTextures(listFaces,listTextures));
+                    break;
                 case COLORED_VERTICES:
                     mesh.getFaces().setAll(helper.updateFacesWithDensityMap(listVertices, listFaces));
                     break;
@@ -192,41 +249,24 @@ public abstract class TexturedMesh extends MeshView {
     
     protected abstract void updateMesh();
     
-    protected TriangleMesh createMesh(){
-        return createMesh(null);
+    protected void createTexCoords(int width, int height){
+        rectMesh.setWidth(width);
+        rectMesh.setHeight(height);
+        textureCoords=helper.createTexCoords(width, height);
     }
-    protected TriangleMesh createMesh(float[] textureCoords){
+    
+    protected TriangleMesh createMesh(){
         TriangleMesh triangleMesh = new TriangleMesh();
         triangleMesh.getPoints().setAll(helper.updateVertices(listVertices));
-        
-        switch(textureType.get()){
-            case NONE: 
-                triangleMesh.getTexCoords().setAll(0f,0f);
-                triangleMesh.getFaces().setAll(helper.updateFacesWithoutTexture(listFaces));
-                break;
-            case IMAGE: 
-                triangleMesh.getTexCoords().setAll(textureCoords);
-                if(listTextures.size()>0){
-                    triangleMesh.getFaces().setAll(helper.updateFacesWithTextures(listFaces,listTextures));
-                } else { 
-                    triangleMesh.getFaces().setAll(helper.updateFacesWithVertices(listFaces));
-                }
-                break;
-            case COLORED_VERTICES:
-                triangleMesh.getTexCoords().setAll(helper.getTextureArray());
-                triangleMesh.getFaces().setAll(helper.updateFacesWithDensityMap(listVertices, listFaces));
-                break;
-            case COLORED_FACES:
-                triangleMesh.getTexCoords().setAll(helper.getTextureArray());
-                triangleMesh.getFaces().setAll(helper.updateFacesWithFaces(listFaces));
-                break;
-        }
+        triangleMesh.getTexCoords().setAll(0f,0f);
+        triangleMesh.getFaces().setAll(helper.updateFacesWithoutTexture(listFaces));
         int[] faceSmoothingGroups = new int[listFaces.size()];
         Arrays.fill(faceSmoothingGroups, 1);
  
         triangleMesh.getFaceSmoothingGroups().addAll(faceSmoothingGroups);
         
         System.out.println("nodes: "+listVertices.size()+", faces: "+listFaces.size());
+//        System.out.println("area: "+helper.getMeshArea(listVertices, listFaces));
         return triangleMesh;
     }
 }
