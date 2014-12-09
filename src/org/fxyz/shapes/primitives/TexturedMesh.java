@@ -50,19 +50,15 @@ public abstract class TexturedMesh extends MeshView {
     
     protected TexturedMesh(){
         textureType.set(TextureType.NONE);
-    }
-    
-    private final ObjectProperty<TextureType> textureType = new SimpleObjectProperty<TextureType>(){
-
-        @Override
-        protected void invalidated() {
+        textureType.addListener((ob,o,o1)->{
             if(mesh!=null){
                 updateTexture();
                 updateTextureOnFaces();
             }
-        }
-        
-    };
+        });
+    }
+    
+    private final ObjectProperty<TextureType> textureType = new SimpleObjectProperty<>();
 
     public void setTextureModeNone() {
         helper.setTextureType(TextureType.NONE);
@@ -258,8 +254,9 @@ public abstract class TexturedMesh extends MeshView {
     protected TriangleMesh createMesh(){
         TriangleMesh triangleMesh = new TriangleMesh();
         triangleMesh.getPoints().setAll(helper.updateVertices(listVertices));
-        triangleMesh.getTexCoords().setAll(0f,0f);
-        triangleMesh.getFaces().setAll(helper.updateFacesWithoutTexture(listFaces));
+        triangleMesh.getTexCoords().setAll(textureCoords);
+        triangleMesh.getFaces().setAll(helper.updateFacesWithTextures(listFaces,listTextures));
+        
         int[] faceSmoothingGroups = new int[listFaces.size()];
         Arrays.fill(faceSmoothingGroups, 1);
  

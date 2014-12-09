@@ -144,7 +144,7 @@ public class IcosahedronMesh extends TexturedMesh {
         ICOSPHERE
     */
     private int numVertices, numTexCoords, numFaces;
-    private float[] points0;
+    private float[] points0, texCoord0;
     private int[] faces0;
     private List<Point2D> texCoord1;
     
@@ -167,20 +167,18 @@ public class IcosahedronMesh extends TexturedMesh {
                         .mapToObj(i -> new Point3D(points0[3*i], points0[3*i+1], points0[3*i+2]))
                         .collect(Collectors.toList());
 
-        if(getTextureType().equals(TextureType.IMAGE)){
-            // read textures from level -1
-            if(level==0){
-                textureCoords = baseTexCoords;
-                numTexCoords=baseTexCoords.length/2;
-            } else if(m0!=null){
-                textureCoords=new float[numTexCoords*m0.getTexCoordElementSize()];
-                m0.getTexCoords().toArray(textureCoords);
-            }
-
-            texCoord1 = IntStream.range(0, numTexCoords)
-                        .mapToObj(i -> new Point2D(textureCoords[2*i], textureCoords[2*i+1]))
-                        .collect(Collectors.toList());
+        // read textures from level -1
+        if(level==0){
+            texCoord0 = baseTexCoords;
+            numTexCoords=baseTexCoords.length/2;
+        } else if(m0!=null){
+            texCoord0=new float[numTexCoords*m0.getTexCoordElementSize()];
+            m0.getTexCoords().toArray(texCoord0);
         }
+
+        texCoord1 = IntStream.range(0, numTexCoords)
+                    .mapToObj(i -> new Point2D(texCoord0[2*i], texCoord0[2*i+1]))
+                    .collect(Collectors.toList());
         
         // read faces from level -1
         if(level==0){
@@ -226,39 +224,35 @@ public class IcosahedronMesh extends TexturedMesh {
         numVertices=listVertices.size();
         numFaces=listFaces.size();
         
-        if(getTextureType().equals(TextureType.IMAGE)){
-            List<Point3D> textures1 = IntStream.range(0, faces0.length/6)
-                        .mapToObj(i -> new Point3D(faces0[6*i+1], faces0[6*i+3], faces0[6*i+5]))
-                        .collect(Collectors.toList());
-            
-            index.set(texCoord1.size());
-            listTextures.clear();
-            textures1.forEach(face->{
-                int v1=(int)face.x;
-                int v2=(int)face.y;
-                int v3=(int)face.z;
-                if(level>0){
-                    int a = getMiddle(v1,texCoord1.get(v1),v2,texCoord1.get(v2));
-                    int b = getMiddle(v2,texCoord1.get(v2),v3,texCoord1.get(v3));
-                    int c = getMiddle(v3,texCoord1.get(v3),v1,texCoord1.get(v1));
+        List<Point3D> textures1 = IntStream.range(0, faces0.length/6)
+                    .mapToObj(i -> new Point3D(faces0[6*i+1], faces0[6*i+3], faces0[6*i+5]))
+                    .collect(Collectors.toList());
 
-                    listTextures.add(new Point3D(v1,a,c));
-                    listTextures.add(new Point3D(v2,b,a));
-                    listTextures.add(new Point3D(v3,c,b));
-                    listTextures.add(new Point3D(a,b,c));
-                } else {
-                    listTextures.add(new Point3D(v1,v2,v3));
-                }
-            });
-            map.clear();
+        index.set(texCoord1.size());
+        listTextures.clear();
+        textures1.forEach(face->{
+            int v1=(int)face.x;
+            int v2=(int)face.y;
+            int v3=(int)face.z;
+            if(level>0){
+                int a = getMiddle(v1,texCoord1.get(v1),v2,texCoord1.get(v2));
+                int b = getMiddle(v2,texCoord1.get(v2),v3,texCoord1.get(v3));
+                int c = getMiddle(v3,texCoord1.get(v3),v1,texCoord1.get(v1));
 
-            textureCoords=texCoord1.stream().flatMapToDouble(p->DoubleStream.of(p.getX(),p.getY()))
-                    .collect(()->new FloatCollector(texCoord1.size()*2), FloatCollector::add, FloatCollector::join).toArray();
-            numTexCoords=textureCoords.length/2;
-        }
-        if(level==getLevel()){
-//            System.out.println("level: "+level+", v: "+numVertices+", f: "+numFaces);
-        }
+                listTextures.add(new Point3D(v1,a,c));
+                listTextures.add(new Point3D(v2,b,a));
+                listTextures.add(new Point3D(v3,c,b));
+                listTextures.add(new Point3D(a,b,c));
+            } else {
+                listTextures.add(new Point3D(v1,v2,v3));
+            }
+        });
+        map.clear();
+
+        texCoord0=texCoord1.stream().flatMapToDouble(p->DoubleStream.of(p.getX(),p.getY()))
+                .collect(()->new FloatCollector(texCoord1.size()*2), FloatCollector::add, FloatCollector::join).toArray();
+        numTexCoords=texCoord0.length/2;
+        textureCoords=texCoord0;
         return createMesh();
     }
     
