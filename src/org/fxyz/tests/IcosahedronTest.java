@@ -78,9 +78,9 @@ public class IcosahedronTest extends Application {
     // NONE
 //        ico.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
-        ico.setTextureModeImage(getClass().getResource("res/0ZKMx.png").toExternalForm());
+//        ico.setTextureModeImage(getClass().getResource("res/0ZKMx.png").toExternalForm());
     // PATTERN
-//        ico.setTextureModePattern(1d);
+        ico.setTextureModePattern(2d);
     // DENSITY
 //        ico.setTextureModeVertices(256*256,dens);
     // FACES

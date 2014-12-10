@@ -253,6 +253,12 @@ public class IcosahedronMesh extends TexturedMesh {
                 .collect(()->new FloatCollector(texCoord1.size()*2), FloatCollector::add, FloatCollector::join).toArray();
         numTexCoords=texCoord0.length/2;
         textureCoords=texCoord0;
+        if(level==getLevel()){
+            areaMesh.setWidth(Math.PI*diameter);
+            areaMesh.setHeight(Math.PI*diameter);
+            rectMesh.setWidth((int)Math.sqrt(texCoord0.length));
+            rectMesh.setHeight(texCoord0.length/((int)Math.sqrt(texCoord0.length)));
+        }
         return createMesh();
     }
     

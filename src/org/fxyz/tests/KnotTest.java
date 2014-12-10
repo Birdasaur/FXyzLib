@@ -17,14 +17,14 @@ import javafx.scene.shape.DrawMode;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
-import org.fxyz.shapes.primitives.CurvedSpringMesh;
+import org.fxyz.shapes.primitives.KnotMesh;
 import org.fxyz.utils.DensityFunction;
 
 /**
  *
  * @author jpereda
  */
-public class CurvedSpringTest extends Application {
+public class KnotTest extends Application {
     private PerspectiveCamera camera;
     private final double sceneWidth = 600;
     private final double sceneHeight = 600;
@@ -36,7 +36,7 @@ public class CurvedSpringTest extends Application {
     private double mouseOldY;
     private double mouseDeltaX;
     private double mouseDeltaY;
-    private CurvedSpringMesh spring;
+    private KnotMesh knot;
     private Rotate rotateY;
     private DensityFunction dens = p->p.x;
     private long lastEffect;
@@ -45,7 +45,7 @@ public class CurvedSpringTest extends Application {
     public void start(Stage primaryStage) throws Exception {
         Group sceneRoot = new Group();
         Scene scene = new Scene(sceneRoot, sceneWidth, sceneHeight, true, SceneAntialiasing.BALANCED);
-        scene.setFill(Color.WHITE);
+        scene.setFill(Color.BLACK);
         camera = new PerspectiveCamera(true);        
      
         //setup camera transform for rotational support
@@ -53,7 +53,7 @@ public class CurvedSpringTest extends Application {
         cameraTransform.getChildren().add(camera);
         camera.setNearClip(0.1);
         camera.setFarClip(10000.0);
-        camera.setTranslateZ(-60);
+        camera.setTranslateZ(-30);
         cameraTransform.ry.setAngle(-45.0);
         cameraTransform.rx.setAngle(-10.0);
         //add a Point Light for better viewing of the grid coordinate system
@@ -69,24 +69,24 @@ public class CurvedSpringTest extends Application {
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
         
-        spring = new CurvedSpringMesh(2d,1d,0.3d,30d,30d*Math.PI,
+        knot = new KnotMesh(2d,1d,0.2d,2d,3d,
                                 1000,60,0,0);
-//        spring.setDrawMode(DrawMode.LINE);
+//        knot.setDrawMode(DrawMode.LINE);
         
     // NONE
-//        spring.setTextureModeNone(Color.ROYALBLUE);
+//        knot.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
-//        spring.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
+//        knot.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
     // PATTERN
-       spring.setTextureModePattern(1d);
+//       knot.setTextureModePattern(5d);
     // DENSITY
-//        spring.setTextureModeVertices(256*256,dens);
+        knot.setTextureModeVertices(256*256,dens);
     // FACES
-//        spring.setTextureModeFaces(256*256);
+//        knot.setTextureModeFaces(256*256);
  
-        spring.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
+        knot.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
         
-        group.getChildren().add(spring);
+        group.getChildren().add(knot);
         
         sceneRoot.getChildren().addAll(group);        
         
@@ -149,20 +149,20 @@ public class CurvedSpringTest extends Application {
             public void handle(long now) {
                 if (now > lastEffect + 500_000_000l) {
                     dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
-//                    spring.setDensity(dens);
-//                    spring.setPitch(20+5*(count.get()%10));
+                    knot.setDensity(dens);
+//                    knot.setP(1+(count.get()%5));
+//                    knot.setQ(2+(count.get()%10));
                     
-                    if(count.get()%100<50){
-                        spring.setDrawMode(DrawMode.LINE);
-                    } else {
-                        spring.setDrawMode(DrawMode.FILL);
-                    }
-//                    spring.setLength(100+20*(count.get()%10));
-//                    spring.setColors((int)Math.pow(2,count.get()%16));
-//                    spring.setMajorRadius(5d+(count.get()%10));
-//                    spring.setMinorRadius(1d+(count.get()%10)/4d);
-//                    spring.setWireRadius(0.1d+(count.get()%6)/10d);
-                    spring.setPatternScale(1d+(count.get()%10)*5d);
+//                    if(count.get()%100<50){
+//                        knot.setDrawMode(DrawMode.LINE);
+//                    } else {
+//                        knot.setDrawMode(DrawMode.FILL);
+//                    }
+//                    knot.setColors((int)Math.pow(2,count.get()%16));
+//                    knot.setMajorRadius(0.5d+(count.get()%10));
+//                    knot.setMinorRadius(0.1d+(count.get()%10)/4d);
+//                    knot.setWireRadius(0.1d+(count.get()%6)/10d);
+//                    knot.setPatternScale(1d+(count.get()%10)*3d);
                     count.getAndIncrement();
                     lastEffect = now;
                 }
@@ -170,7 +170,7 @@ public class CurvedSpringTest extends Application {
         };
         
         
-        primaryStage.setTitle("F(X)yz - Spring");
+        primaryStage.setTitle("F(X)yz - Knots");
         primaryStage.setScene(scene);
         primaryStage.show();   
         
