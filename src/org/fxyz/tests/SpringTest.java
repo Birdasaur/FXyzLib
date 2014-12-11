@@ -20,6 +20,8 @@ import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.shapes.primitives.SpringMesh;
 import org.fxyz.utils.DensityFunction;
+import org.fxyz.utils.TriangleMeshHelper;
+import org.fxyz.utils.TriangleMeshHelper.SectionType;
 
 /**
  *
@@ -72,14 +74,15 @@ public class SpringTest extends Application {
         
         spring = new SpringMesh(50d,10d,20d,600d,
                                 1000,60,0,0);
-//        spring.setDrawMode(DrawMode.LINE);
+        spring.setDrawMode(DrawMode.LINE);
+        spring.setSectionType(SectionType.TRIANGLE);
         
 //    // NONE
-//        spring.setTextureModeNone(Color.ROYALBLUE);
+        spring.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
 //        spring.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
     // PATTERN
-       spring.setTextureModePattern(5d);
+//       spring.setTextureModePattern(5d);
     // DENSITY
 //        spring.setTextureModeVertices(256*256,dens);
     // FACES
@@ -159,9 +162,11 @@ public class SpringTest extends Application {
 //                        spring.setDrawMode(DrawMode.FILL);
 //                    }
 //                    spring.setLength(100+20*(count.get()%10));
-                    spring.setPatternScale(1d+(count.get()%10)*2d);
+//                    spring.setPatternScale(1d+(count.get()%10)*2d);
+                    spring.setSectionType(SectionType.values()[count.get()%SectionType.values().length]);
+                    
 //                    spring.setColors((int)Math.pow(2,count.get()%16));
-//                    spring.setMeanRadius(50+10*count.get()%10);
+//                    spring.setMeanRadius(50+10*(count.get()%10));
                     count.getAndIncrement();
                     lastEffect = now;
                 }

@@ -375,12 +375,16 @@ public class KnotMesh extends TexturedMesh {
         double R=majorRadius;
         double r=minorRadius;
         double a=wireRadius;
-        
-        float norm=(float)Math.sqrt(q*q+majorRadius*majorRadius);
-        areaMesh.setWidth(norm * length/q);
-        areaMesh.setHeight(2*Math.PI*wireRadius);
-        
         double p2=p*p, q2=q*q, q4=q2*q2, r2=r*r, R2=R*R;
+        
+        double norm=0;
+        for(int i=0; i<=1000; i++){
+            double t=i*2d*Math.PI/1000d;
+            norm+=Math.sqrt(p2*r2+2d*q2*r2+2d*p2*R2+4d*p2*r*R*Math.cos(q*t)+p2*r2*Math.cos(2d*q*t))/Math.sqrt(2d);
+        }
+                
+        areaMesh.setWidth(norm*2d*Math.PI/1000d);
+        areaMesh.setHeight(polygonalSize(wireRadius));
         
         // Create points
         for (int u = cropWire; u <= subDivWire-cropWire; u++) { // -Pi - +Pi

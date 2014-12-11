@@ -363,11 +363,17 @@ public class CurvedSpringMesh extends TexturedMesh {
         double h=pitch;
         double a=wireRadius;
         
-        float norm=(float)Math.sqrt(pitch*pitch+majorRadius*majorRadius);
-        areaMesh.setWidth(norm * length/pitch);
-        areaMesh.setHeight(2*Math.PI*wireRadius);
-        
         double h2=h*h, h4=h2*h2, r2=r*r, r3=r2*r, r4=r3*r, R2=R*R, R3=R2*R, R4=R3*R;
+        
+        double norm=0;
+        for(int i=0; i<=1000; i++){
+            double t=i*length/pitch/1000d;
+            norm+=Math.sqrt(r2+2d*h2*r2+2d*R2+4d*r*R*Math.cos(h*t)+r2*Math.cos(2d*h*t))/Math.sqrt(2d);
+        }
+                
+        areaMesh.setWidth(norm*length/1000d);
+        areaMesh.setHeight(polygonalSize(wireRadius));
+        System.out.println("area: "+areaMesh);
         // Create points
         for (int u = cropWire; u <= subDivWire-cropWire; u++) { // -Pi - +Pi
             float du = (float) (((double)u)*2d*Math.PI / ((double)subDivWire));

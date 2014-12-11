@@ -73,15 +73,16 @@ public class KnotTest extends Application {
         
         knot = new KnotMesh(4d,2d,1d,2d,3d,
                                 1000,60,0,0);
-//        knot.setDrawMode(DrawMode.LINE);
+        knot.setDrawMode(DrawMode.LINE);
+//        knot.setCullFace(CullFace.NONE);
         knot.setSectionType(SectionType.TRIANGLE);
         
     // NONE
-//        knot.setTextureModeNone(Color.ROYALBLUE);
+        knot.setTextureModeNone(Color.BROWN);
     // IMAGE
 //        knot.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
     // PATTERN
-       knot.setTextureModePattern(3d);
+//       knot.setTextureModePattern(3d);
     // DENSITY
 //        knot.setTextureModeVertices(256*256,dens);
     // FACES
@@ -153,8 +154,8 @@ public class KnotTest extends Application {
                 if (now > lastEffect + 1_000_000_000l) {
 //                    dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
 //                    knot.setDensity(dens);
-//                    knot.setP(1+(count.get()%5));
-//                    knot.setQ(2+(count.get()%15));
+                    knot.setP(1+(count.get()%5));
+                    knot.setQ(2+(count.get()%15));
                     
 //                    if(count.get()%100<50){
 //                        knot.setDrawMode(DrawMode.LINE);
@@ -178,7 +179,7 @@ public class KnotTest extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();   
         
-//        timerEffect.start();
+        timerEffect.start();
         
     }
     /**

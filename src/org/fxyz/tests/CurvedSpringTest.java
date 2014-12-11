@@ -71,9 +71,9 @@ public class CurvedSpringTest extends Application {
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
         
-        spring = new CurvedSpringMesh(5d,1d,0.3d,30d,30d*Math.PI,
+        spring = new CurvedSpringMesh(5d,1d,0.3d,30d,60d*Math.PI,
                                 1000,60,0,0);
-        spring.setSectionType(SectionType.TRIANGLE);
+//        spring.setSectionType(SectionType.TRIANGLE);
 //        spring.setDrawMode(DrawMode.LINE);
         
     // NONE
@@ -81,9 +81,9 @@ public class CurvedSpringTest extends Application {
     // IMAGE
 //        spring.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
     // PATTERN
-//       spring.setTextureModePattern(1d);
+       spring.setTextureModePattern(10d);
     // DENSITY
-        spring.setTextureModeVertices(256*256,dens);
+//        spring.setTextureModeVertices(256*256,dens);
     // FACES
 //        spring.setTextureModeFaces(256*256);
  
@@ -177,7 +177,7 @@ public class CurvedSpringTest extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();   
         
-        timerEffect.start();
+//        timerEffect.start();
         
     }
     /**

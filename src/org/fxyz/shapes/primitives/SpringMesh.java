@@ -70,6 +70,7 @@ public class SpringMesh extends TexturedMesh {
             getLengthDivisions(), getWireDivisions(), getLengthCrop(), getWireCrop(),
             (float) getTubeStartAngleOffset(), (float)getxOffset(),(float)getyOffset(), (float)getzOffset());
         setMesh(mesh);
+        
     }
     
     private final DoubleProperty meanRadius = new SimpleDoubleProperty(DEFAULT_MEAN_RADIUS){
@@ -340,20 +341,25 @@ public class SpringMesh extends TexturedMesh {
         
         int numDivLength = subDivLength + 1-2*cropLength;
         float pointX, pointY, pointZ;
+        double R=meanRadius;
+        double h=pitch;
+        double a=wireRadius;
         
-        float norm=(float)Math.sqrt(pitch*pitch+meanRadius*meanRadius);
+        float norm=(float)Math.sqrt(h*h+R*R);
         areaMesh.setWidth(norm * length/pitch);
         areaMesh.setHeight(2*Math.PI*wireRadius);
         // Create points
         for (int u = cropWire; u <= subDivWire-cropWire; u++) { // -Pi - +Pi
-            float du = (float) (((float)u) / ((float)subDivWire));
+            float du = (float) (((double)u)*2d*Math.PI / ((double)subDivWire));
+            double pol = polygonalSection(du);
+            double cdu=pol*Math.cos(du), sdu=pol*Math.sin(du); 
             for (int t = cropLength; t <= subDivLength-cropLength; t++) {  // 0 - length
                 if(cropWire>0 || (cropWire==0 && u<subDivWire)){
                     float dt = ((float) t / ((float)subDivLength)) * length/pitch;
                     double cdt=Math.cos(dt), sdt=Math.sin(dt);
-                    pointX = (float) (meanRadius*cdt-wireRadius*cdt*Math.cos((-1d+2d*du)*Math.PI)+wireRadius*pitch*sdt*Math.sin((-1d+2d*du)*Math.PI)/norm);
-                    pointY = (float) (meanRadius*sdt-wireRadius*sdt*Math.cos((-1d+2d*du)*Math.PI)-wireRadius*pitch*cdt*Math.sin((-1d+2d*du)*Math.PI)/norm);
-                    pointZ = (float) (pitch*dt+wireRadius*meanRadius*Math.sin((-1d+2d*du)*Math.PI)/norm);
+                    pointX = (float) (R*cdt-a*cdt*cdu+a*h*sdt*sdu/norm);
+                    pointY = (float) (R*sdt-a*sdt*cdu-a*h*cdt*sdu/norm);
+                    pointZ = (float) (h*dt+a*R*sdu/norm);
                     listVertices.add(new Point3D(pointX, pointY, pointZ));
                 }
             }
