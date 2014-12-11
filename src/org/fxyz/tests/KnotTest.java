@@ -18,7 +18,9 @@ import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.shapes.primitives.KnotMesh;
+import org.fxyz.shapes.primitives.TexturedMesh;
 import org.fxyz.utils.DensityFunction;
+import org.fxyz.utils.TriangleMeshHelper.SectionType;
 
 /**
  *
@@ -45,7 +47,7 @@ public class KnotTest extends Application {
     public void start(Stage primaryStage) throws Exception {
         Group sceneRoot = new Group();
         Scene scene = new Scene(sceneRoot, sceneWidth, sceneHeight, true, SceneAntialiasing.BALANCED);
-        scene.setFill(Color.BLACK);
+        scene.setFill(Color.WHEAT);
         camera = new PerspectiveCamera(true);        
      
         //setup camera transform for rotational support
@@ -69,18 +71,19 @@ public class KnotTest extends Application {
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
         
-        knot = new KnotMesh(2d,1d,0.2d,2d,3d,
+        knot = new KnotMesh(4d,2d,1d,2d,3d,
                                 1000,60,0,0);
 //        knot.setDrawMode(DrawMode.LINE);
+        knot.setSectionType(SectionType.TRIANGLE);
         
     // NONE
 //        knot.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
 //        knot.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
     // PATTERN
-//       knot.setTextureModePattern(5d);
+       knot.setTextureModePattern(3d);
     // DENSITY
-        knot.setTextureModeVertices(256*256,dens);
+//        knot.setTextureModeVertices(256*256,dens);
     // FACES
 //        knot.setTextureModeFaces(256*256);
  
@@ -147,11 +150,11 @@ public class KnotTest extends Application {
 
             @Override
             public void handle(long now) {
-                if (now > lastEffect + 500_000_000l) {
-                    dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
-                    knot.setDensity(dens);
+                if (now > lastEffect + 1_000_000_000l) {
+//                    dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
+//                    knot.setDensity(dens);
 //                    knot.setP(1+(count.get()%5));
-//                    knot.setQ(2+(count.get()%10));
+//                    knot.setQ(2+(count.get()%15));
                     
 //                    if(count.get()%100<50){
 //                        knot.setDrawMode(DrawMode.LINE);
@@ -160,9 +163,10 @@ public class KnotTest extends Application {
 //                    }
 //                    knot.setColors((int)Math.pow(2,count.get()%16));
 //                    knot.setMajorRadius(0.5d+(count.get()%10));
-//                    knot.setMinorRadius(0.1d+(count.get()%10)/4d);
+//                    knot.setMinorRadius(2d+(count.get()%60));
 //                    knot.setWireRadius(0.1d+(count.get()%6)/10d);
 //                    knot.setPatternScale(1d+(count.get()%10)*3d);
+                    knot.setSectionType(SectionType.values()[count.get()%SectionType.values().length]);
                     count.getAndIncrement();
                     lastEffect = now;
                 }
@@ -174,7 +178,7 @@ public class KnotTest extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();   
         
-        timerEffect.start();
+//        timerEffect.start();
         
     }
     /**

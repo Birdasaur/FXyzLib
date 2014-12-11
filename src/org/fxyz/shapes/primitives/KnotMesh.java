@@ -385,7 +385,8 @@ public class KnotMesh extends TexturedMesh {
         // Create points
         for (int u = cropWire; u <= subDivWire-cropWire; u++) { // -Pi - +Pi
             float du = (float) (((double)u)*2d*Math.PI / ((double)subDivWire));
-            double cu=Math.cos(du), su=Math.sin(du); 
+            double pol = polygonalSection(du);
+            double cu=pol*Math.cos(du), su=pol*Math.sin(du); 
             for (int t = cropLength; t <= subDivLength-cropLength; t++) {  // 0 - length
                 if(cropWire>0 || (cropWire==0 && u<subDivWire)){
                     float dt = (float) t / subDivLength * length/q;

@@ -371,7 +371,8 @@ public class CurvedSpringMesh extends TexturedMesh {
         // Create points
         for (int u = cropWire; u <= subDivWire-cropWire; u++) { // -Pi - +Pi
             float du = (float) (((double)u)*2d*Math.PI / ((double)subDivWire));
-            double cdu=Math.cos(du), sdu=Math.sin(du); 
+            double pol = polygonalSection(du);
+            double cdu=pol*Math.cos(du), sdu=pol*Math.sin(du); 
             for (int t = cropLength; t <= subDivLength-cropLength; t++) {  // 0 - length
                 if(cropWire>0 || (cropWire==0 && u<subDivWire)){
                     float dt = (float) t / subDivLength * length/pitch;

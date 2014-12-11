@@ -19,6 +19,8 @@ import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.shapes.primitives.CurvedSpringMesh;
 import org.fxyz.utils.DensityFunction;
+import org.fxyz.utils.TriangleMeshHelper;
+import org.fxyz.utils.TriangleMeshHelper.SectionType;
 
 /**
  *
@@ -69,8 +71,9 @@ public class CurvedSpringTest extends Application {
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
         
-        spring = new CurvedSpringMesh(2d,1d,0.3d,30d,30d*Math.PI,
+        spring = new CurvedSpringMesh(5d,1d,0.3d,30d,30d*Math.PI,
                                 1000,60,0,0);
+        spring.setSectionType(SectionType.TRIANGLE);
 //        spring.setDrawMode(DrawMode.LINE);
         
     // NONE
@@ -78,9 +81,9 @@ public class CurvedSpringTest extends Application {
     // IMAGE
 //        spring.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
     // PATTERN
-       spring.setTextureModePattern(1d);
+//       spring.setTextureModePattern(1d);
     // DENSITY
-//        spring.setTextureModeVertices(256*256,dens);
+        spring.setTextureModeVertices(256*256,dens);
     // FACES
 //        spring.setTextureModeFaces(256*256);
  
@@ -149,7 +152,7 @@ public class CurvedSpringTest extends Application {
             public void handle(long now) {
                 if (now > lastEffect + 500_000_000l) {
                     dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
-//                    spring.setDensity(dens);
+                    spring.setDensity(dens);
 //                    spring.setPitch(20+5*(count.get()%10));
                     
                     if(count.get()%100<50){
@@ -162,7 +165,7 @@ public class CurvedSpringTest extends Application {
 //                    spring.setMajorRadius(5d+(count.get()%10));
 //                    spring.setMinorRadius(1d+(count.get()%10)/4d);
 //                    spring.setWireRadius(0.1d+(count.get()%6)/10d);
-                    spring.setPatternScale(1d+(count.get()%10)*5d);
+//                    spring.setPatternScale(1d+(count.get()%10)*5d);
                     count.getAndIncrement();
                     lastEffect = now;
                 }

@@ -27,8 +27,38 @@ public class TriangleMeshHelper {
     public static final TextureType DEFAULT_TEXTURE_TYPE= TextureType.NONE;
     private TextureType textureType=DEFAULT_TEXTURE_TYPE;
     
+    public enum SectionType {
+        CIRCLE(0),
+        TRIANGLE(3),
+        QUADRILATERAL(4),
+        PENTAGON(5),
+        HEXAGON(6),
+        HEPTAGON(7),
+        OCTAGON(8),
+        NONAGON(9),
+        DECAGON(10),
+        DODECAGON(12);
+        
+        private final int sides;
+        
+        SectionType(int sides){
+            this.sides=sides;
+        }
+        
+        public int getSides() { return sides; }
+        
+    }
+    
+    public static final SectionType DEFAULT_SECTION_TYPE= SectionType.CIRCLE;
+    private SectionType sectionType=DEFAULT_SECTION_TYPE;
+    
     public TriangleMeshHelper(){
     }
+    
+    public void setSectionType(SectionType sectionType){
+        this.sectionType = sectionType;
+    }
+    public SectionType getSectionType() { return sectionType; }
     
     public void setTextureType(TextureType textureType){
         this.textureType = textureType;

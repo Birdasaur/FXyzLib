@@ -19,6 +19,7 @@ import org.fxyz.utils.TriangleMeshHelper;
 import static org.fxyz.utils.TriangleMeshHelper.DEFAULT_COLORS;
 import static org.fxyz.utils.TriangleMeshHelper.DEFAULT_DENSITY_FUNCTION;
 import static org.fxyz.utils.TriangleMeshHelper.DEFAULT_PATTERN_SCALE;
+import org.fxyz.utils.TriangleMeshHelper.SectionType;
 import org.fxyz.utils.TriangleMeshHelper.TextureType;
 
 /**
@@ -49,6 +50,7 @@ public abstract class TexturedMesh extends MeshView {
     protected final Rectangle areaMesh=new Rectangle(0,0);
     
     protected TexturedMesh(){
+        sectionType.set(SectionType.CIRCLE);
         textureType.set(TextureType.NONE);
         textureType.addListener((ob,o,o1)->{
             if(mesh!=null){
@@ -56,6 +58,30 @@ public abstract class TexturedMesh extends MeshView {
                 updateTextureOnFaces();
             }
         });
+    }
+    private final ObjectProperty<SectionType> sectionType = new SimpleObjectProperty<SectionType>(){
+
+        @Override
+        protected void invalidated() {
+            if(mesh!=null){
+                updateMesh();
+                updateTexture();
+                updateTextureOnFaces();
+            }
+        }
+        
+    };
+
+    public SectionType getSectionType() {
+        return sectionType.get();
+    }
+
+    public void setSectionType(SectionType value) {
+        sectionType.set(value);
+    }
+
+    public ObjectProperty sectionTypeProperty() {
+        return sectionType;
     }
     
     private final ObjectProperty<TextureType> textureType = new SimpleObjectProperty<>();
@@ -265,5 +291,13 @@ public abstract class TexturedMesh extends MeshView {
         System.out.println("nodes: "+listVertices.size()+", faces: "+listFaces.size());
 //        System.out.println("area: "+helper.getMeshArea(listVertices, listFaces));
         return triangleMesh;
+    }
+    
+    protected double polygonalSection(double angle){
+        if(sectionType.get().equals(SectionType.CIRCLE)){
+            return 1d;
+        }
+        int n=sectionType.get().getSides();
+        return Math.cos(Math.PI/n)/Math.cos((2d*Math.atan(1d/Math.tan((n*angle)/2d)))/n);
     }
 }
