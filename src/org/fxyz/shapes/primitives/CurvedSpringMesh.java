@@ -9,6 +9,7 @@ import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Point3D;
+import org.fxyz.utils.GaussianQuadrature;
 import org.fxyz.utils.TriangleMeshHelper.TextureType;
 
 /**
@@ -365,13 +366,10 @@ public class CurvedSpringMesh extends TexturedMesh {
         
         double h2=h*h, h4=h2*h2, r2=r*r, r3=r2*r, r4=r3*r, R2=R*R, R3=R2*R, R4=R3*R;
         
-        double norm=0;
-        for(int i=0; i<=1000; i++){
-            double t=i*length/pitch/1000d;
-            norm+=Math.sqrt(r2+2d*h2*r2+2d*R2+4d*r*R*Math.cos(h*t)+r2*Math.cos(2d*h*t))/Math.sqrt(2d);
-        }
+        GaussianQuadrature gauss = new GaussianQuadrature(5,0,length/pitch);
+        double norm=gauss.NIntegrate(t->Math.sqrt(r2+2d*h2*r2+2d*R2+4d*r*R*Math.cos(h*t)+r2*Math.cos(2d*h*t))/Math.sqrt(2d));
                 
-        areaMesh.setWidth(norm*length/1000d);
+        areaMesh.setWidth(norm);
         areaMesh.setHeight(polygonalSize(wireRadius));
         System.out.println("area: "+areaMesh);
         // Create points

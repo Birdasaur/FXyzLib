@@ -74,7 +74,7 @@ public class SpringTest extends Application {
         
         spring = new SpringMesh(50d,10d,20d,600d,
                                 1000,60,0,0);
-        spring.setDrawMode(DrawMode.LINE);
+//        spring.setDrawMode(DrawMode.LINE);
         spring.setSectionType(SectionType.TRIANGLE);
         
 //    // NONE

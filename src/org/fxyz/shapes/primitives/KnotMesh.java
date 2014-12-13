@@ -9,6 +9,7 @@ import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Point3D;
+import org.fxyz.utils.GaussianQuadrature;
 
 /**
  *  Spring based on this model:  http://en.wikipedia.org/wiki/Trefoil_knot
@@ -377,13 +378,10 @@ public class KnotMesh extends TexturedMesh {
         double a=wireRadius;
         double p2=p*p, q2=q*q, q4=q2*q2, r2=r*r, R2=R*R;
         
-        double norm=0;
-        for(int i=0; i<=1000; i++){
-            double t=i*2d*Math.PI/1000d;
-            norm+=Math.sqrt(p2*r2+2d*q2*r2+2d*p2*R2+4d*p2*r*R*Math.cos(q*t)+p2*r2*Math.cos(2d*q*t))/Math.sqrt(2d);
-        }
-                
-        areaMesh.setWidth(norm*2d*Math.PI/1000d);
+        GaussianQuadrature gauss = new GaussianQuadrature(5,0,2d*Math.PI);
+        double norm=gauss.NIntegrate(t->Math.sqrt(p2*r2+2d*q2*r2+2d*p2*R2+4d*p2*r*R*Math.cos(q*t)+p2*r2*Math.cos(2d*q*t))/Math.sqrt(2d));
+        
+        areaMesh.setWidth(norm);
         areaMesh.setHeight(polygonalSize(wireRadius));
         
         // Create points
@@ -393,6 +391,12 @@ public class KnotMesh extends TexturedMesh {
             double cu=pol*Math.cos(du), su=pol*Math.sin(du); 
             for (int t = cropLength; t <= subDivLength-cropLength; t++) {  // 0 - length
                 if(cropWire>0 || (cropWire==0 && u<subDivWire)){
+                    if(t<subDivLength/2){
+                        cu=pol*Math.cos(du); su=pol*Math.sin(du);
+                    } else {
+                        cu=Math.cos(du); su=Math.sin(du);
+                    }
+            
                     float dt = (float) t / subDivLength * length/q;
                     double cpt=Math.cos(p*dt), cqt=Math.cos(q*dt), c2qt=Math.cos(2*q*dt);
                     double spt=Math.sin(p*dt), sqt=Math.sin(q*dt);
@@ -467,16 +471,43 @@ public class KnotMesh extends TexturedMesh {
             for (int t = cropLength; t < subDivLength-cropLength; t++) { // 0 - length
                 int p00 = (u-cropWire) * numDivLength + (t-cropLength);
                 int p01 = p00 + 1;
+                if(cropLength==0 && t==subDivLength-1){
+                    p01-=subDivLength;
+                }
                 int p10 = p00 + numDivLength;
                 if(cropWire==0 && u==subDivWire-1){
                     p10-=subDivWire*numDivLength;
                 }
                 int p11 = p10 + 1;
+                if(cropLength==0 && t==subDivLength-1){
+                    p11-=subDivLength;
+                }
                 listFaces.add(new Point3D(p00,p10,p11));
                 listFaces.add(new Point3D(p11,p01,p00));            
             }
         }
         return createMesh();
+    }
+    
+    public Point3D getPositionAt(double t){
+        double R=majorRadius.get(), r=minorRadius.get();
+        double p1=p.get(), q1=q.get();
+        double p2=p1*p1, q2=q1*q1, r2=r*r, R2=R*R;
+        
+        return new Point3D((float)(Math.cos(p1*t)*(R + r*Math.cos(q1*t))),
+                           (float)((R + r*Math.cos(q1*t))*Math.sin(p1*t)),
+                           (float)(r*Math.sin(q1*t)));
+    }
+    
+    public Point3D getTangentAt(double t){
+        double R=majorRadius.get(), r=minorRadius.get();
+        double p1=p.get(), q1=q.get();
+        double p2=p1*p1, q2=q1*q1, r2=r*r, R2=R*R;
+        double norm= Math.sqrt(p2*r2+2d*q2*r2+2d*p2*R2+4d*p2*r*R*Math.cos(q1*t)+p2*r2*Math.cos(2d*q1*t))/Math.sqrt(2d);
+        
+        return new Point3D((float)((-(p1*(R + r*Math.cos(q1*t))*Math.sin(p1*t)) - q1*r*Math.cos(p1*t)*Math.sin(q1*t))/norm),
+                           (float)((p1*Math.cos(p1*t)*(R + r*Math.cos(q1*t)) - q1*r*Math.sin(p1*t)*Math.sin(q1*t))/norm),
+                           ((float)(q1*r*Math.cos(q1*t)/norm)));
     }
     
 }

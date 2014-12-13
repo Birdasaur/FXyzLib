@@ -70,13 +70,13 @@ public class SegmentedTorusTest extends Application {
         group.getChildren().add(cameraTransform);    
         
         torus = new SegmentedTorusMesh(50, 42, 0, 500d, 150d); 
-//        torus.setDrawMode(DrawMode.LINE);
+        torus.setDrawMode(DrawMode.LINE);
     // NONE
-//        torus.setTextureModeNone(Color.ROYALBLUE);
+        torus.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
 //        torus.setTextureModeImage(getClass().getResource("res/grid.png").toExternalForm());
     // PATTERN
-       torus.setTextureModePattern(1.0d);
+//       torus.setTextureModePattern(1.0d);
     // DENSITY
 //        torus.setTextureModeVertices(256*256,dens);
     // FACES
@@ -158,7 +158,7 @@ public class SegmentedTorusTest extends Application {
 //                    torus.setColors((int)Math.pow(2,count.get()%16));
 //                    torus.setMajorRadius(500+100*(count.get()%10));
 //                    torus.setMinorRadius(150+10*(count.get()%10));
-                    torus.setPatternScale(1d+(count.get()%10)*5d);
+//                    torus.setPatternScale(1d+(count.get()%10)*5d);
                     count.getAndIncrement();
                     lastEffect = now;
                 }
@@ -170,7 +170,7 @@ public class SegmentedTorusTest extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();   
         
-        timerEffect.start();
+//        timerEffect.start();
         
     }
     /**

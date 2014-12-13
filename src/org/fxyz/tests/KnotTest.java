@@ -17,6 +17,7 @@ import javafx.scene.shape.DrawMode;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
+import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.KnotMesh;
 import org.fxyz.shapes.primitives.TexturedMesh;
 import org.fxyz.utils.DensityFunction;
@@ -73,16 +74,16 @@ public class KnotTest extends Application {
         
         knot = new KnotMesh(4d,2d,1d,2d,3d,
                                 1000,60,0,0);
-        knot.setDrawMode(DrawMode.LINE);
+//        knot.setDrawMode(DrawMode.LINE);
 //        knot.setCullFace(CullFace.NONE);
         knot.setSectionType(SectionType.TRIANGLE);
         
     // NONE
-        knot.setTextureModeNone(Color.BROWN);
+//        knot.setTextureModeNone(Color.BROWN);
     // IMAGE
 //        knot.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
     // PATTERN
-//       knot.setTextureModePattern(3d);
+       knot.setTextureModePattern(3d);
     // DENSITY
 //        knot.setTextureModeVertices(256*256,dens);
     // FACES
@@ -151,11 +152,21 @@ public class KnotTest extends Application {
 
             @Override
             public void handle(long now) {
-                if (now > lastEffect + 1_000_000_000l) {
+                if (now > lastEffect + 100_000_000l) {
+//                    Point3D loc = knot.getPositionAt((count.get()%100)*2d*Math.PI/100d);
+//                    Point3D dir = knot.getTangentAt((count.get()%100)*2d*Math.PI/100d);
+//                    cameraTransform.t.setX(loc.x);
+//                    cameraTransform.t.setY(loc.y);
+//                    cameraTransform.t.setZ(-loc.z);
+//                    javafx.geometry.Point3D axis = cameraTransform.rx.getAxis();
+//                    javafx.geometry.Point3D cross = axis.crossProduct(-dir.x,-dir.y,-dir.z);
+//                    double angle = axis.angle(-dir.x,-dir.y,-dir.z);
+//                    cameraTransform.rx.setAngle(angle);
+//                    cameraTransform.rx.setAxis(new javafx.geometry.Point3D(cross.getX(),-cross.getY(),cross.getZ()));
 //                    dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
 //                    knot.setDensity(dens);
-                    knot.setP(1+(count.get()%5));
-                    knot.setQ(2+(count.get()%15));
+//                    knot.setP(1+(count.get()%5));
+//                    knot.setQ(2+(count.get()%15));
                     
 //                    if(count.get()%100<50){
 //                        knot.setDrawMode(DrawMode.LINE);
@@ -167,7 +178,7 @@ public class KnotTest extends Application {
 //                    knot.setMinorRadius(2d+(count.get()%60));
 //                    knot.setWireRadius(0.1d+(count.get()%6)/10d);
 //                    knot.setPatternScale(1d+(count.get()%10)*3d);
-                    knot.setSectionType(SectionType.values()[count.get()%SectionType.values().length]);
+//                    knot.setSectionType(SectionType.values()[count.get()%SectionType.values().length]);
                     count.getAndIncrement();
                     lastEffect = now;
                 }
