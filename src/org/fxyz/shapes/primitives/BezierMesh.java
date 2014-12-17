@@ -2,27 +2,25 @@ package org.fxyz.shapes.primitives;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.DepthTest;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Point3D;
-import org.fxyz.shapes.primitives.helper.CurvedSpringHelper;
+import org.fxyz.shapes.primitives.helper.BezierHelper;
 
 /**
- *  Spring based on this model:  http://math.stackexchange.com/a/461637
- *  Wrapped around a torus: http://math.stackexchange.com/a/324553
+ *  Spring based on this model:  http://en.wikipedia.org/wiki/Trefoil_knot
+ *  Wrapped around a torus: http://mathoverflow.net/a/91459
     *  Using Frenet-Serret trihedron: http://mathematica.stackexchange.com/a/18612
  */
-public class CurvedSpringMesh extends TexturedMesh {
+public class BezierMesh extends TexturedMesh {
 
-    private static final double DEFAULT_MAJOR_RADIUS = 10.0D;
-    private static final double DEFAULT_MINOR_RADIUS = 2.0D;
     private static final double DEFAULT_WIRE_RADIUS = 0.2D;
-    private static final double DEFAULT_PITCH = 5.0D;
-    private static final double DEFAULT_LENGTH = 100.0D;
     
     private static final int DEFAULT_LENGTH_DIVISIONS = 200;
     private static final int DEFAULT_WIRE_DIVISIONS = 50;
@@ -34,26 +32,21 @@ public class CurvedSpringMesh extends TexturedMesh {
     private static final double DEFAULT_Y_OFFSET = 0.0D;
     private static final double DEFAULT_Z_OFFSET = 1.0D;
     
-    private CurvedSpringHelper spring;
-    
-    public CurvedSpringMesh() {
-        this(DEFAULT_MAJOR_RADIUS, DEFAULT_MINOR_RADIUS, DEFAULT_WIRE_RADIUS, DEFAULT_PITCH, DEFAULT_LENGTH,
+    public BezierMesh(BezierHelper spline) {
+        this(spline, DEFAULT_WIRE_RADIUS, 
              DEFAULT_LENGTH_DIVISIONS, DEFAULT_WIRE_DIVISIONS, DEFAULT_LENGTH_CROP, DEFAULT_WIRE_CROP);
     }
 
-    public CurvedSpringMesh(double majorRadius, double minorRadius, double wireRadius, double pitch, double length) {
-        this(majorRadius, minorRadius, wireRadius, pitch, length, 
+    public BezierMesh(BezierHelper spline, double wireRadius) {
+        this(spline, wireRadius, 
              DEFAULT_LENGTH_DIVISIONS, DEFAULT_WIRE_DIVISIONS, DEFAULT_LENGTH_CROP, DEFAULT_WIRE_CROP);
     }
 
-    public CurvedSpringMesh(double majorRadius, double minorRadius, double wireRadius, double pitch, double length, 
+    public BezierMesh(BezierHelper spline, double wireRadius, 
                       int rDivs, int tDivs, int lengthCrop, int wireCrop) {
         
-        setMajorRadius(majorRadius);
-        setMinorRadius(minorRadius);
+        setSpline(spline);
         setWireRadius(wireRadius);
-        setPitch(pitch);
-        setLength(length);
         setLengthDivisions(rDivs);
         setWireDivisions(tDivs);
         setLengthCrop(lengthCrop);
@@ -68,52 +61,30 @@ public class CurvedSpringMesh extends TexturedMesh {
     @Override
     protected final void updateMesh(){   
         setMesh(null);
-        mesh=createSpring((float) getMajorRadius(), (float) getMinorRadius(), (float) getWireRadius(), (float) getPitch(), (float) getLength(),
+        mesh=createBezier(getSpline(), (float) getWireRadius(), 
             getLengthDivisions(), getWireDivisions(), getLengthCrop(), getWireCrop(),
             (float) getTubeStartAngleOffset(), (float)getxOffset(),(float)getyOffset(), (float)getzOffset());
         setMesh(mesh);
     }
     
-    private final DoubleProperty majorRadius = new SimpleDoubleProperty(DEFAULT_MAJOR_RADIUS){
-
+    private final ObjectProperty<BezierHelper> spline = new SimpleObjectProperty<BezierHelper>(){
         @Override protected void invalidated() {
             if(mesh!=null){
                 updateMesh();
             }
         }
     };
-
-    public final double getMajorRadius() {
-        return majorRadius.get();
+    
+    public final BezierHelper getSpline(){
+        return spline.get();
     }
-
-    public final void setMajorRadius(double value) {
-        majorRadius.set(value);
+    
+    public final void setSpline(BezierHelper spline){
+        this.spline.set(spline);
     }
-
-    public DoubleProperty majorRadiusProperty() {
-        return majorRadius;
-    }
-
-    private final DoubleProperty minorRadius = new SimpleDoubleProperty(DEFAULT_MINOR_RADIUS){
-
-        @Override protected void invalidated() {
-            if(mesh!=null){
-                updateMesh();
-            }
-        }
-    };
-
-    public final double getMinorRadius() {
-        return minorRadius.get();
-    }
-
-    public final void setMinorRadius(double value) {
-        minorRadius.set(value);
-    }
-
-    public DoubleProperty minorRadiusProperty() {
-        return minorRadius;
+    
+    public ObjectProperty<BezierHelper> splineProperty(){
+        return spline;
     }
     
     private final DoubleProperty wireRadius = new SimpleDoubleProperty(DEFAULT_WIRE_RADIUS){
@@ -137,48 +108,6 @@ public class CurvedSpringMesh extends TexturedMesh {
         return wireRadius;
     }
 
-    private final DoubleProperty length = new SimpleDoubleProperty(DEFAULT_LENGTH){
-
-        @Override protected void invalidated() {
-            if(mesh!=null){
-                updateMesh();
-            }
-        }
-    };
-
-    public final double getLength() {
-        return length.get();
-    }
-
-    public final void setLength(double value) {
-        length.set(value);
-    }
-
-    public DoubleProperty lengthProperty() {
-        return length;
-    }
-
-    private final DoubleProperty pitch = new SimpleDoubleProperty(DEFAULT_PITCH){
-
-        @Override protected void invalidated() {
-            if(mesh!=null){
-                updateMesh();
-            }
-        }
-    };
-
-    public final double getPitch() {
-        return pitch.get();
-    }
-
-    public final void setPitch(double value) {
-        pitch.set(value);
-    }
-
-    public DoubleProperty pitchProperty() {
-        return pitch;
-    }
-    
     private final IntegerProperty lengthDivisions = new SimpleIntegerProperty(DEFAULT_LENGTH_DIVISIONS){
 
         @Override protected void invalidated() {
@@ -350,7 +279,7 @@ public class CurvedSpringMesh extends TexturedMesh {
         return zOffset;
     }
     
-    private TriangleMesh createSpring(float majorRadius, float minorRadius, float wireRadius, float pitch, float length, 
+    private TriangleMesh createBezier(BezierHelper spline, float wireRadius, 
             int subDivLength, int subDivWire, int cropLength, int cropWire,
             float startAngle, float xOffset, float yOffset, float zOffset) {
  
@@ -360,26 +289,22 @@ public class CurvedSpringMesh extends TexturedMesh {
         
         int numDivLength = subDivLength + 1-2*cropLength;
         int numDivWire = subDivWire + 1-2*cropWire;
-        float pointX, pointY, pointZ;
-        double arc=length/pitch;
         double a=wireRadius;
         
-        spring = new CurvedSpringHelper(majorRadius, minorRadius, pitch);
-        areaMesh.setWidth(spring.getLength(arc));
+        areaMesh.setWidth(spline.getLength());
         areaMesh.setHeight(polygonalSize(wireRadius));
         
-        spring.calculateTrihedron(subDivLength, arc);
+        spline.calculateTrihedron(subDivLength);
         for (int t = cropLength; t <= subDivLength-cropLength; t++) {  // 0 - length
             for (int u = cropWire; u <= subDivWire-cropWire; u++) { // -Pi - +Pi
                 if(cropWire>0 || (cropWire==0 && u<subDivWire)){
                     float du = (float) (((double)u)*2d*Math.PI / ((double)subDivWire));
                     double pol = polygonalSection(du);
                     float cu=(float)(a*pol*Math.cos(du)), su=(float)(a*pol*Math.sin(du)); 
-                    listVertices.add(spring.getS(t, cu, su));
+                    listVertices.add(spline.getS(t, cu, su));
                 }
             }
         }
-        
         // Create texture coordinates
         createReverseTexCoords(subDivLength-2*cropLength,subDivWire-2*cropWire);
         
@@ -411,11 +336,5 @@ public class CurvedSpringMesh extends TexturedMesh {
         }
         return createMesh();
     }
- 
-    public float getTau(double t){
-        return spring.getTau(t);
-    }
-    public float getKappa(double t){
-        return spring.getKappa(t);
-    }
+    
 }

@@ -15,12 +15,14 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.utils.DensityFunction;
-import org.fxyz.utils.TriangleMeshHelper;
-import static org.fxyz.utils.TriangleMeshHelper.DEFAULT_COLORS;
-import static org.fxyz.utils.TriangleMeshHelper.DEFAULT_DENSITY_FUNCTION;
-import static org.fxyz.utils.TriangleMeshHelper.DEFAULT_PATTERN_SCALE;
-import org.fxyz.utils.TriangleMeshHelper.SectionType;
-import org.fxyz.utils.TriangleMeshHelper.TextureType;
+import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
+import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_COLORS;
+import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_DENSITY_FUNCTION;
+import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_PATTERN_SCALE;
+import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_UNIDIM_FUNCTION;
+import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.SectionType;
+import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.TextureType;
+import org.fxyz.utils.UnidimensionalFunction;
 
 /**
  * TexturedMesh is a base class that provides support for different mesh implementations
@@ -112,10 +114,16 @@ public abstract class TexturedMesh extends MeshView {
         setTextureType(helper.getTextureType());
     }
     
-    public void setTextureModeVertices(int colors, DensityFunction dens) {
-        helper.setTextureType(TextureType.COLORED_VERTICES);
+    public void setTextureModeVertices3D(int colors, DensityFunction dens) {
+        helper.setTextureType(TextureType.COLORED_VERTICES_3D);
         setColors(colors);
         setDensity(dens);
+        setTextureType(helper.getTextureType());
+    }
+    public void setTextureModeVertices1D(int colors, UnidimensionalFunction function) {
+        helper.setTextureType(TextureType.COLORED_VERTICES_1D);
+        setColors(colors);
+        setFunction(function);
         setTextureType(helper.getTextureType());
     }
     
@@ -198,7 +206,27 @@ public abstract class TexturedMesh extends MeshView {
     public final ObjectProperty<DensityFunction> densityProperty() {
         return density;
     }
+    
+    private final ObjectProperty<UnidimensionalFunction> function = new SimpleObjectProperty<UnidimensionalFunction>(DEFAULT_UNIDIM_FUNCTION){
+        
+        @Override protected void invalidated() {
+            helper.setFunction(function.get());
+            updateTextureOnFaces();
+        }
+    };
 
+    public UnidimensionalFunction getFunction() {
+        return function.get();
+    }
+
+    public void setFunction(UnidimensionalFunction value) {
+        function.set(value);
+    }
+
+    public ObjectProperty functionProperty() {
+        return function;
+    }
+    
     private void createPalette(int colors) {
         helper.createPalette(colors,false);        
         setMaterial(helper.getMaterialWithPalette());
@@ -230,7 +258,10 @@ public abstract class TexturedMesh extends MeshView {
                                     (int)rectMesh.getHeight(),patternScale.get()));
                     }
                     break;
-                case COLORED_VERTICES:
+                case COLORED_VERTICES_1D:
+                    mesh.getTexCoords().setAll(helper.getTexturePaletteArray());
+                    break;
+                case COLORED_VERTICES_3D:
                     mesh.getTexCoords().setAll(helper.getTexturePaletteArray());
                     break;
                 case COLORED_FACES:
@@ -257,7 +288,10 @@ public abstract class TexturedMesh extends MeshView {
                 case PATTERN: 
                     mesh.getFaces().setAll(helper.updateFacesWithTextures(listFaces,listTextures));
                     break;
-                case COLORED_VERTICES:
+                case COLORED_VERTICES_1D:
+                    mesh.getFaces().setAll(helper.updateFacesWithFunctionMap(listVertices, listFaces));
+                    break;
+                case COLORED_VERTICES_3D:
                     mesh.getFaces().setAll(helper.updateFacesWithDensityMap(listVertices, listFaces));
                     break;
                 case COLORED_FACES:
@@ -273,6 +307,12 @@ public abstract class TexturedMesh extends MeshView {
         rectMesh.setWidth(width);
         rectMesh.setHeight(height);
         textureCoords=helper.createTexCoords(width, height);
+    }
+    
+    protected void createReverseTexCoords(int width, int height){
+        rectMesh.setWidth(width);
+        rectMesh.setHeight(height);
+        textureCoords=helper.createReverseTexCoords(width, height);
     }
     
     protected TriangleMesh createMesh(){
@@ -304,7 +344,11 @@ public abstract class TexturedMesh extends MeshView {
                     triangleMesh.getFaces().setAll(helper.updateFacesWithVertices(listFaces));
                 }
                 break;
-            case COLORED_VERTICES:
+            case COLORED_VERTICES_1D:
+                triangleMesh.getTexCoords().setAll(helper.getTexturePaletteArray());
+                triangleMesh.getFaces().setAll(helper.updateFacesWithFunctionMap(listVertices, listFaces));
+                break;
+            case COLORED_VERTICES_3D:
                 triangleMesh.getTexCoords().setAll(helper.getTexturePaletteArray());
                 triangleMesh.getFaces().setAll(helper.updateFacesWithDensityMap(listVertices, listFaces));
                 break;

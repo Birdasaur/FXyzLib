@@ -41,9 +41,9 @@ public class IcosahedronTest extends Application {
     private IcosahedronMesh ico;
     private Rotate rotateY;
     
-    private DensityFunction dens = p->
-                (float)(3d*Math.pow(Math.sin(p.phi),2)*Math.pow(Math.abs(Math.cos(p.theta)),0.1)+
-                Math.pow(Math.cos(p.phi),2)*Math.pow(Math.abs(Math.sin(p.theta)),0.1));
+    private DensityFunction dens = p-> p.x;
+//                (float)(3d*Math.pow(Math.sin(p.phi),2)*Math.pow(Math.abs(Math.cos(p.theta)),0.1)+
+//                Math.pow(Math.cos(p.phi),2)*Math.pow(Math.abs(Math.sin(p.theta)),0.1));
 //    private Density dens = p->p.x*p.y*p.z;
     private long lastEffect;
     
@@ -82,7 +82,7 @@ public class IcosahedronTest extends Application {
     // PATTERN
         ico.setTextureModePattern(2d);
     // DENSITY
-//        ico.setTextureModeVertices(256*256,dens);
+//        ico.setTextureModeVertices3D(256*256,dens);
     // FACES
 //        ico.setTextureModeFaces(256*256);
 
@@ -152,8 +152,8 @@ public class IcosahedronTest extends Application {
                 if (now > lastEffect + 50_000_000l) {
                     double cont1=0.1+(count.get()%60)/10d;
                     double cont2=0.1+(count.getAndIncrement()%30)/10d;
-                    dens = p->(float)(3d*Math.pow(Math.sin(p.phi),2)*Math.pow(Math.abs(Math.cos(p.theta)),cont1)+
-                            Math.pow(Math.cos(p.phi),2)*Math.pow(Math.abs(Math.sin(p.theta)),cont2));
+//                    dens = p->(float)(3d*Math.pow(Math.sin(p.phi),2)*Math.pow(Math.abs(Math.cos(p.theta)),cont1)+
+//                            Math.pow(Math.cos(p.phi),2)*Math.pow(Math.abs(Math.sin(p.theta)),cont2));
 //                    dens = p->10*cont1*Math.pow(Math.abs(p.x),cont1)*Math.pow(Math.abs(p.y),cont2)*Math.pow(p.z,2);
 //                    ico.setDensity(dens);
 //                    ico.setColors((int)Math.pow(2,count.get()%16));

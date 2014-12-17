@@ -1,5 +1,8 @@
 package org.fxyz.tests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
@@ -12,22 +15,28 @@ import javafx.scene.SceneAntialiasing;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.CullFace;
+import javafx.scene.shape.Cylinder;
 import javafx.scene.shape.DrawMode;
+import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
+import org.fxyz.shapes.primitives.BezierMesh;
 import org.fxyz.shapes.primitives.KnotMesh;
 import org.fxyz.shapes.primitives.TexturedMesh;
 import org.fxyz.utils.DensityFunction;
+import org.fxyz.shapes.primitives.helper.InterpolateBezier;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.SectionType;
 
 /**
  *
  * @author jpereda
  */
-public class KnotTest extends Application {
+public class BezierTest extends Application {
     private PerspectiveCamera camera;
     private final double sceneWidth = 600;
     private final double sceneHeight = 600;
@@ -39,7 +48,7 @@ public class KnotTest extends Application {
     private double mouseOldY;
     private double mouseDeltaX;
     private double mouseDeltaY;
-    private KnotMesh knot;
+    private ArrayList<BezierMesh> beziers;
     private Rotate rotateY;
     private DensityFunction dens = p->p.x;
     private long lastEffect;
@@ -48,7 +57,7 @@ public class KnotTest extends Application {
     public void start(Stage primaryStage) throws Exception {
         Group sceneRoot = new Group();
         Scene scene = new Scene(sceneRoot, sceneWidth, sceneHeight, true, SceneAntialiasing.BALANCED);
-        scene.setFill(Color.WHEAT);
+        scene.setFill(Color.BLACK);
         camera = new PerspectiveCamera(true);        
      
         //setup camera transform for rotational support
@@ -56,7 +65,7 @@ public class KnotTest extends Application {
         cameraTransform.getChildren().add(camera);
         camera.setNearClip(0.1);
         camera.setFarClip(10000.0);
-        camera.setTranslateZ(-30);
+        camera.setTranslateZ(-10);
         cameraTransform.ry.setAngle(-45.0);
         cameraTransform.rx.setAngle(-10.0);
         //add a Point Light for better viewing of the grid coordinate system
@@ -72,28 +81,105 @@ public class KnotTest extends Application {
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
         
-        knot = new KnotMesh(2d,1d,0.4d,2d,3d,
-                                1000,60,0,0);
-//        knot.setDrawMode(DrawMode.LINE);
-//        knot.setCullFace(CullFace.NONE);
-        knot.setSectionType(SectionType.TRIANGLE);
+//        List<Point3D> knots=Arrays.asList(new Point3D(0f,0f,0f),new Point3D(3f,0f,2f),
+//                new Point3D(5f,2f,3f),new Point3D(7f,-3f,0f),new Point3D(6f,-1f,-4f));
+        List<Point3D> knots=Arrays.asList(new Point3D(3f,0f,0f),new Point3D(0.77171f,1.68981f,0.989821f),
+                new Point3D(-0.681387f,0.786363f,-0.281733f),new Point3D(-2.31757f,-0.680501f,-0.909632f),
+                new Point3D(-0.404353f,-2.81233f,0.540641f),new Point3D(1.1316f,-0.727237f,0.75575f),
+                new Point3D(1.1316f,0.727237f,-0.75575f),new Point3D(-0.404353f,2.81233f,-0.540641f),
+                new Point3D(-2.31757f,0.680501f,0.909632f),new Point3D(-0.681387f,-0.786363f,0.281733f),
+                new Point3D(0.77171f,-1.68981f,-0.989821f),new Point3D(3f,0f,0f));
         
-    // NONE
-//        knot.setTextureModeNone(Color.BROWN);
-    // IMAGE
-//        knot.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
-    // PATTERN
-//       knot.setTextureModePattern(3d);
-    // FUNCTION
-        knot.setTextureModeVertices1D(256*256,t->knot.getTau(t));
-    // DENSITY
-//        knot.setTextureModeVertices3D(256*256,dens);
-    // FACES
-//        knot.setTextureModeFaces(256*256);
- 
-        knot.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
+        boolean showControlPoints=false;
+        boolean showKnots=false;
         
-        group.getChildren().add(knot);
+        InterpolateBezier interpolate = new InterpolateBezier(knots);
+        beziers=new ArrayList<>();
+        AtomicInteger sp=new AtomicInteger();
+        if(showKnots || showControlPoints){
+            interpolate.getSplines().forEach(spline->{
+                Point3D k0=spline.getPoints().get(0);
+                Point3D k1=spline.getPoints().get(1);
+                Point3D k2=spline.getPoints().get(2);
+                Point3D k3=spline.getPoints().get(3);
+                if(showKnots){
+                    Sphere s=new Sphere(0.2d);
+                    s.getTransforms().add(new Translate(k0.x, k0.y, k0.z));
+                    s.setMaterial(new PhongMaterial(Color.GREENYELLOW));
+                    group.getChildren().add(s);
+                    s=new Sphere(0.2d);
+                    s.getTransforms().add(new Translate(k3.x, k3.y, k3.z));
+                    s.setMaterial(new PhongMaterial(Color.GREENYELLOW));
+                    group.getChildren().add(s);
+                }
+                if(showControlPoints){
+                    Point3D dir=k1.substract(k0).crossProduct(new Point3D(0,-1,0));
+                    double angle=Math.acos(k1.substract(k0).normalize().dotProduct(new Point3D(0,-1,0)));
+                    double h1=k1.substract(k0).magnitude();
+                    Cylinder c=new Cylinder(0.03d,h1);
+                    c.getTransforms().addAll(new Translate(k0.x, k0.y-h1/2d, k0.z),
+                            new Rotate(-Math.toDegrees(angle), 0d,h1/2d,0d,
+                                    new javafx.geometry.Point3D(dir.x,-dir.y,dir.z)));
+                    c.setMaterial(new PhongMaterial(Color.GREEN));
+                    group.getChildren().add(c);
+
+                    dir=k2.substract(k1).crossProduct(new Point3D(0,-1,0));
+                    angle=Math.acos(k2.substract(k1).normalize().dotProduct(new Point3D(0,-1,0)));
+                    h1=k2.substract(k1).magnitude();
+                    c=new Cylinder(0.03d,h1);
+                    c.getTransforms().addAll(new Translate(k1.x, k1.y-h1/2d, k1.z),
+                            new Rotate(-Math.toDegrees(angle), 0d,h1/2d,0d,
+                                    new javafx.geometry.Point3D(dir.x,-dir.y,dir.z)));
+                    c.setMaterial(new PhongMaterial(Color.GREEN));
+                    group.getChildren().add(c);
+
+                    dir=k3.substract(k2).crossProduct(new Point3D(0,-1,0));
+                    angle=Math.acos(k3.substract(k2).normalize().dotProduct(new Point3D(0,-1,0)));
+                    h1=k3.substract(k2).magnitude();
+                    c=new Cylinder(0.03d,h1);
+                    c.getTransforms().addAll(new Translate(k2.x, k2.y-h1/2d, k2.z),
+                            new Rotate(-Math.toDegrees(angle), 0d,h1/2d,0d,
+                                    new javafx.geometry.Point3D(dir.x,-dir.y,dir.z)));
+                    c.setMaterial(new PhongMaterial(Color.GREEN));
+                    group.getChildren().add(c);
+
+                    Sphere s=new Sphere(0.1d);
+                    s.getTransforms().add(new Translate(k1.x, k1.y, k1.z));
+                    s.setMaterial(new PhongMaterial(Color.RED));
+                    group.getChildren().add(s);
+                    s=new Sphere(0.1d);
+                    s.getTransforms().add(new Translate(k2.x, k2.y, k2.z));
+                    s.setMaterial(new PhongMaterial(Color.RED));
+                    group.getChildren().add(s);
+                }
+            });
+        }
+        long time=System.currentTimeMillis();
+        interpolate.getSplines().stream().forEach(spline->{
+            BezierMesh bezier = new BezierMesh(spline,0.2d,
+                                    300,20,0,0);
+//            bezier.setDrawMode(DrawMode.LINE);
+            bezier.setCullFace(CullFace.NONE);
+            bezier.setSectionType(SectionType.TRIANGLE);
+
+        // NONE
+//            bezier.setTextureModeNone(Color.hsb(360d*sp.getAndIncrement()/interpolate.getSplines().size(), 1, 1));
+        // IMAGE
+//            bezier.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
+        // PATTERN
+//           bezier.setTextureModePattern(3d);
+        // FUNCTION
+            bezier.setTextureModeVertices1D(256*256,t->spline.getKappa(t));
+        // DENSITY
+//            bezier.setTextureModeVertices3D(256*256,dens);
+        // FACES
+//            bezier.setTextureModeFaces(256*256);
+
+            bezier.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
+            beziers.add(bezier);
+        });
+        System.out.println("time: "+(System.currentTimeMillis()-time)); //43.815->25.606->15
+        group.getChildren().addAll(beziers);
         
         sceneRoot.getChildren().addAll(group);        
         
@@ -154,7 +240,7 @@ public class KnotTest extends Application {
 
             @Override
             public void handle(long now) {
-                if (now > lastEffect + 100_000_000l) {
+                if (now > lastEffect + 1_000_000_000l) {
 //                    Point3D loc = knot.getPositionAt((count.get()%100)*2d*Math.PI/100d);
 //                    Point3D dir = knot.getTangentAt((count.get()%100)*2d*Math.PI/100d);
 //                    cameraTransform.t.setX(loc.x);
@@ -166,7 +252,7 @@ public class KnotTest extends Application {
 //                    cameraTransform.rx.setAngle(angle);
 //                    cameraTransform.rx.setAxis(new javafx.geometry.Point3D(cross.getX(),-cross.getY(),cross.getZ()));
 //                    dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
-//                    knot.setDensity(dens);
+//                    beziers.forEach(b->b.setDensity(dens));
 //                    knot.setP(1+(count.get()%5));
 //                    knot.setQ(2+(count.get()%15));
                     
@@ -175,12 +261,10 @@ public class KnotTest extends Application {
 //                    } else {
 //                        knot.setDrawMode(DrawMode.FILL);
 //                    }
-//                    knot.setColors((int)Math.pow(2,count.get()%16));
-//                    knot.setMajorRadius(0.5d+(count.get()%10));
-//                    knot.setMinorRadius(2d+(count.get()%60));
-//                    knot.setWireRadius(0.1d+(count.get()%6)/10d);
-//                    knot.setPatternScale(1d+(count.get()%10)*3d);
-//                    knot.setSectionType(SectionType.values()[count.get()%SectionType.values().length]);
+//                    beziers.forEach(b->b.setColors((int)Math.pow(2,count.get()%16)));
+//                    beziers.forEach(b->b.setWireRadius(0.1d+(count.get()%6)/10d));
+//                    beziers.forEach(b->b.setPatternScale(1d+(count.get()%10)*3d));
+//                    beziers.forEach(b->b.setSectionType(SectionType.values()[count.get()%SectionType.values().length]));
                     count.getAndIncrement();
                     lastEffect = now;
                 }
@@ -188,11 +272,11 @@ public class KnotTest extends Application {
         };
         
         
-        primaryStage.setTitle("F(X)yz - Knots");
+        primaryStage.setTitle("F(X)yz - Bezier Splines");
         primaryStage.setScene(scene);
         primaryStage.show();   
         
-        timerEffect.start();
+//        timerEffect.start();
         
     }
     /**

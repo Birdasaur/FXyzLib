@@ -9,6 +9,8 @@ import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Point3D;
+import org.fxyz.shapes.primitives.helper.CurvedSpringHelper;
+import org.fxyz.shapes.primitives.helper.SpringHelper;
 
 /**
  *  Spring based on this model:  http://math.stackexchange.com/a/461637
@@ -30,6 +32,7 @@ public class SpringMesh extends TexturedMesh {
     private static final double DEFAULT_Y_OFFSET = 0.0D;
     private static final double DEFAULT_Z_OFFSET = 1.0D;
     
+    private SpringHelper spring;
     
     public SpringMesh() {
         this(DEFAULT_MEAN_RADIUS, DEFAULT_WIRE_RADIUS, DEFAULT_PITCH, DEFAULT_LENGTH,
@@ -340,59 +343,64 @@ public class SpringMesh extends TexturedMesh {
         listFaces.clear();
         
         int numDivLength = subDivLength + 1-2*cropLength;
+        int numDivWire = subDivWire + 1-2*cropWire;
         float pointX, pointY, pointZ;
-        double R=meanRadius;
-        double h=pitch;
+        double arc=length/pitch;
         double a=wireRadius;
         
-        float norm=(float)Math.sqrt(h*h+R*R);
-        areaMesh.setWidth(norm * length/pitch);
-        areaMesh.setHeight(2*Math.PI*wireRadius);
-        // Create points
-        for (int u = cropWire; u <= subDivWire-cropWire; u++) { // -Pi - +Pi
-            float du = (float) (((double)u)*2d*Math.PI / ((double)subDivWire));
-            double pol = polygonalSection(du);
-            double cdu=pol*Math.cos(du), sdu=pol*Math.sin(du); 
-            for (int t = cropLength; t <= subDivLength-cropLength; t++) {  // 0 - length
+        spring = new SpringHelper(meanRadius, pitch);
+        areaMesh.setWidth(spring.getLength(arc));
+        areaMesh.setHeight(polygonalSize(wireRadius));
+        
+        spring.calculateTrihedron(subDivLength, arc);
+        for (int t = cropLength; t <= subDivLength-cropLength; t++) {  // 0 - length
+            for (int u = cropWire; u <= subDivWire-cropWire; u++) { // -Pi - +Pi
                 if(cropWire>0 || (cropWire==0 && u<subDivWire)){
-                    float dt = ((float) t / ((float)subDivLength)) * length/pitch;
-                    double cdt=Math.cos(dt), sdt=Math.sin(dt);
-                    pointX = (float) (R*cdt-a*cdt*cdu+a*h*sdt*sdu/norm);
-                    pointY = (float) (R*sdt-a*sdt*cdu-a*h*cdt*sdu/norm);
-                    pointZ = (float) (h*dt+a*R*sdu/norm);
-                    listVertices.add(new Point3D(pointX, pointY, pointZ));
+                    float du = (float) (((double)u)*2d*Math.PI / ((double)subDivWire));
+                    double pol = polygonalSection(du);
+                    float cu=(float)(a*pol*Math.cos(du)), su=(float)(a*pol*Math.sin(du)); 
+                    listVertices.add(spring.getS(t, cu, su));
                 }
             }
         }
+        
         // Create texture coordinates
-        createTexCoords(subDivLength-2*cropLength,subDivWire-2*cropWire);
+        createReverseTexCoords(subDivLength-2*cropLength,subDivWire-2*cropWire);
 
         // Create textures
-        for (int u = cropWire; u < subDivWire-cropWire; u++) { // -Pi - +Pi
-            for (int t = cropLength; t < subDivLength-cropLength; t++) { // 0 - length
-                int p00 = (u-cropWire) * numDivLength + (t-cropLength);
+        for (int t = cropLength; t < subDivLength-cropLength; t++) { // 0 - length
+            for (int u = cropWire; u < subDivWire-cropWire; u++) { // -Pi - +Pi
+                int p00 = (u-cropWire) + (t-cropLength)* numDivWire;
                 int p01 = p00 + 1;
-                int p10 = p00 + numDivLength;
-                int p11 = p10 + 1;                
-                listTextures.add(new Point3D(p00,p10,p11));
-                listTextures.add(new Point3D(p11,p01,p00));            
+                int p10 = p00 + numDivWire;
+                int p11 = p10 + 1;
+                listTextures.add(new Point3D(p00,p01,p11));
+                listTextures.add(new Point3D(p11,p10,p00));            
             }
         }
         // Create faces
-        for (int u = cropWire; u < subDivWire-cropWire; u++) { // -Pi - +Pi
-            for (int t = cropLength; t < subDivLength-cropLength; t++) { // 0 - length
-                int p00 = (u-cropWire) * numDivLength + (t-cropLength);
+        for (int t = cropLength; t < subDivLength-cropLength; t++) { // 0 - length
+            for (int u = cropWire; u < subDivWire-cropWire; u++) { // -Pi - +Pi
+                int p00 = (u-cropWire) + (t-cropLength)* (cropWire==0?subDivWire:numDivWire);
                 int p01 = p00 + 1;
-                int p10 = p00 + numDivLength;
+                int p10 = p00 + (cropWire==0?subDivWire:numDivWire);
+                int p11 = p10 + 1;
                 if(cropWire==0 && u==subDivWire-1){
-                    p10-=subDivWire*numDivLength;
+                    p01-=subDivWire;
+                    p11-=subDivWire;
                 }
-                int p11 = p10 + 1;                
-                listFaces.add(new Point3D(p00,p10,p11));
-                listFaces.add(new Point3D(p11,p01,p00));            
+                listFaces.add(new Point3D(p00,p01,p11));
+                listFaces.add(new Point3D(p11,p10,p00));            
             }
         }
         return createMesh();
+    }
+ 
+    public float getTau(double t){
+        return spring.getTau(t);
+    }
+    public float getKappa(double t){
+        return spring.getKappa(t);
     }
     
 }

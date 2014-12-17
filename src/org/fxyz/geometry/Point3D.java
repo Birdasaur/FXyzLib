@@ -1,7 +1,6 @@
 package org.fxyz.geometry;
 
 import java.util.stream.DoubleStream;
-import java.util.stream.Stream;
 
 /**
  *
@@ -15,9 +14,7 @@ public class Point3D {
     public float y = 0;
     public float z = 0;
 
-    public float r = 0;
-    public float phi = 0;
-    public float theta = 0;
+    public float f = 0; // for function evaluation
     /* 
     * @param X,Y,Z are all floats to align with TriangleMesh needs 
     */
@@ -25,10 +22,6 @@ public class Point3D {
         this.x = x;
         this.y = y;
         this.z = z;
-    
-        r=(float)Math.sqrt(x*x+y*y+z*z);
-        phi=(float)Math.atan2(y,x);
-        theta=(float)Math.acos(z/r);
     }
     
     public DoubleStream getCoordinates() { return DoubleStream.of(x,y,z); }
@@ -90,5 +83,36 @@ public class Point3D {
     public String toString() {
         return "Point3D{" + "x=" + x + ", y=" + y + ", z=" + z + '}';
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 79 * hash + Float.floatToIntBits(this.x);
+        hash = 79 * hash + Float.floatToIntBits(this.y);
+        hash = 79 * hash + Float.floatToIntBits(this.z);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Point3D other = (Point3D) obj;
+        if (Float.floatToIntBits(this.x) != Float.floatToIntBits(other.x)) {
+            return false;
+        }
+        if (Float.floatToIntBits(this.y) != Float.floatToIntBits(other.y)) {
+            return false;
+        }
+        if (Float.floatToIntBits(this.z) != Float.floatToIntBits(other.z)) {
+            return false;
+        }
+        return true;
+    }
+    
     
 }

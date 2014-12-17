@@ -20,8 +20,8 @@ import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.shapes.primitives.SpringMesh;
 import org.fxyz.utils.DensityFunction;
-import org.fxyz.utils.TriangleMeshHelper;
-import org.fxyz.utils.TriangleMeshHelper.SectionType;
+import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
+import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.SectionType;
 
 /**
  *
@@ -72,19 +72,22 @@ public class SpringTest extends Application {
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
         
-        spring = new SpringMesh(50d,10d,20d,600d,
+        spring = new SpringMesh(50d,10d,20d,2*20d*2d*Math.PI,
                                 1000,60,0,0);
 //        spring.setDrawMode(DrawMode.LINE);
+        spring.setCullFace(CullFace.NONE);
         spring.setSectionType(SectionType.TRIANGLE);
         
 //    // NONE
-        spring.setTextureModeNone(Color.ROYALBLUE);
+//        spring.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
 //        spring.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
     // PATTERN
 //       spring.setTextureModePattern(5d);
+    // FUNCTION
+        spring.setTextureModeVertices1D(256*256,t->t);
     // DENSITY
-//        spring.setTextureModeVertices(256*256,dens);
+//        spring.setTextureModeVertices3D(256*256,dens);
     // FACES
 //        spring.setTextureModeFaces(256*256);
         
@@ -178,7 +181,7 @@ public class SpringTest extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();   
         
-        timerEffect.start();
+//        timerEffect.start();
         
     }
     /**

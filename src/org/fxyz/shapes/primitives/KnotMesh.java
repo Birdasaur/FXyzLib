@@ -9,6 +9,7 @@ import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Point3D;
+import org.fxyz.shapes.primitives.helper.KnotHelper;
 import org.fxyz.utils.GaussianQuadrature;
 
 /**
@@ -34,6 +35,8 @@ public class KnotMesh extends TexturedMesh {
     private static final double DEFAULT_X_OFFSET = 0.0D;
     private static final double DEFAULT_Y_OFFSET = 0.0D;
     private static final double DEFAULT_Z_OFFSET = 1.0D;
+    
+    private KnotHelper knot;
     
     public KnotMesh() {
         this(DEFAULT_MAJOR_RADIUS, DEFAULT_MINOR_RADIUS, DEFAULT_WIRE_RADIUS, DEFAULT_P, DEFAULT_Q,
@@ -372,142 +375,93 @@ public class KnotMesh extends TexturedMesh {
         listFaces.clear();
         
         int numDivLength = subDivLength + 1-2*cropLength;
+        int numDivWire = subDivWire + 1-2*cropWire;
         float pointX, pointY, pointZ;
-        double R=majorRadius;
-        double r=minorRadius;
         double a=wireRadius;
-        double p2=p*p, q2=q*q, q4=q2*q2, r2=r*r, R2=R*R;
         
-        GaussianQuadrature gauss = new GaussianQuadrature(5,0,2d*Math.PI);
-        double norm=gauss.NIntegrate(t->Math.sqrt(p2*r2+2d*q2*r2+2d*p2*R2+4d*p2*r*R*Math.cos(q*t)+p2*r2*Math.cos(2d*q*t))/Math.sqrt(2d));
-        
-        areaMesh.setWidth(norm);
+        knot = new KnotHelper(majorRadius, minorRadius, p, q);
+        areaMesh.setWidth(knot.getLength());
         areaMesh.setHeight(polygonalSize(wireRadius));
         
-        // Create points
-        for (int u = cropWire; u <= subDivWire-cropWire; u++) { // -Pi - +Pi
-            float du = (float) (((double)u)*2d*Math.PI / ((double)subDivWire));
-            double pol = polygonalSection(du);
-            double cu=pol*Math.cos(du), su=pol*Math.sin(du); 
-            for (int t = cropLength; t <= subDivLength-cropLength; t++) {  // 0 - length
+        knot.calculateTrihedron(subDivLength);
+        for (int t = cropLength; t <= subDivLength-cropLength; t++) {  // 0 - length
+            for (int u = cropWire; u <= subDivWire-cropWire; u++) { // -Pi - +Pi
                 if(cropWire>0 || (cropWire==0 && u<subDivWire)){
-                    if(t<subDivLength/2){
-                        cu=pol*Math.cos(du); su=pol*Math.sin(du);
-                    } else {
-                        cu=Math.cos(du); su=Math.sin(du);
-                    }
-            
-                    float dt = (float) t / subDivLength * length/q;
-                    double cpt=Math.cos(p*dt), cqt=Math.cos(q*dt), c2qt=Math.cos(2*q*dt);
-                    double spt=Math.sin(p*dt), sqt=Math.sin(q*dt);
-                    pointX=(float)(cpt*(R + r*cqt) + (a*cu*(-2*p2*q*r*(R + r*cqt)*sqt*(p*(R + r*cqt)*spt + q*r*cpt*sqt) + 
-                            (2*q2*r2 + p2*(r2 + 2*R2) + p2*r*(4*R*cqt + r*c2qt))*
-                            (-(cpt*(p2*R + (p2 + q2)*r*cqt)) + 2*p*q*r*spt*sqt)))/
-                            Math.sqrt(4*q4*r2*Math.pow(q2*r2 + p2*R2 + p2*r*R*cqt,2)*Math.pow(sqt,2) + 
-                            Math.pow((2*q2*r2 + p2*(r2 + 2*R2) + p2*r*(4*R*cqt + r*c2qt))*
-                            ((-(p2*R) - (p2 + q2)*r*cqt)*spt - 2*p*q*r*cpt*sqt) + 
-                            2*p2*q*r*(R + r*cqt)*sqt*(p*cpt*(R + r*cqt) - q*r*spt*sqt),2) + 
-                            Math.pow(-2*p2*q*r*(R + r*cqt)*sqt*(p*(R + r*cqt)*spt + q*r*cpt*sqt) + 
-                            (2*q2*r2 + p2*(r2 + 2*R2) + p2*r*(4*R*cqt + r*c2qt))*
-                            (-(cpt*(p2*R + (p2 + q2)*r*cqt)) + 2*p*q*r*spt*sqt),2)) + 
-                            (a*q*r*((2*p2*R*cqt + r*(p2 + 2*q2 + p2*c2qt))*spt + 2*p*q*cpt*(-R + r*cqt)*sqt)*su)/
-                            Math.sqrt(p2*Math.pow((p2 + 3*q2)*r2 + 2*p2*R2 + 2*(2*p2 + q2)*r*R*cqt + 
-                            (p - q)*(p + q)*r2*c2qt,2) + q2*r2*
-                            Math.pow((2*p2*R*cqt + r*(p2 + 2*q2 + p2*c2qt))*spt + 2*p*q*cpt*(-R + r*cqt)*sqt,2) + 
-                            4*q2*r2*Math.pow((cpt*(2*p2*R*cqt + r*(p2 + 2*q2 + p2*c2qt)))/2. + 
-                            p*q*(R - r*cqt)*spt*sqt,2)));
-
-                     pointY=(float)((R + r*cqt)*spt + (a*cu*((2*q2*r2 + p2*(r2 + 2*R2) + p2*r*(4*R*cqt + r*c2qt))*
-                            ((-(p2*R) - (p2 + q2)*r*cqt)*spt - 2*p*q*r*cpt*sqt) + 
-                            2*p2*q*r*(R + r*cqt)*sqt*(p*cpt*(R + r*cqt) - q*r*spt*sqt)))/
-                            Math.sqrt(4*q4*r2*Math.pow(q2*r2 + p2*R2 + p2*r*R*cqt,2)*Math.pow(sqt,2) + 
-                            Math.pow((2*q2*r2 + p2*(r2 + 2*R2) + p2*r*(4*R*cqt + r*c2qt))*
-                            ((-(p2*R) - (p2 + q2)*r*cqt)*spt - 2*p*q*r*cpt*sqt) + 
-                            2*p2*q*r*(R + r*cqt)*sqt*(p*cpt*(R + r*cqt) - q*r*spt*sqt),2) + 
-                            Math.pow(-2*p2*q*r*(R + r*cqt)*sqt*(p*(R + r*cqt)*spt + q*r*cpt*sqt) + 
-                            (2*q2*r2 + p2*(r2 + 2*R2) + p2*r*(4*R*cqt + r*c2qt))*
-                            (-(cpt*(p2*R + (p2 + q2)*r*cqt)) + 2*p*q*r*spt*sqt),2)) - 
-                            (2*a*q*r*((cpt*(2*p2*R*cqt + r*(p2 + 2*q2 + p2*c2qt)))/2. + p*q*(R - r*cqt)*spt*sqt)*su)/
-                            Math.sqrt(p2*Math.pow((p2 + 3*q2)*r2 + 2*p2*R2 + 2*(2*p2 + q2)*r*R*cqt + 
-                            (p - q)*(p + q)*r2*c2qt,2) + q2*r2*
-                            Math.pow((2*p2*R*cqt + r*(p2 + 2*q2 + p2*c2qt))*spt + 2*p*q*cpt*(-R + r*cqt)*sqt,2) + 
-                            4*q2*r2*Math.pow((cpt*(2*p2*R*cqt + r*(p2 + 2*q2 + p2*c2qt)))/2. + 
-                            p*q*(R - r*cqt)*spt*sqt,2)));
-
-                    pointZ=(float)(r*sqt - (2*a*q2*r*(q2*r2 + p2*R2 + p2*r*R*cqt)*cu*sqt)/
-                            Math.sqrt(4*q4*r2*Math.pow(q2*r2 + p2*R2 + p2*r*R*cqt,2)*Math.pow(sqt,2) + 
-                            Math.pow((2*q2*r2 + p2*(r2 + 2*R2) + p2*r*(4*R*cqt + r*c2qt))*
-                            ((-(p2*R) - (p2 + q2)*r*cqt)*spt - 2*p*q*r*cpt*sqt) + 
-                            2*p2*q*r*(R + r*cqt)*sqt*(p*cpt*(R + r*cqt) - q*r*spt*sqt),2) + 
-                            Math.pow(-2*p2*q*r*(R + r*cqt)*sqt*(p*(R + r*cqt)*spt + q*r*cpt*sqt) + 
-                            (2*q2*r2 + p2*(r2 + 2*R2) + p2*r*(4*R*cqt + r*c2qt))*
-                            (-(cpt*(p2*R + (p2 + q2)*r*cqt)) + 2*p*q*r*spt*sqt),2)) + 
-                            (a*p*((p2 + 3*q2)*r2 + 2*p2*R2 + 2*(2*p2 + q2)*r*R*cqt + (p - q)*(p + q)*r2*c2qt)*
-                            su)/Math.sqrt(p2*Math.pow((p2 + 3*q2)*r2 + 2*p2*R2 + 2*(2*p2 + q2)*r*R*cqt + 
-                            (p - q)*(p + q)*r2*c2qt,2) + q2*r2*
-                            Math.pow((2*p2*R*cqt + r*(p2 + 2*q2 + p2*c2qt))*spt + 2*p*q*cpt*(-R + r*cqt)*sqt,2) + 
-                            4*q2*r2*Math.pow((cpt*(2*p2*R*cqt + r*(p2 + 2*q2 + p2*c2qt)))/2. + 
-                            p*q*(R - r*cqt)*spt*sqt,2)));
-                    listVertices.add(new Point3D(pointX, pointY, pointZ));
+                    float du = (float) (((double)u)*2d*Math.PI / ((double)subDivWire));
+                    double pol = polygonalSection(du);
+                    float cu=(float)(a*pol*Math.cos(du)), su=(float)(a*pol*Math.sin(du)); 
+                    listVertices.add(knot.getS(t, cu, su));
                 }
             }
         }
+        
         // Create texture coordinates
-        createTexCoords(subDivLength-2*cropLength,subDivWire-2*cropWire);
+        createReverseTexCoords(subDivLength-2*cropLength,subDivWire-2*cropWire);
         
         // Create textures
-        for (int u = cropWire; u < subDivWire-cropWire; u++) { // -Pi - +Pi
-            for (int t = cropLength; t < subDivLength-cropLength; t++) { // 0 - length
-                int p00 = (u-cropWire) * numDivLength + (t-cropLength);
+        for (int t = cropLength; t < subDivLength-cropLength; t++) { // 0 - length
+            for (int u = cropWire; u < subDivWire-cropWire; u++) { // -Pi - +Pi
+                int p00 = (u-cropWire) + (t-cropLength)* numDivWire;
                 int p01 = p00 + 1;
-                int p10 = p00 + numDivLength;
+                int p10 = p00 + numDivWire;
                 int p11 = p10 + 1;
-                listTextures.add(new Point3D(p00,p10,p11));
-                listTextures.add(new Point3D(p11,p01,p00));            
+                listTextures.add(new Point3D(p00,p01,p11));
+                listTextures.add(new Point3D(p11,p10,p00));            
             }
         }
+        
         // Create faces
-        for (int u = cropWire; u < subDivWire-cropWire; u++) { // -Pi - +Pi
-            for (int t = cropLength; t < subDivLength-cropLength; t++) { // 0 - length
-                int p00 = (u-cropWire) * numDivLength + (t-cropLength);
+        for (int t = cropLength; t < subDivLength-cropLength; t++) { // 0 - length
+            for (int u = cropWire; u < subDivWire-cropWire; u++) { // -Pi - +Pi
+                int p00 = (u-cropWire) + (t-cropLength)* (cropWire==0?subDivWire:numDivWire);
                 int p01 = p00 + 1;
-                if(cropLength==0 && t==subDivLength-1){
-                    p01-=subDivLength;
-                }
-                int p10 = p00 + numDivLength;
-                if(cropWire==0 && u==subDivWire-1){
-                    p10-=subDivWire*numDivLength;
-                }
+                int p10 = p00 + (cropWire==0?subDivWire:numDivWire);
                 int p11 = p10 + 1;
-                if(cropLength==0 && t==subDivLength-1){
-                    p11-=subDivLength;
+                if(cropWire==0 && u==subDivWire-1){
+                    p01-=subDivWire;
+                    p11-=subDivWire;
                 }
-                listFaces.add(new Point3D(p00,p10,p11));
-                listFaces.add(new Point3D(p11,p01,p00));            
+                listFaces.add(new Point3D(p00,p01,p11));
+                listFaces.add(new Point3D(p11,p10,p00));            
             }
         }
+        
+        
+//        for (int u = cropWire; u < subDivWire-cropWire; u++) { // -Pi - +Pi
+//            for (int t = cropLength; t < subDivLength-cropLength; t++) { // 0 - length
+//                int p00 = (u-cropWire) * numDivLength + (t-cropLength);
+//                int p01 = p00 + 1;
+//                if(cropLength==0 && t==subDivLength-1){
+//                    p01-=subDivLength;
+//                }
+//                int p10 = p00 + numDivLength;
+//                if(cropWire==0 && u==subDivWire-1){
+//                    p10-=subDivWire*numDivLength;
+//                }
+//                int p11 = p10 + 1;
+//                if(cropLength==0 && t==subDivLength-1){
+//                    p11-=subDivLength;
+//                }
+//                listFaces.add(new Point3D(p00,p10,p11));
+//                listFaces.add(new Point3D(p11,p01,p00));            
+//            }
+//        }
         return createMesh();
     }
     
     public Point3D getPositionAt(double t){
-        double R=majorRadius.get(), r=minorRadius.get();
-        double p1=p.get(), q1=q.get();
-        double p2=p1*p1, q2=q1*q1, r2=r*r, R2=R*R;
-        
-        return new Point3D((float)(Math.cos(p1*t)*(R + r*Math.cos(q1*t))),
-                           (float)((R + r*Math.cos(q1*t))*Math.sin(p1*t)),
-                           (float)(r*Math.sin(q1*t)));
+        return knot.getPositionAt(t);
     }
     
     public Point3D getTangentAt(double t){
-        double R=majorRadius.get(), r=minorRadius.get();
-        double p1=p.get(), q1=q.get();
-        double p2=p1*p1, q2=q1*q1, r2=r*r, R2=R*R;
-        double norm= Math.sqrt(p2*r2+2d*q2*r2+2d*p2*R2+4d*p2*r*R*Math.cos(q1*t)+p2*r2*Math.cos(2d*q1*t))/Math.sqrt(2d);
-        
-        return new Point3D((float)((-(p1*(R + r*Math.cos(q1*t))*Math.sin(p1*t)) - q1*r*Math.cos(p1*t)*Math.sin(q1*t))/norm),
-                           (float)((p1*Math.cos(p1*t)*(R + r*Math.cos(q1*t)) - q1*r*Math.sin(p1*t)*Math.sin(q1*t))/norm),
-                           ((float)(q1*r*Math.cos(q1*t)/norm)));
+        return knot.getTangentAt(t);
     }
     
+    public float getTau(double t){
+        return knot.getTau(t);
+    }
+    
+    public float getKappa(double t){
+        return knot.getKappa(t);
+    }
 }

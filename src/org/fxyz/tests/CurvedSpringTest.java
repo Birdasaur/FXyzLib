@@ -19,8 +19,8 @@ import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.shapes.primitives.CurvedSpringMesh;
 import org.fxyz.utils.DensityFunction;
-import org.fxyz.utils.TriangleMeshHelper;
-import org.fxyz.utils.TriangleMeshHelper.SectionType;
+import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
+import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.SectionType;
 
 /**
  *
@@ -71,19 +71,22 @@ public class CurvedSpringTest extends Application {
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
         
-        spring = new CurvedSpringMesh(5d,1d,0.3d,30d,60d*Math.PI,
+        spring = new CurvedSpringMesh(6d,2d,0.4d,25d,6.25d*2d*Math.PI,
                                 1000,60,0,0);
-//        spring.setSectionType(SectionType.TRIANGLE);
+        spring.setSectionType(SectionType.TRIANGLE);
+        spring.setCullFace(CullFace.NONE);
 //        spring.setDrawMode(DrawMode.LINE);
         
     // NONE
-//        spring.setTextureModeNone(Color.ROYALBLUE);
+        spring.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
 //        spring.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
     // PATTERN
-       spring.setTextureModePattern(10d);
+//       spring.setTextureModePattern(10d);
+    // FUNCTION
+//        spring.setTextureModeVertices1D(256*256,t->spring.getKappa(t));
     // DENSITY
-//        spring.setTextureModeVertices(256*256,dens);
+//        spring.setTextureModeVertices3D(256*256,dens);
     // FACES
 //        spring.setTextureModeFaces(256*256);
  
@@ -151,21 +154,22 @@ public class CurvedSpringTest extends Application {
             @Override
             public void handle(long now) {
                 if (now > lastEffect + 500_000_000l) {
-                    dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
-                    spring.setDensity(dens);
+//                    dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
+//                    spring.setDensity(dens);
 //                    spring.setPitch(20+5*(count.get()%10));
                     
-                    if(count.get()%100<50){
-                        spring.setDrawMode(DrawMode.LINE);
-                    } else {
-                        spring.setDrawMode(DrawMode.FILL);
-                    }
+//                    if(count.get()%100<50){
+//                        spring.setDrawMode(DrawMode.LINE);
+//                    } else {
+//                        spring.setDrawMode(DrawMode.FILL);
+//                    }
 //                    spring.setLength(100+20*(count.get()%10));
 //                    spring.setColors((int)Math.pow(2,count.get()%16));
 //                    spring.setMajorRadius(5d+(count.get()%10));
 //                    spring.setMinorRadius(1d+(count.get()%10)/4d);
 //                    spring.setWireRadius(0.1d+(count.get()%6)/10d);
 //                    spring.setPatternScale(1d+(count.get()%10)*5d);
+//                    spring.setFunction(t->Math.sin((25+count.get()%25)*t));
                     count.getAndIncrement();
                     lastEffect = now;
                 }

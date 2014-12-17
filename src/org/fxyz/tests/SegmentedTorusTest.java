@@ -70,15 +70,15 @@ public class SegmentedTorusTest extends Application {
         group.getChildren().add(cameraTransform);    
         
         torus = new SegmentedTorusMesh(50, 42, 0, 500d, 150d); 
-        torus.setDrawMode(DrawMode.LINE);
+//        torus.setDrawMode(DrawMode.LINE);
     // NONE
-        torus.setTextureModeNone(Color.ROYALBLUE);
+//        torus.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
 //        torus.setTextureModeImage(getClass().getResource("res/grid.png").toExternalForm());
     // PATTERN
-//       torus.setTextureModePattern(1.0d);
+       torus.setTextureModePattern(1.0d);
     // DENSITY
-//        torus.setTextureModeVertices(256*256,dens);
+//        torus.setTextureModeVertices3D(256*256,dens);
     // FACES
 //        torus.setTextureModeFaces(256*256);
         

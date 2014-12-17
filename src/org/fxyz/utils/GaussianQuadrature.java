@@ -9,11 +9,6 @@ import java.util.List;
  */
 public class GaussianQuadrature {
     
-    @FunctionalInterface
-    public interface Function {
-        double eval(double t);
-    }
-    
     private final double a;
     private final double b;
     private final List<Pair> gauss=new ArrayList<>();
@@ -64,10 +59,10 @@ public class GaussianQuadrature {
         }
     }
     
-    public double NIntegrate(Function f){
-        return gauss.stream()
+    public double NIntegrate(UnidimensionalFunction f){ // f[t]
+        return gauss.parallelStream()
             .mapToDouble(p->p.getWeight()*f.eval((b-a)/2d*p.getAbscissa()+(b+a)/2d))
-            .sum()*(b-a)/2d;
+            .reduce(Double::sum).getAsDouble()*(b-a)/2d;
     }
     
 //    // Test

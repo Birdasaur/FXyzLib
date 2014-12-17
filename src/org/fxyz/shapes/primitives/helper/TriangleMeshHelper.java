@@ -1,4 +1,4 @@
-package org.fxyz.utils;
+package org.fxyz.shapes.primitives.helper;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -10,6 +10,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Material;
 import javafx.scene.paint.PhongMaterial;
 import org.fxyz.geometry.Point3D;
+import org.fxyz.utils.DensityFunction;
+import org.fxyz.utils.FloatCollector;
+import org.fxyz.utils.Palette;
+import org.fxyz.utils.Patterns;
+import org.fxyz.utils.UnidimensionalFunction;
 
 /**
  *
@@ -22,10 +27,12 @@ public class TriangleMeshHelper {
         IMAGE, // an image is loaded 
         PATTERN, // an image from a pattern
         COLORED_FACES, // a palette is used to color faces
-        COLORED_VERTICES // a palette is used to color vertices with a density map
+        COLORED_VERTICES_3D, // a palette is used to color vertices with a density map (point 3D)
+        COLORED_VERTICES_1D // a palette is used to color vertices with a function map (x 1D)
     }
     public static final TextureType DEFAULT_TEXTURE_TYPE= TextureType.NONE;
     private TextureType textureType=DEFAULT_TEXTURE_TYPE;
+    private boolean reverseTexture=false;   
     
     public enum SectionType {
         CIRCLE(0),
@@ -65,7 +72,11 @@ public class TriangleMeshHelper {
         
         switch(textureType){
             case COLORED_FACES:
-            case COLORED_VERTICES:
+            case COLORED_VERTICES_1D:
+                createPalette();
+                function=DEFAULT_UNIDIM_FUNCTION;        
+                break;
+            case COLORED_VERTICES_3D:
                 createPalette();
                 density=DEFAULT_DENSITY_FUNCTION;        
                 break;
@@ -165,7 +176,7 @@ public class TriangleMeshHelper {
     }
     
     /*
-    density function
+    density functions
     */
     public final static DensityFunction DEFAULT_DENSITY_FUNCTION= p->0;
     private DensityFunction density;
@@ -187,6 +198,24 @@ public class TriangleMeshHelper {
         return f;
     }
 
+    public final static UnidimensionalFunction DEFAULT_UNIDIM_FUNCTION= x->0;
+    private UnidimensionalFunction function;
+    
+    public void setFunction(UnidimensionalFunction function){
+        this.function=function;
+    }
+    
+    public int mapFunction(double x){
+        int f=(int)((function.eval(x)-min)/(max-min)*colors);
+        if(f<0){
+            f=0;
+        }
+        if(f>=colors){
+            f=colors-1;
+        }
+        return f;
+    }
+    
     public int mapFaces(int face, int numFaces){
         int f=(int)((((double)face)/((double)numFaces)) *colors);
         if(f<0){
@@ -201,12 +230,24 @@ public class TriangleMeshHelper {
     public void updateExtremes(List<Point3D> points){
         max=points.parallelStream().mapToDouble(p->density.eval(p)).max().orElse(1.0);
         min=points.parallelStream().mapToDouble(p->density.eval(p)).min().orElse(0.0);
+        max=(float)Math.round(max*1e6)/1e6;
+        min=(float)Math.round(min*1e6)/1e6;
         if(max==min){
             max=1.0+min;
         }
 //        System.out.println("Min: "+min+", max: "+max);  
     }
     
+    public void updateExtremesByFunction(List<Point3D> points){
+        max=points.parallelStream().mapToDouble(p->function.eval(p.f)).max().orElse(1.0);
+        min=points.parallelStream().mapToDouble(p->function.eval(p.f)).min().orElse(0.0);
+        max=(float)Math.round(max*1e6)/1e6;
+        min=(float)Math.round(min*1e6)/1e6;
+        if(max==min){
+            max=1.0+min;
+        }
+        System.out.println("Min: "+min+", max: "+max);  
+    }
     /*
     image
     */
@@ -234,12 +275,29 @@ public class TriangleMeshHelper {
     }
     
     public float[] createTexCoords(int width, int height){
+        reverseTexture=false;
         int index=0;
         float[] textureCoords = new float[(width+1)*(height+1)*2];
         for (int y = 0; y <= height; y++) {
             float dy = (float) y / ((float)(height));
             for (int x = 0; x <= width; x++) {
                 textureCoords[index] = (float) x /((float)(width));
+                textureCoords[index + 1] = dy;
+                index+=2;
+            }
+        }
+        return textureCoords;
+    }
+    
+    public float[] createReverseTexCoords(int width, int height){
+        reverseTexture=true;
+        int index=0;
+        float[] textureCoords = new float[(width+1)*(height+1)*2];
+        for (int x = 0; x <= width; x++) {
+            float dx = (float) x /((float)(width));
+            for (int y = 0; y <= height; y++) {
+                float dy = (float) y / ((float)(height));
+                textureCoords[index] = dx;
                 textureCoords[index + 1] = dy;
                 index+=2;
             }
@@ -262,13 +320,24 @@ public class TriangleMeshHelper {
         float factorHeight = (float)(1d+restHeight/(1d/(patternHeight/scale)*ratio*rectWidth));
         float restWidth=patternWidth-((float)(rectWidth/(patternWidth/scale)))%patternWidth;
         float factorWidth = (float)(1d+restWidth/(rectWidth/(patternWidth/scale)));
-        
-        for (int y = 0; y <= rectHeight; y++) {
-            float dy = (float) ((y)/(patternHeight/scale)*ratio/rectHeight*rectWidth*factorHeight);
+        if(reverseTexture){
             for (int x = 0; x <= rectWidth; x++) {
-                textureCoords[index] = (float) ((x)/(patternWidth/scale)*factorWidth);
-                textureCoords[index + 1] = dy;
-                index+=2;
+                float dx = (float) ((x)/(patternWidth/scale)*factorWidth);
+                for (int y = 0; y <= rectHeight; y++) {
+                    float dy = (float) ((y)/(patternHeight/scale)*ratio/rectHeight*rectWidth*factorHeight);
+                    textureCoords[index] = dx;
+                    textureCoords[index + 1] = dy;
+                    index+=2;
+                }
+            }
+        } else {
+            for (int y = 0; y <= rectHeight; y++) {
+                float dy = (float) ((y)/(patternHeight/scale)*ratio/rectHeight*rectWidth*factorHeight);
+                for (int x = 0; x <= rectWidth; x++) {
+                    textureCoords[index] = (float) ((x)/(patternWidth/scale)*factorWidth);
+                    textureCoords[index + 1] = dy;
+                    index+=2;
+                }
             }
         }
         return textureCoords;
@@ -312,6 +381,17 @@ public class TriangleMeshHelper {
             }).flatMapToInt(i->i).toArray();
     }
        
+    public int[] updateFacesWithFunctionMap(List<Point3D> points, List<Point3D> faces){
+        updateExtremesByFunction(points);
+        return faces.parallelStream().map(f->{
+                int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
+                int t0=mapFunction(points.get(p0).f);
+                int t1=mapFunction(points.get(p1).f);
+                int t2=mapFunction(points.get(p2).f);
+                return IntStream.of(p0, t0, p1, t1, p2, t2);
+            }).flatMapToInt(i->i).toArray();
+    }
+    
     public int[] updateFacesWithFaces(List<Point3D> faces){
         AtomicInteger count=new AtomicInteger();
         return faces.stream().map(f->{
