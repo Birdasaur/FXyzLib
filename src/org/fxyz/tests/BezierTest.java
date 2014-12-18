@@ -50,7 +50,7 @@ public class BezierTest extends Application {
     private double mouseDeltaY;
     private ArrayList<BezierMesh> beziers;
     private Rotate rotateY;
-    private DensityFunction dens = p->p.x;
+    private DensityFunction<Point3D> dens = p->(double)p.f;
     private long lastEffect;
     
     @Override
@@ -90,8 +90,8 @@ public class BezierTest extends Application {
                 new Point3D(-2.31757f,0.680501f,0.909632f),new Point3D(-0.681387f,-0.786363f,0.281733f),
                 new Point3D(0.77171f,-1.68981f,-0.989821f),new Point3D(3f,0f,0f));
         
-        boolean showControlPoints=false;
-        boolean showKnots=false;
+        boolean showControlPoints=true;
+        boolean showKnots=true;
         
         InterpolateBezier interpolate = new InterpolateBezier(knots);
         beziers=new ArrayList<>();
@@ -156,11 +156,11 @@ public class BezierTest extends Application {
         }
         long time=System.currentTimeMillis();
         interpolate.getSplines().stream().forEach(spline->{
-            BezierMesh bezier = new BezierMesh(spline,0.2d,
+            BezierMesh bezier = new BezierMesh(spline,0.1d,
                                     300,20,0,0);
 //            bezier.setDrawMode(DrawMode.LINE);
             bezier.setCullFace(CullFace.NONE);
-            bezier.setSectionType(SectionType.TRIANGLE);
+//            bezier.setSectionType(SectionType.TRIANGLE);
 
         // NONE
 //            bezier.setTextureModeNone(Color.hsb(360d*sp.getAndIncrement()/interpolate.getSplines().size(), 1, 1));
@@ -169,11 +169,11 @@ public class BezierTest extends Application {
         // PATTERN
 //           bezier.setTextureModePattern(3d);
         // FUNCTION
-            bezier.setTextureModeVertices1D(256*256,t->spline.getKappa(t));
+//            bezier.setTextureModeVertices1D(256*256,t->spline.getKappa(t));
         // DENSITY
 //            bezier.setTextureModeVertices3D(256*256,dens);
         // FACES
-//            bezier.setTextureModeFaces(256*256);
+            bezier.setTextureModeFaces(256*256);
 
             bezier.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
             beziers.add(bezier);

@@ -102,7 +102,7 @@ public class CurvedSpringHelper {
         return gauss.NIntegrate(t->Math.sqrt(r*r+2d*h*h*r*r+2d*R*R+4d*r*R*Math.cos(h*t)+r*r*Math.cos(2d*h*t))/Math.sqrt(2d));
     }
     
-    public float getKappa(double t){
+    public double getKappa(double t){
         // r'[t]
         Point3D dR= new Point3D((float)(-((R + r*Math.cos(h*t))*Math.sin(t))-h*r*Math.cos(t)*Math.sin(h*t)),
                                 (float)(Math.cos(t)*(R + r*Math.cos(h*t)) - h*r*Math.sin(t)*Math.sin(h*t)),
@@ -120,7 +120,7 @@ public class CurvedSpringHelper {
         
     }
     
-    public float getTau(double t){
+    public double getTau(double t){
         Point3D dR= new Point3D((float)(-((R + r*Math.cos(h*t))*Math.sin(t))-h*r*Math.cos(t)*Math.sin(h*t)),
                                 (float)(Math.cos(t)*(R + r*Math.cos(h*t)) - h*r*Math.sin(t)*Math.sin(h*t)),
                                 (float)(h*r*Math.cos(h*t))); 

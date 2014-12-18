@@ -113,7 +113,7 @@ public class KnotHelper {
                                 (float)(q*r*Math.cos(q*t))).normalize();
     }
     
-    public float getKappa(double t){
+    public double getKappa(double t){
         // r'[t]
         Point3D dR= new Point3D((float)(-(p*(R + r*Math.cos(q*t))*Math.sin(p*t)) - q*r*Math.cos(p*t)*Math.sin(q*t)),
                                 (float)(p*Math.cos(p*t)*(R + r*Math.cos(q*t)) - q*r*Math.sin(p*t)*Math.sin(q*t)),
@@ -131,7 +131,7 @@ public class KnotHelper {
         
     }
     
-    public float getTau(double t){
+    public double getTau(double t){
         // r'[t]
         Point3D dR= new Point3D((float)(-(p*(R + r*Math.cos(q*t))*Math.sin(p*t)) - q*r*Math.cos(p*t)*Math.sin(q*t)),
                                 (float)(p*Math.cos(p*t)*(R + r*Math.cos(q*t)) - q*r*Math.sin(p*t)*Math.sin(q*t)),

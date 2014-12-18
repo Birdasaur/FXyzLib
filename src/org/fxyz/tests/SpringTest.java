@@ -18,6 +18,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
+import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.SpringMesh;
 import org.fxyz.utils.DensityFunction;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
@@ -41,7 +42,7 @@ public class SpringTest extends Application {
     private double mouseDeltaY;
     private SpringMesh spring;
     private Rotate rotateY;
-    private DensityFunction dens = p->p.x;
+    private DensityFunction<Point3D> dens = p->(double)p.x;
     private long lastEffect;
     
     @Override
@@ -85,9 +86,9 @@ public class SpringTest extends Application {
     // PATTERN
 //       spring.setTextureModePattern(5d);
     // FUNCTION
-        spring.setTextureModeVertices1D(256*256,t->t);
+////        spring.setTextureModeVertices1D(256*256,t->t);
     // DENSITY
-//        spring.setTextureModeVertices3D(256*256,dens);
+        spring.setTextureModeVertices3D(256*256,dens);
     // FACES
 //        spring.setTextureModeFaces(256*256);
         

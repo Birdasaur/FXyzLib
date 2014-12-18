@@ -41,7 +41,7 @@ public class KnotTest extends Application {
     private double mouseDeltaY;
     private KnotMesh knot;
     private Rotate rotateY;
-    private DensityFunction dens = p->p.x;
+    private DensityFunction<Point3D> dens = p->(double)p.x;
     private long lastEffect;
     
     @Override

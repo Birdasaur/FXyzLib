@@ -17,6 +17,7 @@ import javafx.scene.shape.DrawMode;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
+import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.SegmentedTorusMesh;
 import org.fxyz.utils.DensityFunction;
 
@@ -38,7 +39,7 @@ public class SegmentedTorusTest extends Application {
     private double mouseDeltaY;
     private Rotate rotateY;
     private SegmentedTorusMesh torus;
-    private DensityFunction dens = p->p.x;
+    private DensityFunction<Point3D> dens = p->(double)p.x;
     private long lastEffect;
     
     @Override

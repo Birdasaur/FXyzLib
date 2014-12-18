@@ -5,13 +5,11 @@
  */
 package org.fxyz.utils;
 
-import org.fxyz.geometry.Point3D;
-
 /**
  *
  * @author jpereda
  */
 @FunctionalInterface
-public interface DensityFunction {
-    float eval(Point3D p);
+public interface DensityFunction<T> {
+    Double eval(T p);
 }

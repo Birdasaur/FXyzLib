@@ -59,7 +59,7 @@ public class GaussianQuadrature {
         }
     }
     
-    public double NIntegrate(UnidimensionalFunction f){ // f[t]
+    public double NIntegrate(DensityFunction<Double> f){ // f[t]
         return gauss.parallelStream()
             .mapToDouble(p->p.getWeight()*f.eval((b-a)/2d*p.getAbscissa()+(b+a)/2d))
             .reduce(Double::sum).getAsDouble()*(b-a)/2d;

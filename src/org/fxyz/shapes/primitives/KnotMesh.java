@@ -457,11 +457,11 @@ public class KnotMesh extends TexturedMesh {
         return knot.getTangentAt(t);
     }
     
-    public float getTau(double t){
+    public double getTau(double t){
         return knot.getTau(t);
     }
     
-    public float getKappa(double t){
+    public double getKappa(double t){
         return knot.getKappa(t);
     }
 }

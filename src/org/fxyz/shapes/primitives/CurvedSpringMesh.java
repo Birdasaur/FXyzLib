@@ -412,10 +412,10 @@ public class CurvedSpringMesh extends TexturedMesh {
         return createMesh();
     }
  
-    public float getTau(double t){
+    public double getTau(double t){
         return spring.getTau(t);
     }
-    public float getKappa(double t){
+    public double getKappa(double t){
         return spring.getKappa(t);
     }
 }

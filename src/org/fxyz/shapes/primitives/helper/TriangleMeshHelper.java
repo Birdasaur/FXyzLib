@@ -14,7 +14,6 @@ import org.fxyz.utils.DensityFunction;
 import org.fxyz.utils.FloatCollector;
 import org.fxyz.utils.Palette;
 import org.fxyz.utils.Patterns;
-import org.fxyz.utils.UnidimensionalFunction;
 
 /**
  *
@@ -178,12 +177,12 @@ public class TriangleMeshHelper {
     /*
     density functions
     */
-    public final static DensityFunction DEFAULT_DENSITY_FUNCTION= p->0;
-    private DensityFunction density;
+    public final static DensityFunction<Point3D> DEFAULT_DENSITY_FUNCTION= p->0d;
+    private DensityFunction<Point3D> density;
     private double min = 0d;
     private double max = 1d;
     
-    public void setDensity(DensityFunction density){
+    public void setDensity(DensityFunction<Point3D> density){
         this.density=density;
     }
     
@@ -198,10 +197,10 @@ public class TriangleMeshHelper {
         return f;
     }
 
-    public final static UnidimensionalFunction DEFAULT_UNIDIM_FUNCTION= x->0;
-    private UnidimensionalFunction function;
+    public final static DensityFunction<Double> DEFAULT_UNIDIM_FUNCTION= x->0d;
+    private DensityFunction<Double> function;
     
-    public void setFunction(UnidimensionalFunction function){
+    public void setFunction(DensityFunction<Double> function){
         this.function=function;
     }
     
@@ -239,8 +238,8 @@ public class TriangleMeshHelper {
     }
     
     public void updateExtremesByFunction(List<Point3D> points){
-        max=points.parallelStream().mapToDouble(p->function.eval(p.f)).max().orElse(1.0);
-        min=points.parallelStream().mapToDouble(p->function.eval(p.f)).min().orElse(0.0);
+        max=points.parallelStream().mapToDouble(p->function.eval(new Double(p.f))).max().orElse(1.0);
+        min=points.parallelStream().mapToDouble(p->function.eval(new Double(p.f))).min().orElse(0.0);
         max=(float)Math.round(max*1e6)/1e6;
         min=(float)Math.round(min*1e6)/1e6;
         if(max==min){

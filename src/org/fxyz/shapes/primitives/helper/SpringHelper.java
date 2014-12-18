@@ -101,7 +101,7 @@ public class SpringHelper {
         return gauss.NIntegrate(t->Math.sqrt(R*R+h*h));
     }
     
-    public float getKappa(double t){
+    public double getKappa(double t){
         // r'[t]
         Point3D dR= new Point3D((float)(-R*Math.sin(t)),
                                 (float)(R*Math.cos(t)),
@@ -119,7 +119,7 @@ public class SpringHelper {
         
     }
     
-    public float getTau(double t){
+    public double getTau(double t){
         Point3D dR= new Point3D((float)(-R*Math.sin(t)),
                                 (float)(R*Math.cos(t)),
                                 (float)(h)); 

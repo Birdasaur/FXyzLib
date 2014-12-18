@@ -17,6 +17,7 @@ import javafx.scene.shape.DrawMode;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
+import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.CurvedSpringMesh;
 import org.fxyz.utils.DensityFunction;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
@@ -40,7 +41,7 @@ public class CurvedSpringTest extends Application {
     private double mouseDeltaY;
     private CurvedSpringMesh spring;
     private Rotate rotateY;
-    private DensityFunction dens = p->p.x;
+    private DensityFunction<Point3D> dens = p->(double)p.x;
     private long lastEffect;
     
     @Override
@@ -72,19 +73,19 @@ public class CurvedSpringTest extends Application {
         group.getChildren().add(cameraTransform);    
         
         spring = new CurvedSpringMesh(6d,2d,0.4d,25d,6.25d*2d*Math.PI,
-                                1000,60,0,0);
+                                1000,60,0,10);
         spring.setSectionType(SectionType.TRIANGLE);
         spring.setCullFace(CullFace.NONE);
 //        spring.setDrawMode(DrawMode.LINE);
         
     // NONE
-        spring.setTextureModeNone(Color.ROYALBLUE);
+//        spring.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
 //        spring.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
     // PATTERN
 //       spring.setTextureModePattern(10d);
     // FUNCTION
-//        spring.setTextureModeVertices1D(256*256,t->spring.getKappa(t));
+        spring.setTextureModeVertices1D(256*256,t->spring.getKappa(t));
     // DENSITY
 //        spring.setTextureModeVertices3D(256*256,dens);
     // FACES

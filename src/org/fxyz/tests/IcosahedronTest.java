@@ -19,6 +19,7 @@ import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.fxyz.cameras.CameraTransformer;
+import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.IcosahedronMesh;
 import org.fxyz.utils.DensityFunction;
 
@@ -41,7 +42,7 @@ public class IcosahedronTest extends Application {
     private IcosahedronMesh ico;
     private Rotate rotateY;
     
-    private DensityFunction dens = p-> p.x;
+    private DensityFunction<Point3D> dens = p-> (double)p.x;
 //                (float)(3d*Math.pow(Math.sin(p.phi),2)*Math.pow(Math.abs(Math.cos(p.theta)),0.1)+
 //                Math.pow(Math.cos(p.phi),2)*Math.pow(Math.abs(Math.sin(p.theta)),0.1));
 //    private Density dens = p->p.x*p.y*p.z;

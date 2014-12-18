@@ -22,7 +22,6 @@ import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_PATTE
 import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_UNIDIM_FUNCTION;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.SectionType;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.TextureType;
-import org.fxyz.utils.UnidimensionalFunction;
 
 /**
  * TexturedMesh is a base class that provides support for different mesh implementations
@@ -114,13 +113,13 @@ public abstract class TexturedMesh extends MeshView {
         setTextureType(helper.getTextureType());
     }
     
-    public void setTextureModeVertices3D(int colors, DensityFunction dens) {
+    public void setTextureModeVertices3D(int colors, DensityFunction<Point3D> dens) {
         helper.setTextureType(TextureType.COLORED_VERTICES_3D);
         setColors(colors);
         setDensity(dens);
         setTextureType(helper.getTextureType());
     }
-    public void setTextureModeVertices1D(int colors, UnidimensionalFunction function) {
+    public void setTextureModeVertices1D(int colors, DensityFunction<Double> function) {
         helper.setTextureType(TextureType.COLORED_VERTICES_1D);
         setColors(colors);
         setFunction(function);
@@ -207,7 +206,7 @@ public abstract class TexturedMesh extends MeshView {
         return density;
     }
     
-    private final ObjectProperty<UnidimensionalFunction> function = new SimpleObjectProperty<UnidimensionalFunction>(DEFAULT_UNIDIM_FUNCTION){
+    private final ObjectProperty<DensityFunction<Double>> function = new SimpleObjectProperty<DensityFunction<Double>>(DEFAULT_UNIDIM_FUNCTION){
         
         @Override protected void invalidated() {
             helper.setFunction(function.get());
@@ -215,11 +214,11 @@ public abstract class TexturedMesh extends MeshView {
         }
     };
 
-    public UnidimensionalFunction getFunction() {
+    public DensityFunction<Double> getFunction() {
         return function.get();
     }
 
-    public void setFunction(UnidimensionalFunction value) {
+    public void setFunction(DensityFunction<Double> value) {
         function.set(value);
     }
 

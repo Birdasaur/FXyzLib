@@ -124,13 +124,13 @@ public class BezierHelper {
         }
         GaussianQuadrature gauss = new GaussianQuadrature(5,0,1);
         // || r'[t] ||
-        return gauss.NIntegrate(t->ab.multiply((float)(3d*Math.pow(1d-t, 2)))
+        return gauss.NIntegrate(t->(double)(ab.multiply((float)(3d*Math.pow(1d-t, 2)))
                                     .add(bc.multiply((float)(6d*(1d-t)*t))
                                     .add(cd.multiply((float)(3d*Math.pow(t, 2)))))
-                                    .magnitude());
+                                    .magnitude()));
     }
     
-    public float getKappa(double t){
+    public double getKappa(double t){
         if(ab==null || bc==null || cd==null){
             preProcess();
         }
@@ -149,7 +149,7 @@ public class BezierHelper {
         
     }
     
-    public float getTau(double t){
+    public double getTau(double t){
         if(ab==null || bc==null || cd==null){
             preProcess();
         }
