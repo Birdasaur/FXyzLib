@@ -118,9 +118,7 @@ public class WeightedPoint {
      */
 
     public void solveConstraints() {
-        constraints.values().parallelStream().forEach((Constraint c) -> {
-            c.solve();
-        });
+        constraints.values().parallelStream().forEach((Constraint c) -> c.solve());
     }
 
     public void updatePhysics(double dt, double t) {
