@@ -30,6 +30,6 @@ public interface Constraint {
     public void solve();
     
     public default void solve(int iter){
-        IntStream.range(0, iter).parallel().forEach(i->{solve();});
+        IntStream.range(0, iter).parallel().forEach(i-> solve());
     }
 }
