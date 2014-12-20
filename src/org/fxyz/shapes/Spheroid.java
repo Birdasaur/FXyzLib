@@ -6,12 +6,12 @@
 
 package org.fxyz.shapes;
 
-import javafx.beans.property.FloatProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
-import org.fxyz.shapes.containers.ShapeContainer;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
+import org.fxyz.shapes.containers.ShapeContainer;
 import org.fxyz.shapes.primitives.SpheroidMesh;
 
 /**
@@ -27,21 +27,21 @@ public class Spheroid extends ShapeContainer<SpheroidMesh> {
 
     public Spheroid(double radius) {
         this();
-        mesh.setMinorRadius((float) radius);
-        mesh.setMajorRadius((float) radius);
+        mesh.setMinorRadius( radius);
+        mesh.setMajorRadius( radius);
     }
 
     public Spheroid(double minorRadius, double majorRadius) {
         this();
-        mesh.setMinorRadius((float) minorRadius);
-        mesh.setMajorRadius((float) majorRadius);
+        mesh.setMinorRadius(minorRadius);
+        mesh.setMajorRadius(majorRadius);
     }
     
     public Spheroid(int divisions, double minorRadius, double majorRadius) {
         this();
         mesh.setDivisions(divisions);
-        mesh.setMinorRadius((float) minorRadius);
-        mesh.setMajorRadius((float) majorRadius);
+        mesh.setMinorRadius(minorRadius);
+        mesh.setMajorRadius(majorRadius);
     }
     
     public Spheroid(Color c) {
@@ -64,11 +64,11 @@ public class Spheroid extends ShapeContainer<SpheroidMesh> {
         this.setDiffuseColor(c);
     }
 
-    public final void setMajorRadius(float value) {
+    public final void setMajorRadius(double value) {
         mesh.setMajorRadius(value);
     }
 
-    public final void setMinorRadius(float value) {
+    public final void setMinorRadius(double value) {
         mesh.setMinorRadius(value);
     }
 
@@ -96,19 +96,19 @@ public class Spheroid extends ShapeContainer<SpheroidMesh> {
         return mesh.isProlateSpheroid();
     }
 
-    public final float getMajorRadius() {
+    public final double getMajorRadius() {
         return mesh.getMajorRadius();
     }
 
-    public FloatProperty majorRadiusProperty() {
+    public DoubleProperty majorRadiusProperty() {
         return mesh.majorRadiusProperty();
     }
 
-    public final float getMinorRadius() {
+    public final double getMinorRadius() {
         return mesh.getMinorRadius();
     }
 
-    public FloatProperty minorRadiusProperty() {
+    public DoubleProperty minorRadiusProperty() {
         return mesh.minorRadiusProperty();
     }
 

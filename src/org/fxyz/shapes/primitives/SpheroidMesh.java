@@ -6,9 +6,9 @@
 
 package org.fxyz.shapes.primitives;
 
-import javafx.beans.property.FloatProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleFloatProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.DepthTest;
 import javafx.scene.shape.CullFace;
@@ -21,8 +21,8 @@ import javafx.scene.shape.TriangleMesh;
  */
 public class SpheroidMesh extends MeshView{
     
-    private static final float DEFAULT_MAJOR_RADIUS = 50f;
-    private static final float DEFAULT_MINOR_RADIUS = 12f;
+    private static final double DEFAULT_MAJOR_RADIUS = 50f;
+    private static final double DEFAULT_MINOR_RADIUS = 12f;
     private static final int   DEFAULT_DIVISIONS = 64;
 
     public SpheroidMesh() {
@@ -36,7 +36,7 @@ public class SpheroidMesh extends MeshView{
      * 
      * @param radius Creates a Sphere with the specified Radius
      */
-    public SpheroidMesh(float radius) {
+    public SpheroidMesh(double radius) {
         this();
         setMajorRadius(radius);
         setMinorRadius(radius);
@@ -46,7 +46,7 @@ public class SpheroidMesh extends MeshView{
      * @param majRad The major(horizontal) radius
      * @param minRad The minor(vertical) radius
      */
-    public SpheroidMesh(float majRad, float minRad) {
+    public SpheroidMesh(double majRad, double minRad) {
         this();
         setMajorRadius(majRad);
         setMinorRadius(minRad);
@@ -58,7 +58,7 @@ public class SpheroidMesh extends MeshView{
      * @param majRad The major(horizontal) radius
      * @param minRad The minor(vertical) radius
      */
-    public SpheroidMesh(int divs, float majRad, float minRad) {
+    public SpheroidMesh(int divs, double majRad, double minRad) {
         this();
         setDivisions(divs);
         setMajorRadius(majRad);
@@ -75,7 +75,7 @@ public class SpheroidMesh extends MeshView{
         return getMajorRadius() < getMinorRadius();
     }
     
-    private TriangleMesh createSpheroid(int divs, float major, float minor) {
+    private TriangleMesh createSpheroid(int divs, double major, double minor) {
         divs = correctDivisions(divs);
         TriangleMesh m = new TriangleMesh();
         
@@ -107,9 +107,9 @@ public class SpheroidMesh extends MeshView{
                 float sin_u = (float) Math.sin(lonRad);
                 float cos_u = (float) Math.cos(lonRad);
                 
-                points[pPos + 0] = cos_v * cos_u * major; // x
-                points[pPos + 2] = cos_v * sin_u * major; // z
-                points[pPos + 1] = sin_v * minor;        // y up 
+                points[pPos + 0] = (float) (cos_v * cos_u * major); // x
+                points[pPos + 2] = (float) (cos_v * sin_u * major); // z
+                points[pPos + 1] = (float) (sin_v * minor);        // y up 
                 
                 tPoints[tPos + 0] = 1 - divf * lon;
                 tPoints[tPos + 1] = ty;
@@ -122,10 +122,10 @@ public class SpheroidMesh extends MeshView{
         }
 
         points[pPos + 0] = 0;
-        points[pPos + 1] = -minor;
+        points[pPos + 1] = (float) -minor;
         points[pPos + 2] = 0;
         points[pPos + 3] = 0;
-        points[pPos + 4] = minor;
+        points[pPos + 4] = (float) minor;
         points[pPos + 5] = 0;
         pPos += 6;
 
@@ -219,7 +219,7 @@ public class SpheroidMesh extends MeshView{
     /*
     
     */
-    private final FloatProperty majorRadius = new SimpleFloatProperty(DEFAULT_MAJOR_RADIUS){
+    private final DoubleProperty majorRadius = new SimpleDoubleProperty(this, "majorRadius", DEFAULT_MAJOR_RADIUS){
 
         @Override
         protected void invalidated() {
@@ -228,18 +228,20 @@ public class SpheroidMesh extends MeshView{
         
     };
 
-    public final float getMajorRadius() {
+    public final Double getMajorRadius() {
         return majorRadius.get();
     }
 
-    public final void setMajorRadius(float value) {
+    public final void setMajorRadius(Double value) {
         majorRadius.set(value);
     }
 
-    public FloatProperty majorRadiusProperty() {
+    public DoubleProperty majorRadiusProperty() {
         return majorRadius;
     }
-    private final FloatProperty minorRadius = new SimpleFloatProperty(DEFAULT_MINOR_RADIUS){
+    
+    
+    private final DoubleProperty minorRadius = new SimpleDoubleProperty(this, "minorRadius", DEFAULT_MINOR_RADIUS){
 
         @Override
         protected void invalidated() {
@@ -248,18 +250,20 @@ public class SpheroidMesh extends MeshView{
         
     };
 
-    public final float getMinorRadius() {
+    public final Double getMinorRadius() {
         return minorRadius.get();
     }
 
-    public final void setMinorRadius(float value) {
+    public final void setMinorRadius(double value) {
         minorRadius.set(value);
     }
 
-    public FloatProperty minorRadiusProperty() {
+    public DoubleProperty minorRadiusProperty() {
         return minorRadius;
     }
-    private final IntegerProperty divisions = new SimpleIntegerProperty(DEFAULT_DIVISIONS){
+    
+    
+    private final IntegerProperty divisions = new SimpleIntegerProperty(this, "divisions", DEFAULT_DIVISIONS){
 
         @Override
         protected void invalidated() {

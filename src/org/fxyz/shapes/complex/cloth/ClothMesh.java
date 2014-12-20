@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2013-2014 F(X)yz, 
- * Sean Phillips, Jason Pollastrini
+ * Copyright (C) 2014 F(Y)zx :
+ * Authored by : Jason Pollastrini aka jdub1581, 
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -18,22 +18,34 @@
  */
 package org.fxyz.shapes.complex.cloth;
 
-
+import static java.lang.Math.sqrt;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.BiFunction;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.ObservableFloatArray;
+import javafx.collections.ObservableIntegerArray;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
+import javafx.event.EventHandler;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.MeshView;
+import javafx.scene.shape.ObservableFaceArray;
 import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Affine;
 import javafx.util.Duration;
@@ -41,21 +53,38 @@ import org.fxyz.geometry.Point3D;
 import org.fxyz.utils.FloatCollector;
 
 /**
- *  Cloth Mesh is a Cloth Simulator, 
- *  Care should be taken to avoid poor performance.
- *  Please view the Read Me file.
- * 
+ *
  * @author Jason Pollastrini aka jdub1581
  */
 public class ClothMesh extends MeshView {
 
+    /**
+     * Static Default Variables
+     */
     private static final Logger log = Logger.getLogger(ClothMesh.class.getName());
 
-    private final ClothTimer timer;
-    private final TriangleMesh mesh = new TriangleMesh();
-    private final List<WeightedPoint> pointList = new ArrayList<>();
-    private final Affine affine = new Affine();
+    private static final int DEFAULT_DIVISIONS_X = 75;
+    private static final int DEFAULT_DIVISIONS_Y = 35;
+
+    private static final int DEFAULT_WIDTH = 600;
+    private static final int DEFAULT_HEIGHT = 200;
+
+    private static final double DEFAULT_BEND_STRENGTH = 0.85;
+    private static final double DEFAULT_SHEAR_STRENGTH = 0.75;
+    private static final double DEFAULT_STRETCH_STRENGTH = 0.55;
+
+    private static final int DEFAULT_CONSTRAINT_ACCURACY = 8;
+    private static final int DEFAULT_ITERATIONS = 5;
     
+    private static final double DEFAULT_POINT_MASS = 1.0;
+
+    //==========================================================================
+    private final ClothTimer timer = new ClothTimer();
+    private TriangleMesh mesh = new TriangleMesh();
+    private final PhongMaterial material = new PhongMaterial();
+    private final List<WeightedPoint> points = new ArrayList<>();
+    private final Affine affine = new Affine();
+
     private BiFunction<Integer, TriangleMesh, int[]> faceValues = (index, m) -> {
         if (index > ((m.getFaces().size() - 1) - m.getFaceElementSize())) {
             return null;
@@ -67,62 +96,165 @@ public class ClothMesh extends MeshView {
         return m.getFaces().toArray(index, null, index + 6);
     };
 
-    /**
-     *
-     * @param divsX number of points along X axis
-     * @param divsY number of points along Y axis
-     * @param width desired Width of Mesh
-     * @param height desired Height of Mesh
-     * @param stiffness constraint elasticity / stiffness
-     */
-    public ClothMesh(int divsX, int divsY, double width, double height, double stiffness) {
-        this.timer = new ClothTimer(ClothMesh.this);
+    private EventHandler<MouseEvent> onPressed;
 
+    /**
+     * Builds a ClothMesh with default settings
+     */
+    public ClothMesh() {
+        this(
+                DEFAULT_DIVISIONS_X,
+                DEFAULT_DIVISIONS_Y,
+                DEFAULT_WIDTH,
+                DEFAULT_HEIGHT,
+                DEFAULT_BEND_STRENGTH,
+                DEFAULT_SHEAR_STRENGTH,
+                DEFAULT_STRETCH_STRENGTH
+        );
+    }
+
+    /**
+     * Builds a ClothMesh with width and height; defaults others
+     *
+     * @param width
+     * @param height
+     */
+    public ClothMesh(double width, double height) {
+        this(
+                DEFAULT_DIVISIONS_X,
+                DEFAULT_DIVISIONS_Y,
+                width,
+                height,
+                DEFAULT_BEND_STRENGTH,
+                DEFAULT_SHEAR_STRENGTH,
+                DEFAULT_STRETCH_STRENGTH
+        );
+    }
+
+    /**
+     * Builds a ClothMesh with divsX, divsY; defaults others
+     *
+     * @param dx
+     * @param dy
+     */
+    public ClothMesh(int dx, int dy) {
+        this(
+                dx,
+                dy,
+                DEFAULT_WIDTH,
+                DEFAULT_HEIGHT,
+                DEFAULT_BEND_STRENGTH,
+                DEFAULT_SHEAR_STRENGTH,
+                DEFAULT_STRETCH_STRENGTH
+        );
+
+    }
+
+    /**
+     * Builds a ClothMesh with divsX, divsY, width and height; defaults others
+     *
+     * @param dx
+     * @param dy
+     * @param width
+     * @param height
+     */
+    public ClothMesh(int dx, int dy, double width, double height) {
+        this(
+                dx,
+                dy,
+                width,
+                height,
+                DEFAULT_BEND_STRENGTH,
+                DEFAULT_SHEAR_STRENGTH,
+                DEFAULT_STRETCH_STRENGTH
+        );
+    }
+
+    /**
+     * Builds a ClothMesh with divsX, divsY, width and height, stretchStrength;
+     * defaults others
+     *
+     * @param dx
+     * @param dy
+     * @param width
+     * @param height
+     * @param stretch
+     */
+    public ClothMesh(int dx, int dy, double width, double height, double stretch) {
+        this(
+                dx,
+                dy,
+                width,
+                height,
+                DEFAULT_BEND_STRENGTH,
+                DEFAULT_SHEAR_STRENGTH,
+                stretch
+        );
+    }
+
+    /**
+     * Builds a ClothMesh using settings
+     *
+     * @param divsX divisions along X axis
+     * @param divsY divisions along Y axis
+     * @param width requested width
+     * @param height requested height
+     * @param bendStr strength of bend links
+     * @param shearStr strength of shear links
+     * @param stretchStr strength of stretch links
+     */
+    public ClothMesh(int divsX, int divsY, double width, double height, double bendStr, double shearStr, double stretchStr) {
+
+        assert divsX >= 4;
         this.setDivisionsX(divsX);
+        assert divsY >= 4;
         this.setDivisionsY(divsY);
-        this.setClothWidth(width);
-        this.setClothHeight(height);
-        this.setStiffness(stiffness);
+
+        this.setWidth(width);
+        this.setHeight(height);
+
+        this.setStretchStrength(stretchStr);
+        this.setBendStrength(bendStr);
+        this.setShearStrength(shearStr);
 
         this.getTransforms().add(affine);
-
-        this.buildMesh(getDivisionsX(), getDivisionsY(), getClothWidth(), getClothHeight(), getStiffness());
-
+        
+        this.buildMesh(getDivisionsX(), getDivisionsY(), getWidth(), getHeight(), isUsingShearLinks(), isUsingBendingLinks());        
+        
         this.setOnMousePressed((MouseEvent me) -> {
             if (me.isPrimaryButtonDown()) {
                 PickResult pr = me.getPickResult();
                 if (pr.getIntersectedFace() != -1) {
                     int[] vals = faceValues.apply(pr.getIntersectedFace(), mesh);
                     if (me.isControlDown()) {
-                        pointList.get(vals[0]).setOldPosition(pointList.get(vals[0]).getOldPosition().add(0, 0, 20));
-                        pointList.get(vals[2]).setOldPosition(pointList.get(vals[2]).getOldPosition().add(0, 0, 20));
-                        pointList.get(vals[4]).setOldPosition(pointList.get(vals[4]).getOldPosition().add(0, 0, 20));
+                        points.get(vals[0]).setOldPosition(points.get(vals[0]).getOldPosition().add(0, 0, 25));
+                        points.get(vals[2]).setOldPosition(points.get(vals[2]).getOldPosition().add(0, 0, 25));
+                        points.get(vals[4]).setOldPosition(points.get(vals[4]).getOldPosition().add(0, 0, 25));
                     } else {
-                        pointList.get(vals[0]).setOldPosition(pointList.get(vals[0]).getOldPosition().add(0, 0, -20));
-                        pointList.get(vals[2]).setOldPosition(pointList.get(vals[2]).getOldPosition().add(0, 0, -20));
-                        pointList.get(vals[4]).setOldPosition(pointList.get(vals[4]).getOldPosition().add(0, 0, -20));
+                        points.get(vals[0]).setOldPosition(points.get(vals[0]).getOldPosition().add(0, 0, -25));
+                        points.get(vals[2]).setOldPosition(points.get(vals[2]).getOldPosition().add(0, 0, -25));
+                        points.get(vals[4]).setOldPosition(points.get(vals[4]).getOldPosition().add(0, 0, -25));
                     }
                 }
             }
         });
     }
-
-
     /*==========================================================================
      Updating Methods
      */
+
     /**
      *
      */
     private void updatePoints() {
-        float[] points = pointList.stream()
+        float[] pts = this.points.stream()
                 .flatMapToDouble(wp -> {
                     return wp.getPosition().getCoordinates();
                 })
-                .collect(() -> new FloatCollector(pointList.size() * 3), FloatCollector::add, FloatCollector::join)
+                .collect(() -> new FloatCollector(this.points.size() * 3), FloatCollector::add, FloatCollector::join)
                 .toArray();
 
-        mesh.getPoints().setAll(points, 0, points.length);
+        mesh.getPoints().setAll(pts, 0, pts.length);
     }
 
     /**
@@ -140,9 +272,9 @@ public class ClothMesh extends MeshView {
      * @param divsY number of points along Y axis
      * @param width desired Width of Mesh
      * @param height desired Height of Mesh
-     * @param stiffness constraint elasticity / stiffness
+     * @param stretch constraint elasticity / stiffness
      */
-    private void buildMesh(int divsX, int divsY, double width, double height, double stiffness) {
+    private void buildMesh(int divsX, int divsY, double width, double height, boolean shear, boolean bend) {
         float minX = (float) (-width / 2f),
                 maxX = (float) (width / 2f),
                 minY = (float) (-height / 2f),
@@ -150,7 +282,8 @@ public class ClothMesh extends MeshView {
 
         int sDivX = (divsX - 1),
                 sDivY = (divsY - 1);
-
+        double xDist = (width / divsX),
+                yDist = (height / divsY);
         //build Points and TexCoords        
         for (int Y = 0; Y <= sDivY; Y++) {
 
@@ -163,31 +296,65 @@ public class ClothMesh extends MeshView {
                 float fx = (1 - currX) * minX + currX * maxX;
 
                 //create point: parent, mass, x, y, z
-                WeightedPoint p = new WeightedPoint(this, 1.5, fx, fy, Math.random());
-                if(Y <= 10)p.setMass(10.0f);
+                WeightedPoint p = new WeightedPoint(this, getPerPointMass(), fx, fy, Math.random());
+
                 //Pin Points in place
-                if (Y == 0 && X % 25 == 0 || (X == 0 && Y == 0) || (X == sDivX && Y == 0)) {
+                if (Y == 0 && X == 0 || (X == 0 && Y == sDivY)) {
                     p.setAnchored(true);
                     p.setForceAffected(false);
                 } else {
                     p.setForceAffected(true);
                 }
-                // Create Links    
+                if (((Y < 5) && (X == 0)) || ((Y > sDivY - 5) && X == 0)) {
+                    p.setMass(100);
+                }
+                // stabilLinks 
                 if (X != 0) {
-                    p.attatchTo((pointList.get(pointList.size() - 1)), (width / divsX), stiffness);
-                    //log.log(Level.INFO, "\nLINK-INFO\nOther Index: {0}, This Index: {1}\nLink Distance: {2}\nStiffness: {3}\n", new Object[]{(pointList.size() - 2), pointList.indexOf(p),(width / divsX), stiffness});
+                    p.attatchTo((points.get(points.size() - 1)), xDist, getStretchStrength());
+                    //log.log(Level.INFO, "\nLINK-INFO\nOther Index: {0}, This Index: {1}\nLink Distance: {2}\nStiffness: {3}\n", new Object[]{(points.size() - 2), points.indexOf(p),(width / divsX), stiffness});
                 }
                 if (Y != 0) {
-                    p.attatchTo((pointList.get((Y - 1) * (divsX) + X)), (height / divsY), stiffness);
-                    //log.log(Level.INFO, "\nLINK-INFO\nOther Index: {0}, This Index: {1}\nLink Distance: {2}\nStiffness: {3}\n", new Object[]{((Y - 1) * (divsX) + X), pointList.indexOf(p),(height / divsY), stiffness});
+                    p.attatchTo((points.get((Y - 1) * (divsX) + X)), yDist, getStretchStrength());
+                    //log.log(Level.INFO, "\nLINK-INFO\nOther Index: {0}, This Index: {1}\nLink Distance: {2}\nStiffness: {3}\n", new Object[]{((Y - 1) * (divsX) + X), points.indexOf(p),(height / divsY), stiffness});
                 }
-
-                //add to pointList
-                pointList.add(p);
+                //add to points
+                points.add(p);
                 // add Point data into Mesh
                 mesh.getPoints().addAll(p.position.x, p.position.y, p.position.z);
                 // add texCoords
                 mesh.getTexCoords().addAll(currX, currY);
+            }
+        }
+        //shearLinks
+        if (shear) {
+            for (int Y = 0; Y <= sDivY; Y++) {
+                for (int X = 0; X <= sDivX; X++) {
+                    WeightedPoint p = points.get(Y * divsX + X);
+                    // top left(xy) to right(xy + 1)
+                    if (X < (divsX - 1) && Y < (divsY - 1)) {
+                        p.attatchTo((points.get(((Y + 1) * (divsX) + (X + 1)))), sqrt((xDist * xDist) + (yDist * yDist)), getShearStrength());
+                    }
+                    // index(xy) to left(x - 1(y + 1))
+                    if (Y != 0 && X != (divsX - 1)) {
+                        p.attatchTo((points.get(((Y - 1) * divsX + (X + 1)))), sqrt((xDist * xDist) + (yDist * yDist)), getShearStrength());
+                    }
+                }
+            }
+        }
+        //bendLinks
+        if (bend) {
+            for (int Y = 0; Y <= sDivY; Y++) {
+                for (int X = 0; X <= sDivX; X++) {
+                    WeightedPoint p = points.get(Y * divsX + X);
+                    //skip every other
+                    if (X < (divsX - 2)) {
+                        p.attatchTo((points.get((Y * divsX + (X + 2)))), xDist * 2, getBendStrength());
+                    }
+                    if (Y < (divsY - 2)) {
+                        p.attatchTo((points.get((Y + 2) * divsX + X)), xDist * 2, getBendStrength());
+                    }
+                    p.setOldPosition(p.getPosition());
+                }
             }
         }
         // build faces
@@ -206,123 +373,221 @@ public class ClothMesh extends MeshView {
                 mesh.getFaces().addAll(p11, tc11, p01, tc01, p00, tc00);
             }
         }
-
+        //set triMesh
         setMesh(mesh);
+        setMaterial(material);
     }
-
     /*==========================================================================
      Properties
      *///=======================================================================
-    private final DoubleProperty clothWidth = new SimpleDoubleProperty() {
+    private final DoubleProperty width = new SimpleDoubleProperty(this, "width", DEFAULT_WIDTH) {
         @Override
         protected void invalidated() {
-            
+
         }
     };
 
-    protected final double getClothWidth() {
-        return clothWidth.get();
+    public final double getWidth() {
+        return width.get();
     }
 
-    protected final void setClothWidth(double value) {
-        clothWidth.set(value);
+    public final void setWidth(double value) {
+        width.set(value);
     }
 
-    protected DoubleProperty clothWidthProperty() {
-        return clothWidth;
+    public DoubleProperty widthProperty() {
+        return width;
     }
-    /*
-    
-     */
-    private final DoubleProperty clothHeight = new SimpleDoubleProperty() {
+    //==========================================================================
+    private final DoubleProperty height = new SimpleDoubleProperty(this, "height", DEFAULT_HEIGHT) {
         @Override
         protected void invalidated() {
-            
+
         }
     };
 
-    protected final double getClothHeight() {
-        return clothHeight.get();
+    public final double getHeight() {
+        return height.get();
     }
 
-    protected final void setClothHeight(double value) {
-        clothHeight.set(value);
+    public final void setHeight(double value) {
+        height.set(value);
     }
 
-    protected DoubleProperty clothHeightProperty() {
-        return clothHeight;
+    public DoubleProperty heightProperty() {
+        return height;
     }
-    /*
-    
-     */
-    private final IntegerProperty divisionsX = new SimpleIntegerProperty() {
+    //==========================================================================    
+    private final IntegerProperty divisionsX = new SimpleIntegerProperty(this, "divisionsX", DEFAULT_DIVISIONS_X) {
         @Override
         protected void invalidated() {
-            
+
         }
     };
 
-    protected final int getDivisionsX() {
+    public final int getDivisionsX() {
         return divisionsX.get();
     }
 
-    protected final void setDivisionsX(int value) {
+    public final void setDivisionsX(int value) {
         divisionsX.set(value);
     }
 
-    protected final IntegerProperty divisionsXProperty() {
+    public final IntegerProperty divisionsXProperty() {
         return divisionsX;
     }
-    /*
-    
-     */
-    private final IntegerProperty divisionsY = new SimpleIntegerProperty() {
+    //==========================================================================
+    private final IntegerProperty divisionsY = new SimpleIntegerProperty(this, "divisionsY", DEFAULT_DIVISIONS_Y) {
         @Override
         protected void invalidated() {
-            
+
         }
     };
 
-    protected final int getDivisionsY() {
+    public final int getDivisionsY() {
         return divisionsY.get();
     }
 
-    protected final void setDivisionsY(int value) {
+    public final void setDivisionsY(int value) {
         divisionsY.set(value);
     }
 
-    protected final IntegerProperty divisionsYProperty() {
+    public final IntegerProperty divisionsYProperty() {
         return divisionsY;
     }
-    /*
-    
+    /*==========================================================================
+     Constraint Strengths
      */
-    private final DoubleProperty stiffness = new SimpleDoubleProperty() {
+    private final DoubleProperty stretchStrength = new SimpleDoubleProperty(this, "stretchStrength", DEFAULT_STRETCH_STRENGTH) {
         @Override
         protected void invalidated() {
-            
+
         }
     };
 
-    protected final double getStiffness() {
-        return stiffness.get();
+    public final double getStretchStrength() {
+        return stretchStrength.get();
     }
 
-    protected final void setStiffness(double value) {
-        stiffness.set(value);
+    public final void setStretchStrength(double value) {
+        stretchStrength.set(value);
     }
 
-    protected final DoubleProperty stiffnessProperty() {
-        return stiffness;
+    public final DoubleProperty stretchStrengthProperty() {
+        return stretchStrength;
+    }
+    //==========================================================================
+    private final DoubleProperty shearStrength = new SimpleDoubleProperty(this, "shearStrength", DEFAULT_SHEAR_STRENGTH) {
+        @Override
+        protected void invalidated() {
+
+        }
+    };
+
+    public final double getShearStrength() {
+        return shearStrength.get();
     }
 
-    public List<WeightedPoint> getPointList() {
-        return pointList;
+    public final void setShearStrength(double value) {
+        shearStrength.set(value);
     }
 
+    public final DoubleProperty shearStrengthProperty() {
+        return shearStrength;
+    }
+    //==========================================================================
+    private final DoubleProperty bendStrength = new SimpleDoubleProperty(this, "bendStrength", DEFAULT_BEND_STRENGTH) {
+        @Override
+        protected void invalidated() {
+
+        }
+    };
+
+    public final double getBendStrength() {
+        return bendStrength.get();
+    }
+
+    public final void setBendStrength(double value) {
+        bendStrength.set(value);
+    }
+
+    public final DoubleProperty bendStrengthProperty() {
+        return bendStrength;
+    }
+    /*==========================================================================
+     Use Constraints?
+     */
+    private final BooleanProperty useBendingLinks = new SimpleBooleanProperty(this, "useBendingLinks", true) {
+        @Override
+        protected void invalidated() {
+
+        }
+    };
+
+    public final boolean isUsingBendingLinks() {
+        return useBendingLinks.get();
+    }
+
+    public final void setUseBendingLinks(boolean value) {
+        useBendingLinks.set(value);
+    }
+
+    public final BooleanProperty usingBendingLinksProperty() {
+        return useBendingLinks;
+    }
+    //==========================================================================
+    private final BooleanProperty useShearLinks = new SimpleBooleanProperty(this, "useShearLinks", true) {
+        @Override
+        protected void invalidated() {
+
+        }
+    };
+
+    public final boolean isUsingShearLinks() {
+        return useShearLinks.get();
+    }
+
+    public final void setUseShearLinks(boolean value) {
+        useShearLinks.set(value);
+    }
+
+    public final BooleanProperty usingShearLinksProperty() {
+        return useShearLinks;
+    }
 
     /*==========================================================================
-     Delagate "like" methods
+     Timer related Properties
+     */
+    private final IntegerProperty constraintAccuracy = new SimpleIntegerProperty(this, "constraintAccuracy", DEFAULT_CONSTRAINT_ACCURACY);
+
+    public final int getConstraintAccuracy() {
+        return constraintAccuracy.get();
+    }
+
+    public final void setConstraintAccuracy(int value) {
+        constraintAccuracy.set(value);
+    }
+
+    public final IntegerProperty constraintAccuracyProperty() {
+        return constraintAccuracy;
+    }
+    //==========================================================================
+    private final IntegerProperty iterations = new SimpleIntegerProperty(this, "iterations", DEFAULT_ITERATIONS);
+
+    public final int getIterations() {
+        return iterations.get();
+    }
+
+    public final void setIterations(int value) {
+        iterations.set(value);
+    }
+
+    public final IntegerProperty iterationsProperty() {
+        return iterations;
+    }
+    
+    /**=========================================================================
+     * Starts the Cloth Simulation
      */
     public final void startSimulation() {
         if (!timer.isRunning()) {
@@ -330,20 +595,183 @@ public class ClothMesh extends MeshView {
         }
     }
 
+    /**
+     * Pauses the Cloth Simulation
+     */
     public final void pauseSimulation() {
         timer.pause();
     }
 
+    /**
+     * Stops the Cloth Simulation
+     */
     public final void stopSimulation() {
         timer.cancel();
     }
-    //End ClothMesh=============================================================
 
-    ////////////////////////////////////////////////////////////////////////////////
+    /*==========================================================================
+     *   Material Delagates                                                     *
+     *///========================================================================
+    public final void setDiffuseColor(Color value) {
+        material.setDiffuseColor(value);
+    }
+
+    public final Color getDiffuseColor() {
+        return material.getDiffuseColor();
+    }
+
+    public final ObjectProperty<Color> diffuseColorProperty() {
+        return material.diffuseColorProperty();
+    }
+
+    public final void setSpecularColor(Color value) {
+        material.setSpecularColor(value);
+    }
+
+    public final Color getSpecularColor() {
+        return material.getSpecularColor();
+    }
+
+    public final ObjectProperty<Color> specularColorProperty() {
+        return material.specularColorProperty();
+    }
+
+    public final void setSpecularPower(double value) {
+        material.setSpecularPower(value);
+    }
+
+    public final double getSpecularPower() {
+        return material.getSpecularPower();
+    }
+
+    public final DoubleProperty specularPowerProperty() {
+        return material.specularPowerProperty();
+    }
+
+    public final void setDiffuseMap(Image value) {
+        material.setDiffuseMap(value);
+    }
+
+    public final Image getDiffuseMap() {
+        return material.getDiffuseMap();
+    }
+
+    public final ObjectProperty<Image> diffuseMapProperty() {
+        return material.diffuseMapProperty();
+    }
+
+    public final void setSpecularMap(Image value) {
+        material.setSpecularMap(value);
+    }
+
+    public final Image getSpecularMap() {
+        return material.getSpecularMap();
+    }
+
+    public final ObjectProperty<Image> specularMapProperty() {
+        return material.specularMapProperty();
+    }
+
+    public final void setBumpMap(Image value) {
+        material.setBumpMap(value);
+    }
+
+    public final Image getBumpMap() {
+        return material.getBumpMap();
+    }
+
+    public final ObjectProperty<Image> bumpMapProperty() {
+        return material.bumpMapProperty();
+    }
+
+    public final void setSelfIlluminationMap(Image value) {
+        material.setSelfIlluminationMap(value);
+    }
+
+    public final Image getSelfIlluminationMap() {
+        return material.getSelfIlluminationMap();
+    }
+
+    public final ObjectProperty<Image> selfIlluminationMapProperty() {
+        return material.selfIlluminationMapProperty();
+    }
+
+    /*==========================================================================
+     *   TriangleMesh Data
+     */
+    public final ObservableFloatArray getPoints() {
+        return mesh.getPoints();
+    }
+
+    public final ObservableFloatArray getTexCoords() {
+        return mesh.getTexCoords();
+    }
+
+    public final ObservableFaceArray getFaces() {
+        return mesh.getFaces();
+    }
+
+    public final ObservableIntegerArray getFaceSmoothingGroups() {
+        return mesh.getFaceSmoothingGroups();
+    }   
+    /*==========================================================================
+    *   Point Properties
+    */
+    private final DoubleProperty perPointMass = new SimpleDoubleProperty(this, "perPointMass", DEFAULT_POINT_MASS);
+
+    public double getPerPointMass() {
+        return perPointMass.get();
+    }
+
+    public void setPerPointMass(double value) {
+        perPointMass.set(value);
+    }
+    
+    public void setPointsMass(int index, double m){
+        points.get(index).setMass(m);        
+    }
+    
+    public DoubleProperty perPointMassProperty() {
+        return perPointMass;
+    }
+    /*==========================================================================
+        Force for Points
+    */
+    private final ObjectProperty<Point3D> accumulatedForces = new SimpleObjectProperty<>(this, "accumulatedForces");
+
+    public Point3D getAccumulatedForces() {
+        return accumulatedForces.get();
+    }
+    
+    public void addForce(Point3D f){
+        setAccumulatedForces(getAccumulatedForces().add(f));
+    }
+    
+    public void setAccumulatedForces(Point3D value) {
+        accumulatedForces.set(value);
+    }
+
+    public ObjectProperty<Point3D> accumulatedForcesProperty() {
+        return accumulatedForces;
+    }
+    
+    
+    /*==========================================================================
+     Points List
+     */
+    protected final List<WeightedPoint> getPointList() {
+        return points;
+    }
+    
+    //End ClothMesh=============================================================
     /**
-     * ClothTimer is a simple timer class for updating points
-     *
-     * @author Jason Pollastrini aka jdub1581
+     * *************************************************************************
+     * ClothTimer is a simple timer class for updating points * * @author Jason
+     * Pollastrini aka jdub1581 *
+     *************************************************************************
+     */
+    /**
+     * Timer to handle Cloth updates
      */
     private class ClothTimer extends ScheduledService<Void> {
 
@@ -354,18 +782,16 @@ public class ClothMesh extends MeshView {
         private double deltaTime;
         private final double fixedDeltaTime = 0.16;
         private int leftOverDeltaTime, timeStepAmt;
-        private final NanoThreadFactory tf = new NanoThreadFactory();
-        private final ClothMesh mesh;
-        private final List<WeightedPoint> points;
-        int iterations = 4;
-        int accuracyLevel = 4;
+
+        private final NanoThreadFactory tf;
         private boolean paused;
 
-        public ClothTimer(ClothMesh mesh) {
+        public ClothTimer() {
             super();
-            this.mesh = mesh;
-            this.points = pointList;
+
             this.setPeriod(Duration.millis(16));
+
+            this.tf = new NanoThreadFactory();
             this.setExecutor(Executors.newSingleThreadExecutor(tf));
         }
 
@@ -386,9 +812,9 @@ public class ClothMesh extends MeshView {
 
         /**
          *
-         * @return value of one nano second
+         * @return one nano second
          */
-        private long getOneNano() {
+        private long getOneSecondAsNano() {
             return ONE_NANO;
         }
 
@@ -402,7 +828,7 @@ public class ClothMesh extends MeshView {
 
         /**
          *
-         * @return updates the timers time values
+         * @return updates Timers clock values
          */
         private void updateTimer() {
             deltaTime = (getTime() - previousTime) * (10.0f / ONE_NANO);
@@ -418,22 +844,19 @@ public class ClothMesh extends MeshView {
                 @Override
                 protected Void call() throws Exception {
                     updateTimer();
-
-                    /*
-                     Standard updates
-                     */
-                    points.parallelStream().forEach(p -> {
-                        p.applyForce(new Point3D(0, 4.7f, 0));
+                    
+                    IntStream.range(0, getIterations()).forEach(i->{});
+                    points.parallelStream().filter(p->{return points.indexOf(p) % (getDivisionsX() - 1) == 0;}).forEach(p -> {
+                        p.applyForce(new Point3D(5,-1,1));
                     });
-                    for (int i = 0; i < accuracyLevel; i++) {
+                    for (int i = 0; i < getConstraintAccuracy(); i++) {
                         points.parallelStream().forEach(WeightedPoint::solveConstraints);
                     }
                     points.parallelStream().forEach(p -> {
-                        p.applyForce(new Point3D(0, 4.7f, 0));
-                        p.updatePhysics(deltaTime, 1);
-                        p.clearForces();
+                        p.applyForce(new Point3D(4.8f,1,-1));
+                        p.updatePhysics(deltaTime, 1);                        
                     });
-                    
+
                     return null;
                 }
             };
@@ -448,12 +871,12 @@ public class ClothMesh extends MeshView {
         @Override
         protected void succeeded() {
             super.succeeded();
-            mesh.updateUI();
+            updateUI();
         }
 
         @Override
         protected void cancelled() {
-            super.cancelled(); 
+            super.cancelled();
             reset();
         }
 
@@ -462,9 +885,7 @@ public class ClothMesh extends MeshView {
             if (isRunning()) {
                 return;
             }
-
             super.start();
-
             if (startTime <= 0) {
                 startTime = System.nanoTime();
             }
@@ -513,4 +934,3 @@ public class ClothMesh extends MeshView {
     }//End ClothTimer===========================================================
 
 }
-

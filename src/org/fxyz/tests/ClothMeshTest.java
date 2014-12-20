@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2013-2014 F(X)yz, 
- * Sean Phillips, Jason Pollastrini
+ * Copyright (C) 2014 F(Y)zx :
+ * Authored by : Jason Pollastrini aka jdub1581, 
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.PhongMaterial;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
@@ -40,12 +39,7 @@ import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.shapes.complex.cloth.ClothMesh;
 
 /**
- *  A Simple Cloth Simulation using Verlet Integration.
- * 
- *  Best effort have been made to Optimize the mesh for performance.
- * 
- *  Cloth is still under active Development so things may change.
- * 
+ *
  * @author Jason Pollastrini aka jdub1581
  */
 public class ClothMeshTest extends Application {
@@ -61,7 +55,6 @@ public class ClothMeshTest extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        
         camera = new PerspectiveCamera(true);
         cameraTransform.setTranslate(0, 0, 0);
         cameraTransform.getChildren().addAll(camera);
@@ -71,27 +64,33 @@ public class ClothMeshTest extends Application {
         camera.setVerticalFieldOfView(true);
         camera.setTranslateZ(-1500);
 
-        ClothMesh cloth = new ClothMesh(75, 30, 600, 200, 0.98);
+        PointLight light = new PointLight(Color.LIGHTSKYBLUE);
+        //cameraTransform.getChildren().add(light);
+        light.translateXProperty().bind(camera.translateXProperty());
+        light.translateYProperty().bind(camera.translateYProperty());
+        light.translateZProperty().bind(camera.translateZProperty());
+
+        ClothMesh cloth = new ClothMesh();        
+        cloth.setPerPointMass(10);
+        cloth.setBendStrength(0.5);
+        cloth.setStretchStrength(1.0);
+        cloth.setShearStrength(0.55);
         cloth.setDrawMode(DrawMode.FILL);
         cloth.setCullFace(CullFace.NONE);
-        
-        PhongMaterial mat = new PhongMaterial();
-        mat.setDiffuseMap(new Image("https://kenai.com/attachments/wiki_images/duke/Duke3DprogressionSmall.jpg"));
-        cloth.setMaterial(mat);
+        cloth.setDiffuseMap(new Image("https://kenai.com/attachments/wiki_images/duke/Duke3DprogressionSmall.jpg"));
+        cloth.setSpecularPower(5);
 
         StackPane root = new StackPane();
-        // Mouse events do not pass unless this is here ... Perhaps a bug?
-        root.setPickOnBounds(false); 
+        root.setPickOnBounds(false);
 
-        PointLight light0 = new PointLight(Color.GAINSBORO);
-        light0.setTranslateZ(1500);
-        PointLight light1 = new PointLight(Color.AZURE);
-        light1.setTranslateZ(-2500);        
-        
-        Group root3D = new Group();
-        root3D.getChildren().addAll(cameraTransform, cloth, light0, light1);
+        PointLight light2 = new PointLight(Color.GAINSBORO);
+        light2.setTranslateZ(-1500);
+        PointLight light3 = new PointLight(Color.AZURE);
+        light3.setTranslateZ(2500);
+        Group g = new Group();
+        g.getChildren().addAll(cameraTransform, cloth, light2, light3);
 
-        root.getChildren().add(root3D);
+        root.getChildren().add(g);
 
         Scene scene = new Scene(root, 1200, 600, true, SceneAntialiasing.BALANCED);
         
@@ -168,7 +167,7 @@ public class ClothMeshTest extends Application {
         });
 
         stage.setScene(scene);
-        stage.setMaximized(true);
+        //stage.setMaximized(true);
         stage.show();
 
         cloth.startSimulation();
