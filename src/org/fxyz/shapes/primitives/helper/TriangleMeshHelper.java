@@ -2,6 +2,7 @@ package org.fxyz.shapes.primitives.helper;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -403,14 +404,85 @@ public class TriangleMeshHelper {
     utils
     */
     public double getMeshArea(List<Point3D> points, List<Point3D> faces){
-        DoubleProperty area = new SimpleDoubleProperty();
-        faces.forEach(f->{
+        return faces.parallelStream().mapToDouble(f->{
                 int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
                 Point3D a = points.get(p0);
                 Point3D b = points.get(p1);
                 Point3D c = points.get(p2);
-                area.set(area.get()+b.substract(a).crossProduct((c.substract(a))).magnitude()/2.0);
-            });
-        return area.get();
+                return b.substract(a).crossProduct((c.substract(a))).magnitude()/2.0;
+            }).reduce(Double::sum).getAsDouble();
+    }
+    
+    private final float EPS = 0.000001f;
+    /*
+    Based on Fast, Minimum Storage Ray/Triangle Intersection
+    Tomas Möller & Ben Trumbore
+    http://www.graphics.cornell.edu/pubs/1997/MT97.pdf
+
+    * origin and direction of a ray, in local coordinates of the shape, 
+      to avoid transformation all the triangles to scene coordinates
+      
+    * This sets the texture of every face: 0 without intersection, 1 intersected
+    */
+    public int[] updateFacesWithIntersections(Point3D origin, Point3D direction,List<Point3D> points, List<Point3D> faces){
+        return faces.parallelStream().map(f->{
+                int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
+                Point3D a = points.get(p0);
+                Point3D b = points.get(p1);
+                Point3D c = points.get(p2);
+                
+                Point3D edge1 = b.substract(a);
+                Point3D edge2 = c.substract(a);
+                Point3D pvec=direction.crossProduct(edge2);
+                float det=edge1.dotProduct(pvec);
+                
+                int t0=0;
+                if(det<=-EPS || det>=EPS){
+                    float inv_det=1f/det;
+                    Point3D tvec=origin.substract(a);
+                    float u = tvec.dotProduct(pvec)*inv_det;
+                    if(u>=0f && u<=1f){
+                        Point3D qvec=tvec.crossProduct(edge1);
+                        float v = direction.dotProduct(qvec)*inv_det;
+                        if(v>=0 && u+v<=1f){
+//                            float t = c.dotProduct(qvec)*inv_det;
+                            t0=6;
+//                            System.out.println("t: "+t+", u: "+u+", v: "+v+" (a: "+a+", b: "+b+", c: "+c+")");
+                        }
+                    }
+                }
+                return IntStream.of(p0, t0, p1, t0, p2, t0);
+            }).flatMapToInt(i->i).toArray();
+    }
+    
+    /*
+    Return a list of interesected faces (with their 3 vertices)
+    */
+    public List<Point3D> getListIntersections(Point3D origin, Point3D direction,List<Point3D> points, List<Point3D> faces){
+        return faces.parallelStream().filter(f->{
+                int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
+                Point3D a = points.get(p0);
+                Point3D b = points.get(p1);
+                Point3D c = points.get(p2);
+                
+                Point3D edge1 = b.substract(a);
+                Point3D edge2 = c.substract(a);
+                Point3D pvec=direction.crossProduct(edge2);
+                float det=edge1.dotProduct(pvec);
+                
+                if(det<=-EPS || det>=EPS){
+                    float inv_det=1f/det;
+                    Point3D tvec=origin.substract(a);
+                    float u = tvec.dotProduct(pvec)*inv_det;
+                    if(u>=0f && u<=1f){
+                        Point3D qvec=tvec.crossProduct(edge1);
+                        float v = direction.dotProduct(qvec)*inv_det;
+                        if(v>=0 && u+v<=1f){
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }).collect(Collectors.toList());
     }
 }

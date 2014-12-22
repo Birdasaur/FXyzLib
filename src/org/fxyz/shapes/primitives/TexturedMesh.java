@@ -382,4 +382,20 @@ public abstract class TexturedMesh extends MeshView {
         int n=sectionType.get().getSides();
         return n*Math.cos(Math.PI/n)*Math.log(-1d - 2d/(-1d + Math.sin(Math.PI/n)))*radius;
     }
+    
+    public Point3D getOrigin(){
+        if(listVertices.size()>0){
+            return listVertices.get(0);
+        } 
+        return new Point3D(0f,0f,0f);
+    }
+    
+    public double getIntersections(Point3D origin, Point3D direction){
+        setTextureModeFaces(10);
+        int[] faces= helper.updateFacesWithIntersections(origin, direction, listVertices, listFaces);
+        mesh.getFaces().setAll(faces);
+        List<Point3D> listIntersections = helper.getListIntersections(origin, direction, listVertices, listFaces);
+        listIntersections.forEach(System.out::println);
+        return listIntersections.size();        
+    }
 }
