@@ -139,7 +139,7 @@ public class Ray {
     @Override
     public String toString() {
         return "Ray ::\n" + "    origin    = " + origin + ",\n    direction = " + direction + ",\n    position  = " + position + "\n";
-    }
+    }  
     
     
 }
