@@ -390,11 +390,14 @@ public abstract class TexturedMesh extends MeshView {
         return new Point3D(0f,0f,0f);
     }
     
-    public double getIntersections(Point3D origin, Point3D direction){
+    public int getIntersections(Point3D origin, Point3D direction){
         setTextureModeFaces(10);
+        
         int[] faces= helper.updateFacesWithIntersections(origin, direction, listVertices, listFaces);
         mesh.getFaces().setAll(faces);
+        long time=System.currentTimeMillis();
         List<Point3D> listIntersections = helper.getListIntersections(origin, direction, listVertices, listFaces);
+        System.out.println("t: "+(System.currentTimeMillis()-time));
         listIntersections.forEach(System.out::println);
         return listIntersections.size();        
     }

@@ -460,29 +460,29 @@ public class TriangleMeshHelper {
     */
     public List<Point3D> getListIntersections(Point3D origin, Point3D direction,List<Point3D> points, List<Point3D> faces){
         return faces.parallelStream().filter(f->{
-                int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
-                Point3D a = points.get(p0);
-                Point3D b = points.get(p1);
-                Point3D c = points.get(p2);
-                
-                Point3D edge1 = b.substract(a);
-                Point3D edge2 = c.substract(a);
-                Point3D pvec=direction.crossProduct(edge2);
-                float det=edge1.dotProduct(pvec);
-                
-                if(det<=-EPS || det>=EPS){
-                    float inv_det=1f/det;
-                    Point3D tvec=origin.substract(a);
-                    float u = tvec.dotProduct(pvec)*inv_det;
-                    if(u>=0f && u<=1f){
-                        Point3D qvec=tvec.crossProduct(edge1);
-                        float v = direction.dotProduct(qvec)*inv_det;
-                        if(v>=0 && u+v<=1f){
-                            return true;
-                        }
+            int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
+            Point3D a = points.get(p0);
+            Point3D b = points.get(p1);
+            Point3D c = points.get(p2);
+
+            Point3D edge1 = b.substract(a);
+            Point3D edge2 = c.substract(a);
+            Point3D pvec=direction.crossProduct(edge2);
+            float det=edge1.dotProduct(pvec);
+
+            if(det<=-EPS || det>=EPS){
+                float inv_det=1f/det;
+                Point3D tvec=origin.substract(a);
+                float u = tvec.dotProduct(pvec)*inv_det;
+                if(u>=0f && u<=1f){
+                    Point3D qvec=tvec.crossProduct(edge1);
+                    float v = direction.dotProduct(qvec)*inv_det;
+                    if(v>=0 && u+v<=1f){
+                        return true;
                     }
                 }
-                return false;
-            }).collect(Collectors.toList());
+            }
+            return false;
+        }).collect(Collectors.toList());
     }
 }
