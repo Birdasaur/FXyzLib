@@ -22,8 +22,9 @@ import javafx.geometry.Point3D;
 
 /**
  *  <br>Simple Ray class.<br>
- * Following up on Jose Pereda's Ray intersection example
- * @link org.fxyz.tests#RayTest
+ * Allowing for a variety of performance and productivity enhancements.<br> 
+ * Following up on Jose Pereda's RayTest intersection example in the Tests package
+ * 
  * @author Jason Pollastrini aka jdub1581
  */
 public class Ray {
@@ -83,7 +84,7 @@ public class Ray {
     /**
      * Projects the Ray from <code>origin</code> along <code>direction</code> by <code>distance</code>
      * @param distance
-     * @return position at distance from origin
+     * @return projected position
      */
     public Point3D project(double distance){
         setPosition(getOrigin().add((getDirection().normalize().multiply(distance))));
@@ -92,12 +93,12 @@ public class Ray {
     }
     
     /**
-     * Projects  the  Ray  from  new  <code>origin</code>  along  <code>direction</code>  by  <code>distance</code>
+     * Projects the Ray from new <code>origin</code> along <code>direction</code> by <code>distance</code>
      * using  the  original  direction. <br> 
      * Useful for objects moving in a constant direction.
      * @param orig the new origin point
      * @param dist distance to project ray
-     * @return sets <code>origin</code> and returns position at distance from origin
+     * @return sets origin and returns projected position
      */
     public Point3D reProject(Point3D orig, double dist){
         setOrigin(orig);
@@ -111,7 +112,7 @@ public class Ray {
      * @param orig the new origin point
      * @param dir the new direction of travel
      * @param dist distance to project ray
-     * @return sets <code>origin</code> and returns position at distance from origin
+     * @return sets origin and returns projected position
      */
     public Point3D setProject(Point3D orig, Point3D dir, double dist){
         setOrigin(orig);
@@ -120,6 +121,20 @@ public class Ray {
         
         return getPosition();
     }
+    
+    /*==========================================================================
+    
+        TO DO: Consider adding Intersection methods for:
+    
+            ~ node.boundsInParent
+                *with check for meshView
+    
+            ~ TriangleMesh triangles. 
+                *performance can potentially be increased by implementing a 
+                 BVT (bounding volume tree), or an OctTree hierarchy 
+                 possibly reducing the number of triangle intersection checks.
+    
+    *///========================================================================
 
     @Override
     public String toString() {
