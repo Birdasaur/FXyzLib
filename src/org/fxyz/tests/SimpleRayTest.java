@@ -34,7 +34,7 @@ import org.fxyz.geometry.Ray;
  * <br><p>Clicking on the Scene will spawn a Sphere at that position (origin of Ray)<br>
  * Mouse buttons target different nodes Targets are breifly highlighted if an intersection occurs.
  * 
- * Press Control to Allow Camera movement without firing.
+ * Hold Control down to Allow Camera movement without firing.
  * 
  * <br><br>
  * RayTest in org.fxyz.tests package has reference on TriangleMesh intersections
