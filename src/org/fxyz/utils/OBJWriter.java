@@ -25,9 +25,13 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Point2D;
+import javafx.scene.image.Image;
 import javafx.scene.shape.TriangleMesh;
+import javax.imageio.ImageIO;
 import org.fxyz.geometry.Point3D;
+import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.TextureType;
 
 /**
  *
@@ -39,11 +43,48 @@ public class OBJWriter {
     private float[] points0, texCoord0;
     private int[] faces0;
     private BufferedWriter writer = null;
+    private final TriangleMesh mesh;
+    private final String fileName;
+    private String diffuseMap;
+    private TextureType defaultTexture=TextureType.NONE;
         
     public OBJWriter(TriangleMesh mesh, String fileName){
+        this.mesh=mesh;
+        this.fileName=fileName;
+    }
+    
+    public void setTextureColors(int numColors){
+        if(numColors>0){
+            defaultTexture=TextureType.COLORED_VERTICES_3D;
+            Palette palette=new Palette(numColors);
+            palette.createPalette(true);
+            diffuseMap="palette_"+numColors+".png";
+        }
+    }
+    public void setTexturePattern(){
+        defaultTexture=TextureType.PATTERN;
+        Patterns pattern = new Patterns(12, 12);
+        pattern.createPattern(true);
+        diffuseMap="patterne_12x12.png";
+    }
+    
+    public void setTextureImage(String image){
+        try {
+            // save
+            ImageIO.write(SwingFXUtils.fromFXImage(new Image(image), null), "png", new File("image.png"));
+        } catch (IOException ex) { 
+            System.out.println("Error saving image");
+        }
+        diffuseMap="image.png";
+    }
+    
+    public void exportMesh(){
         File objFile = new File(fileName+".obj");
         try{
             writer = new BufferedWriter(new FileWriter(objFile));
+            
+            writer.write("# Material"+newline);
+            writer.write("mtllib "+fileName+".mtl"+newline);
             
             points0=new float[mesh.getPoints().size()];
             mesh.getPoints().toArray(points0);
@@ -89,6 +130,8 @@ public class OBJWriter {
                     .collect(Collectors.toList());
             
             writer.write("# Faces ("+faces1.size()+")"+newline);
+            writer.write("# Material"+newline);
+            writer.write("usemtl "+fileName+""+newline);
             faces1.forEach(f->{
                 try {
                     writer.write("f "+(f[0]+1)+"/"+(f[1]+1)+
@@ -102,7 +145,33 @@ public class OBJWriter {
             writer.write(newline);
             
         } catch(IOException io){
-             System.out.println("Error creating writer "+io);
+             System.out.println("Error creating writer obj "+io);
+        } finally {
+            try {
+                if(writer!=null){
+                    writer.close();
+                }
+            } catch (Exception e) {}
+        }
+        
+        File mtlFile = new File(fileName+".mtl");
+        try{
+            writer = new BufferedWriter(new FileWriter(mtlFile));
+            writer.write("# Material "+fileName+""+newline);
+            writer.write("newmtl "+fileName+""+newline);
+            writer.write("illum 4"+newline); // Illumination [0-10]
+            writer.write("Kd 0.00 0.00 0.00"+newline); // diffuse color black
+            writer.write("Ka 0.10 0.10 0.10"+newline); // ambient color
+            writer.write("Tf 1.00 1.00 1.00"+newline); // Transmission filter
+            if(diffuseMap!=null){
+                writer.write("map_Kd "+diffuseMap+""+newline);
+            }
+            writer.write("Ni 1.00"+newline); // optical density
+            writer.write("Ks 1.00 1.00 1.00"+newline); // specular reflectivity
+            writer.write("Ns 80.00"+newline); // specular exponent
+            
+        } catch(IOException io){
+             System.out.println("Error creating writer mtl "+io);
         } finally {
             try {
                 if(writer!=null){
