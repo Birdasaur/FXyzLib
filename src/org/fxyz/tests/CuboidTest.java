@@ -19,6 +19,7 @@ import javafx.scene.shape.Box;
 import javafx.scene.shape.Cylinder;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.Sphere;
+import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
@@ -27,6 +28,7 @@ import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.CuboidMesh;
 import org.fxyz.utils.Axes;
 import org.fxyz.utils.DensityFunction;
+import org.fxyz.utils.OBJWriter;
 
 /**
  *
@@ -75,11 +77,11 @@ public class CuboidTest extends Application {
         rotateY = new Rotate(0, 0, 0, 0, Rotate.Y_AXIS);
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
-        cuboid = new CuboidMesh(10f,12f,4f,4);
+        cuboid = new CuboidMesh(10f,12f,4f,2);
 //        cuboid.setDrawMode(DrawMode.LINE);
 //        cuboid.setCullFace(CullFace.NONE);
     // NONE
-        cuboid.setTextureModeNone(Color.ROYALBLUE);
+//        cuboid.setTextureModeNone(Color.ROYALBLUE);
     // DENSITY
 //        ico.setTextureModeVertices3D(256*256,p->(double)p.x*p.y*p.z);
     // FACES
@@ -87,6 +89,8 @@ public class CuboidTest extends Application {
 
         
         cuboid.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
+//        Cylinder cyl=new Cylinder(1, 10);
+//        cyl.setDrawMode(DrawMode.LINE);
         group.getChildren().add(cuboid);
         
         /*
@@ -222,6 +226,10 @@ public class CuboidTest extends Application {
         primaryStage.setTitle("F(X)yz - Cuboid Test");
         primaryStage.setScene(scene);
         primaryStage.show();        
+        
+        OBJWriter writer=new OBJWriter((TriangleMesh) cuboid.getMesh(),"cuboid");
+        writer.setMaterialColor(Color.AQUA);
+        writer.exportMesh();
         
     }
     /**

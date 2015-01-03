@@ -23,11 +23,13 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.TriangleMesh;
 import javax.imageio.ImageIO;
 import org.fxyz.geometry.Point3D;
@@ -41,16 +43,21 @@ public class OBJWriter {
     
     private final String newline = System.getProperty("line.separator");
     private float[] points0, texCoord0;
-    private int[] faces0;
+    private int[] faces0, sm0;
     private BufferedWriter writer = null;
     private final TriangleMesh mesh;
     private final String fileName;
     private String diffuseMap;
+    private String diffuseColor="0.0 0.0 0.0"; // black
     private TextureType defaultTexture=TextureType.NONE;
         
     public OBJWriter(TriangleMesh mesh, String fileName){
         this.mesh=mesh;
         this.fileName=fileName;
+    }
+    
+    public void setMaterialColor(Color color){
+        diffuseColor=""+((float)(color.getRed()))+" "+((float)(color.getGreen()))+" "+((float)(color.getBlue()));
     }
     
     public void setTextureColors(int numColors){
@@ -132,11 +139,20 @@ public class OBJWriter {
             writer.write("# Faces ("+faces1.size()+")"+newline);
             writer.write("# Material"+newline);
             writer.write("usemtl "+fileName+""+newline);
+            sm0=new int[mesh.getFaces().size()];
+            mesh.getFaceSmoothingGroups().toArray(sm0);
+            if(sm0[0]>0){
+                writer.write("s "+sm0[0]+""+newline);
+            }
+            AtomicInteger count = new AtomicInteger();
             faces1.forEach(f->{
                 try {
                     writer.write("f "+(f[0]+1)+"/"+(f[1]+1)+
                                  " "+(f[2]+1)+"/"+(f[3]+1)+
                                  " "+(f[4]+1)+"/"+(f[5]+1)+""+newline);
+                    if(sm0[count.getAndIncrement()]!=sm0[count.get()]){
+                        writer.write("s "+(sm0[count.get()]>0?sm0[count.get()]:"off")+""+newline);
+                    }
                 } catch (IOException ex) {
                     System.out.println("Error writting face "+ex);
                 }
@@ -160,7 +176,7 @@ public class OBJWriter {
             writer.write("# Material "+fileName+""+newline);
             writer.write("newmtl "+fileName+""+newline);
             writer.write("illum 4"+newline); // Illumination [0-10]
-            writer.write("Kd 0.00 0.00 0.00"+newline); // diffuse color black
+            writer.write("Kd "+diffuseColor+""+newline); // diffuse color black
             writer.write("Ka 0.10 0.10 0.10"+newline); // ambient color
             writer.write("Tf 1.00 1.00 1.00"+newline); // Transmission filter
             if(diffuseMap!=null){
@@ -168,7 +184,7 @@ public class OBJWriter {
             }
             writer.write("Ni 1.00"+newline); // optical density
             writer.write("Ks 1.00 1.00 1.00"+newline); // specular reflectivity
-            writer.write("Ns 80.00"+newline); // specular exponent
+            writer.write("Ns 32.00"+newline); // specular exponent
             
         } catch(IOException io){
              System.out.println("Error creating writer mtl "+io);

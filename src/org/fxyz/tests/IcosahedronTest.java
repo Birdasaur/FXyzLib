@@ -81,11 +81,11 @@ public class IcosahedronTest extends Application {
     // IMAGE
 //        ico.setTextureModeImage(getClass().getResource("res/0ZKMx.png").toExternalForm());
     // PATTERN
-        ico.setTextureModePattern(2d);
+//        ico.setTextureModePattern(2d);
     // DENSITY
-//        ico.setTextureModeVertices3D(256*256,dens);
+        ico.setTextureModeVertices3D(256*256,dens);
     // FACES
-//        ico.setTextureModeFaces(256*256);
+//        ico.setTextureModeFaces(256);
 
         
         ico.getTransforms().addAll(new Rotate(30,Rotate.X_AXIS),rotateY);
@@ -155,8 +155,8 @@ public class IcosahedronTest extends Application {
                     double cont2=0.1+(count.getAndIncrement()%30)/10d;
 //                    dens = p->(float)(3d*Math.pow(Math.sin(p.phi),2)*Math.pow(Math.abs(Math.cos(p.theta)),cont1)+
 //                            Math.pow(Math.cos(p.phi),2)*Math.pow(Math.abs(Math.sin(p.theta)),cont2));
-//                    dens = p->10*cont1*Math.pow(Math.abs(p.x),cont1)*Math.pow(Math.abs(p.y),cont2)*Math.pow(p.z,2);
-//                    ico.setDensity(dens);
+                    dens = p->10*cont1*Math.pow(Math.abs(p.x),cont1)*Math.pow(Math.abs(p.y),cont2)*Math.pow(p.z,2);
+                    ico.setDensity(dens);
 //                    ico.setColors((int)Math.pow(2,count.get()%16));
 //                    ico.setLevel(count.get()%8);
 //                    ico.setDiameter(0.5f+10*(float)cont1);

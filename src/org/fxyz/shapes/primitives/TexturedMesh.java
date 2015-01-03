@@ -46,6 +46,7 @@ public abstract class TexturedMesh extends MeshView {
     protected final List<Point3D> listTextures = new ArrayList<>();
     protected final List<Point3D> listFaces = new ArrayList<>();
     protected float[] textureCoords;
+    protected int[] smoothingGroups;
     
     protected final Rectangle rectMesh=new Rectangle(0,0);
     protected final Rectangle areaMesh=new Rectangle(0,0);
@@ -357,10 +358,16 @@ public abstract class TexturedMesh extends MeshView {
                 break;
         }
         
-        int[] faceSmoothingGroups = new int[listFaces.size()];
-        Arrays.fill(faceSmoothingGroups, 1);
- 
-        triangleMesh.getFaceSmoothingGroups().addAll(faceSmoothingGroups);
+        int[] faceSmoothingGroups = new int[listFaces.size()]; // 0 == hard edges
+        Arrays.fill(faceSmoothingGroups, 1); // 1: soft edges, all the faces in same surface
+        if(smoothingGroups!=null){
+//            for(int i=0; i<smoothingGroups.length; i++){
+//                System.out.println("i: "+smoothingGroups[i]);
+//            }
+            triangleMesh.getFaceSmoothingGroups().addAll(smoothingGroups);
+        } else {
+            triangleMesh.getFaceSmoothingGroups().addAll(faceSmoothingGroups);
+        }
         
         System.out.println("nodes: "+listVertices.size()+", faces: "+listFaces.size());
 //        System.out.println("area: "+helper.getMeshArea(listVertices, listFaces));

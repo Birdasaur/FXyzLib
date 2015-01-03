@@ -86,9 +86,9 @@ public class RayTest extends Application {
         knot.setCullFace(CullFace.NONE);
         knot.setSectionType(SectionType.TRIANGLE);
         spring = new CurvedSpringMesh(6d,2d,0.4d,25d,6.25d*2d*Math.PI,
-                                100,20,0,0);
+                                1000,60,0,0);
         spring.getTransforms().addAll(new Translate(6,-6,0));
-//        spring.setDrawMode(DrawMode.LINE);
+        spring.setDrawMode(DrawMode.LINE);
         spring.setCullFace(CullFace.NONE);
 //        spring.setTextureModeVertices3D(256*256,dens);
     // NONE

@@ -14,6 +14,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
+import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
@@ -22,6 +23,7 @@ import org.fxyz.shapes.primitives.KnotMesh;
 import org.fxyz.shapes.primitives.TexturedMesh;
 import org.fxyz.utils.DensityFunction;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.SectionType;
+import org.fxyz.utils.OBJWriter;
 
 /**
  *
@@ -74,18 +76,18 @@ public class KnotTest extends Application {
         
         knot = new KnotMesh(2d,1d,0.4d,2d,3d,
                                 1000,60,0,0);
-//        knot.setDrawMode(DrawMode.LINE);
+        knot.setDrawMode(DrawMode.LINE);
 //        knot.setCullFace(CullFace.NONE);
         knot.setSectionType(SectionType.TRIANGLE);
         
     // NONE
-//        knot.setTextureModeNone(Color.BROWN);
+        knot.setTextureModeNone(Color.BROWN);
     // IMAGE
 //        knot.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
     // PATTERN
 //       knot.setTextureModePattern(3d);
     // FUNCTION
-        knot.setTextureModeVertices1D(256*256,t->knot.getTau(t));
+//        knot.setTextureModeVertices1D(256*256,t->t*t);
     // DENSITY
 //        knot.setTextureModeVertices3D(256*256,dens);
     // FACES
@@ -192,7 +194,10 @@ public class KnotTest extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();   
         
-        timerEffect.start();
+        OBJWriter writer=new OBJWriter((TriangleMesh) knot.getMesh(),"knot");
+        writer.setMaterialColor(Color.BROWN);
+        writer.exportMesh();
+//        timerEffect.start();
         
     }
     /**

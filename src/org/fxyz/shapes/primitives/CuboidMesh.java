@@ -24,6 +24,7 @@ import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.utils.FloatCollector;
+import org.fxyz.utils.SmoothingGroups;
 
 /**
  *
@@ -305,6 +306,21 @@ public class CuboidMesh extends TexturedMesh {
         if(level==getLevel()){
             areaMesh.setWidth(2f*width+2f*depth);
             areaMesh.setHeight(height+2f*depth);
+            
+            // 1<<j -> bitset, 00100. Otherwise: 000111 will mean they are shared
+            smoothingGroups=IntStream.range(0,listFaces.size()).map(i->1<<(i/(listFaces.size()/6))).toArray();
+            // smoothing groups based on 3DViewer -> same result
+//            float[] normals=new float[]{1,0,0,-1,0,0,0,1,0,0,-1,0,0,0,1,0,0,-1};
+//            int[] newFaces = IntStream.range(0, listFaces.size())
+//                        .mapToObj(i->IntStream.of((int)listFaces.get(i).x, (int)listFaces.get(i).x, 
+//                                (int)listFaces.get(i).y, (int)listFaces.get(i).y, 
+//                                (int)listFaces.get(i).z, (int)listFaces.get(i).z))
+//                        .flatMapToInt(i->i).toArray();
+//            int[] newFaceNormals = IntStream.range(0,listFaces.size()).mapToObj(i->{
+//                int j=(i/(listFaces.size()/6));
+//                return IntStream.of(j,j,j);
+//            }).flatMapToInt(i->i).toArray();
+//            smoothingGroups=SmoothingGroups.calcSmoothGroups(new TriangleMesh(), newFaces, newFaceNormals, normals);
         }
         return createMesh();
     }

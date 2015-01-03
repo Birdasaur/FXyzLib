@@ -14,6 +14,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
+import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
@@ -22,6 +23,7 @@ import org.fxyz.shapes.primitives.CurvedSpringMesh;
 import org.fxyz.utils.DensityFunction;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.SectionType;
+import org.fxyz.utils.OBJWriter;
 
 /**
  *
@@ -72,20 +74,20 @@ public class CurvedSpringTest extends Application {
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
         
-        spring = new CurvedSpringMesh(6d,2d,0.4d,25d,6.25d*2d*Math.PI,
-                                1000,60,0,10);
+        spring = new CurvedSpringMesh(6d,2d,0.4d,25d,12.5d*2d*Math.PI,
+                                1000,60,0,0);
         spring.setSectionType(SectionType.TRIANGLE);
         spring.setCullFace(CullFace.NONE);
 //        spring.setDrawMode(DrawMode.LINE);
         
     // NONE
-//        spring.setTextureModeNone(Color.ROYALBLUE);
+        spring.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
 //        spring.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
     // PATTERN
 //       spring.setTextureModePattern(10d);
     // FUNCTION
-        spring.setTextureModeVertices1D(256*256,t->spring.getKappa(t));
+//        spring.setTextureModeVertices1D(256*256,t->t);
     // DENSITY
 //        spring.setTextureModeVertices3D(256*256,dens);
     // FACES
@@ -182,6 +184,10 @@ public class CurvedSpringTest extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();   
         
+        OBJWriter writer=new OBJWriter((TriangleMesh) spring.getMesh(),"curvedSpring");
+        // writer.setTextureColors(256*256);
+        writer.setMaterialColor(Color.ROYALBLUE);
+        writer.exportMesh();
 //        timerEffect.start();
         
     }

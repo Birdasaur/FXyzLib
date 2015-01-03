@@ -15,6 +15,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
@@ -23,6 +24,7 @@ import org.fxyz.shapes.primitives.SpringMesh;
 import org.fxyz.utils.DensityFunction;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.SectionType;
+import org.fxyz.utils.OBJWriter;
 
 /**
  *
@@ -86,9 +88,9 @@ public class SpringTest extends Application {
     // PATTERN
 //       spring.setTextureModePattern(5d);
     // FUNCTION
-////        spring.setTextureModeVertices1D(256*256,t->t);
+//        spring.setTextureModeVertices1D(256*256,t->t);
     // DENSITY
-        spring.setTextureModeVertices3D(256*256,dens);
+        spring.setTextureModeVertices3D(256*256,p->(double)p.magnitude());
     // FACES
 //        spring.setTextureModeFaces(256*256);
         
@@ -165,9 +167,9 @@ public class SpringTest extends Application {
 //                    } else {
 //                        spring.setDrawMode(DrawMode.FILL);
 //                    }
-//                    spring.setLength(100+20*(count.get()%10));
+                    spring.setLength(100+20*(count.get()%10));
 //                    spring.setPatternScale(1d+(count.get()%10)*2d);
-                    spring.setSectionType(SectionType.values()[count.get()%SectionType.values().length]);
+//                    spring.setSectionType(SectionType.values()[count.get()%SectionType.values().length]);
                     
 //                    spring.setColors((int)Math.pow(2,count.get()%16));
 //                    spring.setMeanRadius(50+10*(count.get()%10));
@@ -181,6 +183,11 @@ public class SpringTest extends Application {
         primaryStage.setTitle("F(X)yz - Spring");
         primaryStage.setScene(scene);
         primaryStage.show();   
+        
+        OBJWriter writer=new OBJWriter((TriangleMesh) spring.getMesh(),"spring");
+//        writer.setMaterialColor(Color.BROWN);
+        writer.setTextureColors(256*256);
+        writer.exportMesh();
         
 //        timerEffect.start();
         
