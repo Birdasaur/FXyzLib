@@ -24,7 +24,6 @@ import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.utils.FloatCollector;
-import org.fxyz.utils.SmoothingGroups;
 
 /**
  *
