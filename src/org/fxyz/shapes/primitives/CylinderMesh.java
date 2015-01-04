@@ -6,7 +6,6 @@
 
 package org.fxyz.shapes.primitives;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,6 +22,8 @@ import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Point3D;
+import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
+import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.SectionType;
 import org.fxyz.utils.FloatCollector;
 
 /**
@@ -30,26 +31,25 @@ import org.fxyz.utils.FloatCollector;
  * @author José Pereda Llamas
  * Created on 22-dic-2014 - 21:51:51
  */
-public class CuboidMesh extends TexturedMesh {
+public class CylinderMesh extends TexturedMesh {
 
-    private final static double DEFAULT_WIDTH = 10;
+    private final static int DEFAULT_DIVISIONS = 20;
+    private final static double DEFAULT_RADIUS = 1;
     private final static double DEFAULT_HEIGHT = 10;
-    private final static double DEFAULT_DEPTH = 10;
     
     private final static int DEFAULT_LEVEL = 1;
     
     
-    public CuboidMesh(){
-        this(DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_DEPTH, DEFAULT_LEVEL);
+    public CylinderMesh(){
+        this(DEFAULT_RADIUS, DEFAULT_HEIGHT, DEFAULT_LEVEL);
     }
-    public CuboidMesh(double width, double height, double depth){
-        this(width, height, depth, DEFAULT_LEVEL);
+    public CylinderMesh(double radius, double height){
+        this(radius, height, DEFAULT_LEVEL);
     }
     
-    public CuboidMesh(double width, double height, double depth, int level){
-        setWidth(width);        
+    public CylinderMesh(double radius, double height, int level){
+        setRadius(radius);
         setHeight(height);        
-        setDepth(depth);        
         setLevel(level);
         
         updateMesh();
@@ -57,29 +57,29 @@ public class CuboidMesh extends TexturedMesh {
         setDrawMode(DrawMode.FILL);
         setDepthTest(DepthTest.ENABLE);
     }
-    
-    private final DoubleProperty width = new SimpleDoubleProperty(DEFAULT_WIDTH){
-
+    private final DoubleProperty radius = new SimpleDoubleProperty(DEFAULT_RADIUS){
+        
         @Override
         protected void invalidated() {
             if(mesh!=null){
                 updateMesh();
             }
         }
-
+        
     };
 
-    public double getWidth() {
-        return width.get();
+    public double getRadius() {
+        return radius.get();
     }
 
-    public final void setWidth(double value) {
-        width.set(value);
+    public final void setRadius(double value) {
+        radius.set(value);
     }
 
-    public DoubleProperty widthProperty() {
-        return width;
+    public DoubleProperty radiusProperty() {
+        return radius;
     }
+    
     private final DoubleProperty height = new SimpleDoubleProperty(DEFAULT_HEIGHT){
 
         @Override
@@ -102,28 +102,7 @@ public class CuboidMesh extends TexturedMesh {
     public DoubleProperty heightProperty() {
         return height;
     }
-    private final DoubleProperty depth = new SimpleDoubleProperty(DEFAULT_DEPTH){
-
-        @Override
-        protected void invalidated() {
-            if(mesh!=null){
-                updateMesh();
-            }
-        }
-
-    };
-
-    public double getDepth() {
-        return depth.get();
-    }
-
-    public final void setDepth(double value) {
-        depth.set(value);
-    }
-
-    public DoubleProperty depthProperty() {
-        return depth;
-    }
+    
     private final IntegerProperty level = new SimpleIntegerProperty(DEFAULT_LEVEL){
 
         @Override
@@ -150,7 +129,7 @@ public class CuboidMesh extends TexturedMesh {
     @Override
     protected final void updateMesh() {
         setMesh(null);
-        mesh=createCube((float)getWidth(), (float)getHeight(), (float)getDepth(), getLevel());
+        mesh=createCylinder((float)getRadius(), (float)getHeight(), getLevel());
         setMesh(mesh);
     }
     
@@ -159,65 +138,129 @@ public class CuboidMesh extends TexturedMesh {
     private int[] faces0;
     private List<Point2D> texCoord1;
     
-    private TriangleMesh createCube(float width, float height, float depth, 
-            int level){
+    private TriangleMesh createCylinder(float radius, float height, int level){
         
         TriangleMesh m0=null;
         if(level>0){
-            m0= createCube(width, height, depth, level-1);
+            m0 = createCylinder(radius, height, level-1);
         }
         
         if(level==0){
-            float L=2f*width+2f*depth;
-            float H=height+2f*depth;
-            float hw=width/2f, hh=height/2f, hd=depth/2f;        
-            final float[] baseVertices = new float[]{
-                hw, hh, hd,             hw, hh, -hd,
-                hw, -hh, hd,            hw, -hh, -hd,
-                -hw, hh, hd,            -hw, hh, -hd,
-                -hw, -hh, hd,           -hw, -hh, -hd
-            };
-
-            final float[] baseTexCoords = new float[]{
-                depth/L, 0f,                       (depth+width)/L, 0f,
-                0f, depth/H,                        depth/L, depth/H, 
-                (depth+width)/L, depth/H,           (2f*depth+width)/L, 
-                depth/H,  1f, depth/H,              0f, (depth+height)/H,    
-                depth/L, (depth+height)/H,          (depth+width)/L, (depth+height)/H,  
-                (2f*depth+width)/L, (depth+height)/H,  1f, (depth+height)/H,
-                depth/L, 1f,    (                   depth+width)/L, 1f        
-            };
-
-            final int[] baseTexture = new int[]{
-                8,3,7,            3,2,7,            
-                9,10,4,           4,10,5,            
-                8,12,9,           9,12,13,            
-                3,4,0,            0,4,1,            
-                8,9,3,            3,9,4,            
-                11,6,10,          10,6,5
-            };
-
-            final List<Integer> baseFaces = Arrays.asList(
-                0,2,1,            2,3,1,            
-                4,5,6,            6,5,7,            
-                0,1,4,            4,1,5,            
-                2,6,3,            3,6,7,            
-                0,4,2,            2,4,6,            
-                1,3,5,            5,3,7
-            );
+            int div=DEFAULT_DIVISIONS>3?DEFAULT_DIVISIONS:3;
+            if(getSectionType()!=TriangleMeshHelper.SectionType.CIRCLE){
+                div=getSectionType().getSides()*((int)(div/getSectionType().getSides())+1);
+            }
+            int nPoints=2*div+2;
+            float r=radius;
+            float h=height;
+            final float[] baseVertices = new float[nPoints*3];
+            // base at y=h/2
+            for(int i=0; i<div; i++){
+                double ang=i*2d*Math.PI/div;
+                double pol = polygonalSection(ang);
+                baseVertices[3*i]=(float)(r*pol*Math.cos(ang));
+                baseVertices[3*i+1]=h/2;
+                baseVertices[3*i+2]=(float)(r*pol*Math.sin(ang));
+            }
+            // top at y=-h/2
+            for(int i=div; i<2*div; i++){
+                double ang=i*2d*Math.PI/div;
+                double pol = polygonalSection(ang);
+                baseVertices[3*i]=(float)(r*pol*Math.cos(ang));
+                baseVertices[3*i+1]=-h/2;
+                baseVertices[3*i+2]=(float)(r*pol*Math.sin(ang));
+            }
+            baseVertices[6*div]=0f;
+            baseVertices[6*div+1]=h/2f;
+            baseVertices[6*div+2]=0f;
+            baseVertices[6*div+3]=0f;
+            baseVertices[6*div+4]=-h/2f;
+            baseVertices[6*div+5]=0f;
             
+            int nTextCoords=div*4+6;
+            float rect=(float)polygonalSize(r);
+            float L=(float)(r+2d*Math.PI*r);
+            float H=4f*r+h;
+            final float[] baseTexCoords = new float[nTextCoords*2];
+            // u right ,v up
+            for(int i=0; i<=div; i++){
+                baseTexCoords[2*i]=(float)(r+i*rect/div)/L;
+                baseTexCoords[2*i+1]=(float)(2f*r+h)/H;
+            }
+            for(int i=0; i<=div; i++){
+                baseTexCoords[2*div+2*i+2]=(float)(r+i*rect/div)/L;
+                baseTexCoords[2*div+2*i+3]=(float)(2f*r)/H;
+            }
+            for(int i=0; i<=div; i++){
+                double ang=i*2d*Math.PI/div;
+                double pol = polygonalSection(ang);
+                baseTexCoords[4*div+2*i+4]=(float)(r+r*pol*Math.sin(ang))/L;
+                baseTexCoords[4*div+2*i+5]=(float)(3f*r+h-r*pol*Math.cos(ang))/H;
+            }
+            for(int i=0; i<=div; i++){
+                double ang=i*2d*Math.PI/div;
+                double pol = polygonalSection(ang);
+                baseTexCoords[6*div+2*i+6]=(float)(r+r*pol*Math.sin(ang))/L;
+                baseTexCoords[6*div+2*i+7]=(float)(r+r*pol*Math.cos(ang))/H;
+            }
+            baseTexCoords[8*div+8]=r/L;
+            baseTexCoords[8*div+9]=(3f*r+h)/H;
+            baseTexCoords[8*div+10]=r/L;
+            baseTexCoords[8*div+11]=r/H;
+            
+            int nFaces=div*4;
+            final int[] baseTexture = new int[nFaces*3];
+
+            final int[] baseFaces = new int[nFaces*3];
+            for(int i=0; i<div; i++){
+                int p1=i+1;
+                int p2=i+div;
+                int p3=i+div+1;
+                baseFaces[6*i]=i;
+                baseFaces[6*i+1]=p1==div?0:p1;                
+                baseFaces[6*i+2]=p2;
+                baseFaces[6*i+3]=p3%div==0?p3-div:p3;
+                baseFaces[6*i+4]=p2;
+                baseFaces[6*i+5]=p1==div?0:p1;
+                baseTexture[6*i]=i;
+                baseTexture[6*i+1]=p1;                
+                baseTexture[6*i+2]=p2+1;
+                baseTexture[6*i+3]=p3+1;
+                baseTexture[6*i+4]=p2+1;
+                baseTexture[6*i+5]=p1;
+            }
+            for(int i=0; i<div; i++){
+                int p1=div*2;
+                int p2=i+1;
+                baseFaces[6*div+3*i]=i;
+                baseFaces[6*div+3*i+1]=p1;
+                baseFaces[6*div+3*i+2]=p2==div?0:p2;
+                baseTexture[6*div+3*i]=(div+1)*2+i;
+                baseTexture[6*div+3*i+1]=(div+1)*4;
+                baseTexture[6*div+3*i+2]=(div+1)*2+i+1;
+            }
+            for(int i=0; i<div; i++){
+                int p1=div*2+1;
+                int p2=i+1+div;
+                baseFaces[9*div+3*i]=i+div;
+                baseFaces[9*div+3*i+1]=p2%div==0?p2-div:p2; 
+                baseFaces[9*div+3*i+2]=p1;
+                baseTexture[9*div+3*i]=(div+1)*3+i;
+                baseTexture[9*div+3*i+1]=(div+1)*3+i+1; 
+                baseTexture[9*div+3*i+2]=(div+1)*4+1;
+            }
             points0 = baseVertices; 
             numVertices=baseVertices.length/3;
             
             texCoord0 = baseTexCoords;
             numTexCoords=baseTexCoords.length/2;
             
-            faces0 = IntStream.range(0, baseFaces.size()/3)
-                        .mapToObj(i->IntStream.of(baseFaces.get(3*i), baseTexture[3*i], 
-                                baseFaces.get(3*i+1), baseTexture[3*i+1], 
-                                baseFaces.get(3*i+2), baseTexture[3*i+2]))
+            faces0 = IntStream.range(0, baseFaces.length/3)
+                        .mapToObj(i->IntStream.of(baseFaces[3*i], baseTexture[3*i], 
+                                baseFaces[3*i+1], baseTexture[3*i+1], 
+                                baseFaces[3*i+2], baseTexture[3*i+2]))
                         .flatMapToInt(i->i).toArray();
-            numFaces=baseFaces.size()/3;
+            numFaces=baseFaces.length/3;
         } else if(m0!=null) {
             points0=new float[numVertices*m0.getPointElementSize()];
             m0.getPoints().toArray(points0);
@@ -303,23 +346,19 @@ public class CuboidMesh extends TexturedMesh {
         numTexCoords=texCoord0.length/2;
         textureCoords=texCoord0;
         if(level==getLevel()){
-            areaMesh.setWidth(2f*width+2f*depth);
-            areaMesh.setHeight(height+2f*depth);
-            
-            // 1<<j -> bitset, 00100. Otherwise: 000111 will mean they are shared
-            smoothingGroups=IntStream.range(0,listFaces.size()).map(i->1<<(i/(listFaces.size()/6))).toArray();
-            // smoothing groups based on 3DViewer -> same result
-//            float[] normals=new float[]{1,0,0,-1,0,0,0,1,0,0,-1,0,0,0,1,0,0,-1};
-//            int[] newFaces = IntStream.range(0, listFaces.size())
-//                        .mapToObj(i->IntStream.of((int)listFaces.get(i).x, (int)listFaces.get(i).x, 
-//                                (int)listFaces.get(i).y, (int)listFaces.get(i).y, 
-//                                (int)listFaces.get(i).z, (int)listFaces.get(i).z))
-//                        .flatMapToInt(i->i).toArray();
-//            int[] newFaceNormals = IntStream.range(0,listFaces.size()).mapToObj(i->{
-//                int j=(i/(listFaces.size()/6));
-//                return IntStream.of(j,j,j);
-//            }).flatMapToInt(i->i).toArray();
-//            smoothingGroups=SmoothingGroups.calcSmoothGroups(new TriangleMesh(), newFaces, newFaceNormals, normals);
+            areaMesh.setWidth(radius+2f*Math.PI*radius);
+            areaMesh.setHeight(height+4f*radius);
+            smoothingGroups=IntStream.range(0,listFaces.size()).map(i->{
+                if(getSectionType()!=TriangleMeshHelper.SectionType.CIRCLE){
+                    return 0;
+                }
+                if(i<listFaces.size()/2){
+                    return 1;
+                } else if(i<3*listFaces.size()/4){
+                    return 2;
+                }
+                return 4;
+            }).toArray();
         }
         return createMesh();
     }
@@ -333,10 +372,24 @@ public class CuboidMesh extends TexturedMesh {
             return map.get(key);
         }
 
-        listVertices.add(p1.add(p2).multiply(0.5f));
-
+        Point3D p3 = p1.add(p2).multiply(0.5f);
+        if(getSectionType().equals(SectionType.CIRCLE)){
+            if(inCircle(p1) && inCircle(p2)){
+                float fact=(float)(radius.get()/Math.sqrt(p3.x*p3.x+p3.z*p3.z));
+                p3=new Point3D(fact*p3.x,p3.y,fact*p3.z);
+                if(!inCircle(p3)){
+                    System.out.println("p3: "+p3);
+                }
+            }
+        }
+        listVertices.add(p3);
+        
         map.put(key,index.get());
         return index.getAndIncrement();
+    }
+    
+    private boolean inCircle(Point3D p){
+        return p.x*p.x+p.z*p.z>0.99*radius.get()*radius.get();
     }
     
     private int getMiddle(int v1, Point2D p1, int v2, Point2D p2){

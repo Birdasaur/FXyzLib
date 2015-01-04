@@ -120,7 +120,8 @@ public class OBJWriter {
             writer.write("# Textures Coordinates ("+texCoord1.size()+")"+newline);
             texCoord1.forEach(t->{
                 try {
-                    writer.write("vt "+((float)t.getX())+" "+((float)t.getY())+""+newline);
+                    // objimporter u->u, v->(1-v)
+                    writer.write("vt "+((float)t.getX())+" "+((float)(1d-t.getY()))+""+newline);
                 } catch (IOException ex) {
                     System.out.println("Error writting texture coordinate "+ex);
                 }
