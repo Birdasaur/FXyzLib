@@ -299,7 +299,7 @@ public class SegmentedTorusMesh extends TexturedMesh {
         // Create texture coordinates
         createTexCoords(subDivX-2*crop,subDivY-2*crop);
         
-        // Create textures
+        // Create textures indices
         for (int y = crop; y < subDivY-crop; y++) {
             for (int x = crop; x < subDivX-crop; x++) {
                 int p00 = (y-crop) * numDivX + (x-crop);
@@ -310,7 +310,7 @@ public class SegmentedTorusMesh extends TexturedMesh {
                 listTextures.add(new Point3D(p11,p01,p00));
             }
         }
-        // Create faces
+        // Create faces indices
         for (int y = crop; y < subDivY-crop; y++) {
             for (int x = crop; x < subDivX-crop; x++) {
                 int p00 = (y-crop) * ((crop>0)?numDivX:numDivX-1) + (x-crop);

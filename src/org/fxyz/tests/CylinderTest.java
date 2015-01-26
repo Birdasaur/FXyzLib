@@ -1,5 +1,7 @@
 package org.fxyz.tests;
 
+import java.util.concurrent.atomic.AtomicInteger;
+import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
@@ -10,10 +12,14 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.CullFace;
+import javafx.scene.shape.Cylinder;
 import javafx.scene.shape.DrawMode;
+import javafx.scene.shape.Sphere;
 import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
@@ -21,6 +27,8 @@ import org.fxyz.shapes.primitives.CylinderMesh;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
 import org.fxyz.utils.DensityFunction;
 import org.fxyz.utils.OBJWriter;
+import org.fxyz.utils.Palette;
+import org.fxyz.utils.Palette.COLOR_PALETTE;
 
 /**
  *
@@ -47,7 +55,7 @@ public class CylinderTest extends Application {
     public void start(Stage primaryStage) throws Exception {
         Group sceneRoot = new Group();
         Scene scene = new Scene(sceneRoot, sceneWidth, sceneHeight, true, SceneAntialiasing.BALANCED);
-        scene.setFill(Color.BLACK);
+        scene.setFill(Color.WHITESMOKE);
         camera = new PerspectiveCamera(true);        
      
         //setup camera transform for rotational support
@@ -69,23 +77,40 @@ public class CylinderTest extends Application {
         rotateY = new Rotate(0, 0, 0, 0, Rotate.Y_AXIS);
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
-        cylinder = new CylinderMesh(2,5,4);
+//        cylinder = new CylinderMesh(2,5,4);
+        cylinder = new CylinderMesh(0.2,2,3,new Point3D(-5,5,0),new Point3D(0,0,5));
 //        cylinder.setDrawMode(DrawMode.LINE);
-//        cylinder.setCullFace(CullFace.NONE);
     // SECTION TYPE
-        cylinder.setSectionType(TriangleMeshHelper.SectionType.DECAGON);
+//        cylinder.setSectionType(TriangleMeshHelper.SectionType.TRIANGLE);
     // NONE
-//        cylinder.setTextureModeNone(Color.ROYALBLUE);
+        cylinder.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
-        cylinder.setTextureModeImage(getClass().getResource("res/netCylinder.png").toExternalForm());
+//        cylinder.setTextureModeImage(getClass().getResource("res/netCylinder.png").toExternalForm());
+//        cylinder.setTextureModeVertices1D(6, t->t);
+//        cylinder.setColorPalette(COLOR_PALETTE.GREEN);
     // DENSITY
-//        cylinder.setTextureModeVertices3D(256*256,p->(double)(2.5-p.y)*(2.5-p.y));
+//        cylinder.setTextureModeVertices3D(1530,p->(double)p.magnitude());
+//        cylinder.setTextureModeVertices3D(1530,p->(double)cylinder.unTransform(p).magnitude());
     // FACES
-//        cylinder.setTextureModeFaces(256*256);
+//        cylinder.setTextureModeFaces(1530);
 
         
         cylinder.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
         group.getChildren().add(cylinder);
+        
+        boolean showKnots =true;
+        if(showKnots){
+            Sphere s=new Sphere(cylinder.getRadius()/10d);
+            Point3D k0=cylinder.getIni();
+            s.getTransforms().add(new Translate(k0.x, k0.y, k0.z));
+            s.setMaterial(new PhongMaterial(Color.GREENYELLOW));
+            group.getChildren().add(s);
+            s=new Sphere(cylinder.getRadius()/10d);
+            Point3D k3=cylinder.getEnd();
+            s.getTransforms().add(new Translate(k3.x, k3.y, k3.z));
+            s.setMaterial(new PhongMaterial(Color.ROSYBROWN));
+            group.getChildren().add(s);
+        }
         
         sceneRoot.getChildren().addAll(group);        
         
@@ -144,13 +169,32 @@ public class CylinderTest extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();        
         
-        OBJWriter writer=new OBJWriter((TriangleMesh) cylinder.getMesh(),"cylinder2");
-//        writer.setMaterialColor(Color.AQUA);
-//        writer.setTextureImage(getClass().getResource("res/netCylinder.png").toExternalForm());
-        writer.setTextureColors(256*256);
-        writer.exportMesh();
+//        OBJWriter writer=new OBJWriter((TriangleMesh) cylinder.getMesh(),"cylinder2");
+////        writer.setMaterialColor(Color.AQUA);
+////        writer.setTextureImage(getClass().getResource("res/netCylinder.png").toExternalForm());
+//        writer.setTextureColors(6,COLOR_PALETTE.GREEN);
+//        writer.exportMesh();
         
+        lastEffect = System.nanoTime();
+        AtomicInteger count=new AtomicInteger(0);
+        AnimationTimer timerEffect = new AnimationTimer() {
+
+            @Override
+            public void handle(long now) {
+                if (now > lastEffect + 100_000_000l) {
+                    func=t->Math.pow(Math.sin(8d*Math.PI*(10d*(1-t)+count.get()%11)/20d),6); //<=1/6d)?1d:0d;
+//                    cylinder.setFunction(func);
+                    
+//                    mapBez.values().forEach(b->b.setDensity(dens));
+                    count.getAndIncrement();
+                    lastEffect = now;
+                }
+            }
+        };
+//        timerEffect.start();
     }
+    private DensityFunction<Double> func = t->(double)t;
+    private long lastEffect;
     /**
      * @param args the command line arguments
      */

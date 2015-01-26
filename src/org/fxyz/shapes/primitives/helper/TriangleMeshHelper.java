@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Material;
@@ -13,7 +11,9 @@ import javafx.scene.paint.PhongMaterial;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.utils.DensityFunction;
 import org.fxyz.utils.FloatCollector;
+import org.fxyz.utils.NormalMap;
 import org.fxyz.utils.Palette;
+import org.fxyz.utils.Palette.COLOR_PALETTE;
 import org.fxyz.utils.Patterns;
 
 /**
@@ -121,6 +121,9 @@ public class TriangleMeshHelper {
     public Material getMaterialWithPattern(){
         PhongMaterial mat = new PhongMaterial();
         mat.setDiffuseMap(getPatternImage());
+        mat.setSpecularPower(32);
+        mat.setDiffuseColor(Color.WHITE);
+        mat.setSpecularColor(Color.WHITE);
         return mat;
     }
     
@@ -129,21 +132,25 @@ public class TriangleMeshHelper {
     */
     public final static int DEFAULT_COLORS = 16;
     public final static boolean DEFAULT_SAVE_PALETTE = false;
+    public final static COLOR_PALETTE DEFAULT_COLOR_PALETTE = COLOR_PALETTE.HSB;
     private Palette palette;
     private int colors;
     
     public final void createPalette(){
-        createPalette(DEFAULT_COLORS,DEFAULT_SAVE_PALETTE);
+        createPalette(DEFAULT_COLORS,DEFAULT_SAVE_PALETTE,DEFAULT_COLOR_PALETTE);
     }
     public void createPalette(int colors){
-        createPalette(colors,DEFAULT_SAVE_PALETTE);
+        createPalette(colors,DEFAULT_SAVE_PALETTE,DEFAULT_COLOR_PALETTE);
     }
     public void createPalette(boolean save){
-        createPalette(DEFAULT_COLORS,save);
+        createPalette(DEFAULT_COLORS,save,DEFAULT_COLOR_PALETTE);
     }
-    public void createPalette(int colors, boolean save){
+    public void createPalette(int colors,boolean save){
+        createPalette(DEFAULT_COLORS,save,DEFAULT_COLOR_PALETTE);
+    }
+    public void createPalette(int colors, boolean save, COLOR_PALETTE palette_colors){
         this.colors=colors;
-        palette=new Palette(colors);
+        palette=new Palette(colors,palette_colors);
         palette.createPalette(save);
     }
 
@@ -157,11 +164,29 @@ public class TriangleMeshHelper {
     public Material getMaterialWithPalette(){
         PhongMaterial mat = new PhongMaterial();
         mat.setDiffuseMap(getPaletteImage());
+        mat.setSpecularPower(20);
+        mat.setDiffuseColor(Color.WHITE);
+        mat.setSpecularColor(Color.WHITE);
         return mat;
     }
     
     public Material getMaterialWithColor(Color color){
         PhongMaterial mat = new PhongMaterial(color);
+        mat.setSpecularPower(32);
+        mat.setSpecularColor(Color.WHITE);
+        return mat;
+    }
+    
+    public Material getMaterialWithColor(Color color, String image){
+        PhongMaterial mat = new PhongMaterial(color);
+        if(image!=null && !image.isEmpty()){
+            Image img = new Image(image);
+            mat.setDiffuseMap(img);
+            NormalMap normal = new NormalMap(img);
+            mat.setBumpMap(normal);
+        }
+        mat.setSpecularPower(32);
+        mat.setSpecularColor(Color.WHITE);
         return mat;
     }
     
@@ -188,7 +213,7 @@ public class TriangleMeshHelper {
     }
     
     public int mapDensity(Point3D p){
-        int f=(int)((density.eval(p)-min)/(max-min)*colors);
+        int f=(int)(((density.eval(p)-min)/(max-min))*colors);
         if(f<0){
             f=0;
         }
@@ -206,7 +231,7 @@ public class TriangleMeshHelper {
     }
     
     public int mapFunction(double x){
-        int f=(int)((function.eval(x)-min)/(max-min)*colors);
+        int f=(int)(((function.eval(x)-min)/(max-min))*colors);
         if(f<0){
             f=0;
         }
@@ -227,9 +252,17 @@ public class TriangleMeshHelper {
         return f;
     }
 
+    public void updateExtremes(double min, double max){
+        this.max=max;
+        this.min=min;
+        if(max==min){
+            this.max=1.0+min;
+        }
+    }
+    
     public void updateExtremes(List<Point3D> points){
-        max=points.parallelStream().mapToDouble(p->density.eval(p)).max().orElse(1.0);
-        min=points.parallelStream().mapToDouble(p->density.eval(p)).min().orElse(0.0);
+        max=points.parallelStream().mapToDouble(density::eval).max().orElse(1.0);
+        min=points.parallelStream().mapToDouble(density::eval).min().orElse(0.0);
         max=(float)Math.round(max*1e6)/1e6;
         min=(float)Math.round(min*1e6)/1e6;
         if(max==min){
@@ -246,7 +279,7 @@ public class TriangleMeshHelper {
         if(max==min){
             max=1.0+min;
         }
-        System.out.println("Min: "+min+", max: "+max);  
+//        System.out.println("Min: "+min+", max: "+max);  
     }
     /*
     image
@@ -271,18 +304,18 @@ public class TriangleMeshHelper {
         return points.stream()
             .flatMapToDouble(p->p.getCoordinates(factor))
             .collect(()->new FloatCollector(points.size()*3), FloatCollector::add, FloatCollector::join)
-            .toArray();       
+            .toArray(); 
     }
     
     public float[] createTexCoords(int width, int height){
         reverseTexture=false;
         int index=0;
         float[] textureCoords = new float[(width+1)*(height+1)*2];
-        for (int y = 0; y <= height; y++) {
-            float dy = (float) y / ((float)(height));
-            for (int x = 0; x <= width; x++) {
-                textureCoords[index] = (float) x /((float)(width));
-                textureCoords[index + 1] = dy;
+        for (int v = 0; v <= height; v++) {
+            float dv = (float) v / ((float)(height));
+            for (int u = 0; u <= width; u++) {
+                textureCoords[index] = (float) u /((float)(width));
+                textureCoords[index + 1] = dv;
                 index+=2;
             }
         }
@@ -380,6 +413,17 @@ public class TriangleMeshHelper {
                 return IntStream.of(p0, t0, p1, t1, p2, t2);
             }).flatMapToInt(i->i).toArray();
     }
+    
+    public int[] updateFacesWithDensityMap(List<Point3D> points, List<Point3D> faces, double min, double max){
+        updateExtremes(min, max);
+        return faces.parallelStream().map(f->{
+                int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
+                int t0=mapDensity(points.get(p0));
+                int t1=mapDensity(points.get(p1));
+                int t2=mapDensity(points.get(p2));
+                return IntStream.of(p0, t0, p1, t1, p2, t2);
+            }).flatMapToInt(i->i).toArray();
+    }
        
     public int[] updateFacesWithFunctionMap(List<Point3D> points, List<Point3D> faces){
         updateExtremesByFunction(points);
@@ -391,7 +435,16 @@ public class TriangleMeshHelper {
                 return IntStream.of(p0, t0, p1, t1, p2, t2);
             }).flatMapToInt(i->i).toArray();
     }
-    
+    public int[] updateFacesWithFunctionMap(List<Point3D> points, List<Point3D> faces, double min, double max){
+        updateExtremes(min, max);
+        return faces.parallelStream().map(f->{
+                int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
+                int t0=mapFunction(points.get(p0).f);
+                int t1=mapFunction(points.get(p1).f);
+                int t2=mapFunction(points.get(p2).f);
+                return IntStream.of(p0, t0, p1, t1, p2, t2);
+            }).flatMapToInt(i->i).toArray();
+    }
     public int[] updateFacesWithFaces(List<Point3D> faces){
         AtomicInteger count=new AtomicInteger();
         return faces.stream().map(f->{

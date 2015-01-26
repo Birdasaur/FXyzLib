@@ -9,6 +9,8 @@ package org.fxyz.shapes.primitives;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
@@ -19,8 +21,14 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.geometry.Point2D;
 import javafx.scene.DepthTest;
 import javafx.scene.shape.CullFace;
+import javafx.scene.shape.Cylinder;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.TriangleMesh;
+import javafx.scene.transform.Affine;
+import javafx.scene.transform.NonInvertibleTransformException;
+import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Transform;
+import javafx.scene.transform.Translate;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.SectionType;
@@ -39,17 +47,27 @@ public class CylinderMesh extends TexturedMesh {
     
     private final static int DEFAULT_LEVEL = 1;
     
+    private Point3D pIni, pEnd;
     
     public CylinderMesh(){
-        this(DEFAULT_RADIUS, DEFAULT_HEIGHT, DEFAULT_LEVEL);
+        this(DEFAULT_RADIUS, DEFAULT_HEIGHT, DEFAULT_LEVEL,null,null);
     }
     public CylinderMesh(double radius, double height){
-        this(radius, height, DEFAULT_LEVEL);
+        this(radius, height, DEFAULT_LEVEL,null,null);
     }
     
     public CylinderMesh(double radius, double height, int level){
+        this(radius,height,level,null,null);
+    }
+    public CylinderMesh(double radius, double height, int level, Point3D pIni, Point3D pEnd){
+        this.pIni=pIni;
+        this.pEnd=pEnd;
         setRadius(radius);
-        setHeight(height);        
+        if(pEnd!=null && pIni!=null){
+            setHeight(pEnd.substract(pIni).magnitude());
+        } else {
+            setHeight(height);        
+        }
         setLevel(level);
         
         updateMesh();
@@ -133,10 +151,22 @@ public class CylinderMesh extends TexturedMesh {
         setMesh(mesh);
     }
     
+    public Point3D getIni() { return pIni; }
+    public Point3D getEnd() { return pEnd; }
+    
     private int numVertices, numTexCoords, numFaces;
     private float[] points0, texCoord0;
     private int[] faces0;
     private List<Point2D> texCoord1;
+    
+    /*
+        cylinder mesh is generated on (0,h/2,0) -> (0,-h/2,0) local coordinates
+        With Transform a we transform vertices coordinates to generate directly the cyilinder from
+        pIni to pEnd in global coordinates:
+            pIni == a.transform(0,h/2,0)
+            pEnd == a.transform(0,-h/2,0)
+    */
+    private Transform a = new Affine();
     
     private TriangleMesh createCylinder(float radius, float height, int level){
         
@@ -150,6 +180,14 @@ public class CylinderMesh extends TexturedMesh {
             if(getSectionType()!=TriangleMeshHelper.SectionType.CIRCLE){
                 div=getSectionType().getSides()*((int)(div/getSectionType().getSides())+1);
             }
+            
+            if(pIni!=null && pEnd!=null){
+                Point3D dir=pEnd.substract(pIni).crossProduct(new Point3D(0,-1,0));
+                double angle=Math.acos(pEnd.substract(pIni).normalize().dotProduct(new Point3D(0,-1,0)));
+                a=a.createConcatenation(new Translate(pIni.x, pIni.y-height/2d, pIni.z))
+                   .createConcatenation(new Rotate(-Math.toDegrees(angle), 0d,height/2d,0d,
+                                                   new javafx.geometry.Point3D(dir.x,-dir.y,dir.z)));
+            }
             int nPoints=2*div+2;
             float r=radius;
             float h=height;
@@ -158,24 +196,40 @@ public class CylinderMesh extends TexturedMesh {
             for(int i=0; i<div; i++){
                 double ang=i*2d*Math.PI/div;
                 double pol = polygonalSection(ang);
-                baseVertices[3*i]=(float)(r*pol*Math.cos(ang));
-                baseVertices[3*i+1]=h/2;
-                baseVertices[3*i+2]=(float)(r*pol*Math.sin(ang));
+                Point3D ta = transform(r*pol*Math.cos(ang),h/2,r*pol*Math.sin(ang));
+                baseVertices[3*i]=ta.x;
+                baseVertices[3*i+1]=ta.y;
+                baseVertices[3*i+2]=ta.z;
+//                baseVertices[3*i]=(float)(r*pol*Math.cos(ang));
+//                baseVertices[3*i+1]=h/2;
+//                baseVertices[3*i+2]=(float)(r*pol*Math.sin(ang));
             }
             // top at y=-h/2
             for(int i=div; i<2*div; i++){
                 double ang=i*2d*Math.PI/div;
                 double pol = polygonalSection(ang);
-                baseVertices[3*i]=(float)(r*pol*Math.cos(ang));
-                baseVertices[3*i+1]=-h/2;
-                baseVertices[3*i+2]=(float)(r*pol*Math.sin(ang));
+                Point3D ta = transform(r*pol*Math.cos(ang),-h/2,r*pol*Math.sin(ang));
+                baseVertices[3*i]=ta.x;
+                baseVertices[3*i+1]=ta.y;
+                baseVertices[3*i+2]=ta.z;
+//                baseVertices[3*i]=(float)(r*pol*Math.cos(ang));
+//                baseVertices[3*i+1]=-h/2;
+//                baseVertices[3*i+2]=(float)(r*pol*Math.sin(ang));
             }
-            baseVertices[6*div]=0f;
-            baseVertices[6*div+1]=h/2f;
-            baseVertices[6*div+2]=0f;
-            baseVertices[6*div+3]=0f;
-            baseVertices[6*div+4]=-h/2f;
-            baseVertices[6*div+5]=0f;
+            Point3D ta = transform(0,h/2,0);
+            baseVertices[6*div]=ta.x;
+            baseVertices[6*div+1]=ta.y;
+            baseVertices[6*div+2]=ta.z;
+            ta = transform(0,-h/2,0);
+            baseVertices[6*div+3]=ta.x;
+            baseVertices[6*div+4]=ta.y;
+            baseVertices[6*div+5]=ta.z;
+//            baseVertices[6*div]=0f;
+//            baseVertices[6*div+1]=h/2f;
+//            baseVertices[6*div+2]=0f;
+//            baseVertices[6*div+3]=0f;
+//            baseVertices[6*div+4]=-h/2f;
+//            baseVertices[6*div+5]=0f;
             
             int nTextCoords=div*4+6;
             float rect=(float)polygonalSize(r);
@@ -266,11 +320,16 @@ public class CylinderMesh extends TexturedMesh {
             m0.getPoints().toArray(points0);
         }
         
-        
+        final float h=height;
         List<Point3D> points1 = IntStream.range(0, numVertices)
-                        .mapToObj(i -> new Point3D(points0[3*i], points0[3*i+1], points0[3*i+2]))
-                        .collect(Collectors.toList());
-        
+                .mapToObj(i -> {
+                    Point3D p=new Point3D(points0[3*i], points0[3*i+1], points0[3*i+2]);
+                    // f = h of local cylinder from 0 on top (ini) to 1 on bottom (end)
+                    p.f=(h/2-unTransform(p).y)/h;
+                    return p;
+                })
+                .collect(Collectors.toList());
+//        points1.forEach(p->System.out.print(" "+p.f));
         if(level>0 && m0!=null){
             texCoord0=new float[numTexCoords*m0.getTexCoordElementSize()];
             m0.getTexCoords().toArray(texCoord0);
@@ -359,6 +418,10 @@ public class CylinderMesh extends TexturedMesh {
                 }
                 return 4;
             }).toArray();
+//            listVertices.stream()
+//                    .sorted((p1,p2)->Double.compare(p1.y,p2.y))
+//                    .mapToDouble(p->p.f).distinct()
+//                    .forEach(f->System.out.print(" "+f));
         }
         return createMesh();
     }
@@ -375,13 +438,16 @@ public class CylinderMesh extends TexturedMesh {
         Point3D p3 = p1.add(p2).multiply(0.5f);
         if(getSectionType().equals(SectionType.CIRCLE)){
             if(inCircle(p1) && inCircle(p2)){
-                float fact=(float)(radius.get()/Math.sqrt(p3.x*p3.x+p3.z*p3.z));
-                p3=new Point3D(fact*p3.x,p3.y,fact*p3.z);
+                Point3D p4 = unTransform(p3);
+                float fact=(float)(radius.get()/Math.sqrt(p4.x*p4.x+p4.z*p4.z));
+                p3=transform(fact*p4.x,p4.y,fact*p4.z);
                 if(!inCircle(p3)){
                     System.out.println("p3: "+p3);
                 }
             }
         }
+        // f = h of local cylinder from 0 on top (ini) to 1 on bottom (end)
+        p3.f=(float)((height.get()/2d-unTransform(p3).y)/height.get());
         listVertices.add(p3);
         
         map.put(key,index.get());
@@ -389,7 +455,8 @@ public class CylinderMesh extends TexturedMesh {
     }
     
     private boolean inCircle(Point3D p){
-        return p.x*p.x+p.z*p.z>0.99*radius.get()*radius.get();
+        Point3D p2=unTransform(p);
+        return p2.x*p2.x+p2.z*p2.z>0.99*radius.get()*radius.get();
     }
     
     private int getMiddle(int v1, Point2D p1, int v2, Point2D p2){
@@ -402,5 +469,23 @@ public class CylinderMesh extends TexturedMesh {
 
         map.put(key,index.get());
         return index.getAndIncrement();
+    }
+    
+    private Point3D transform(Point3D p){
+        javafx.geometry.Point3D ta = a.transform(p.x,p.y,p.z);
+        return new Point3D((float)ta.getX(), (float)ta.getY(), (float)ta.getZ());        
+    }
+    private Point3D transform(double x, double y, double z){
+        javafx.geometry.Point3D ta = a.transform(x,y,z);
+        return new Point3D((float)ta.getX(), (float)ta.getY(), (float)ta.getZ());        
+    }
+    public Point3D unTransform(Point3D p){
+        try {
+            javafx.geometry.Point3D ta = a.inverseTransform(p.x,p.y,p.z);
+            return new Point3D((float)ta.getX(), (float)ta.getY(), (float)ta.getZ());
+        } catch (NonInvertibleTransformException ex) {
+            System.out.println("p not invertible "+p);
+        }
+        return p;
     }
 }

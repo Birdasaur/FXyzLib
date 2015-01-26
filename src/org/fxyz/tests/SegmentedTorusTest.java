@@ -1,7 +1,12 @@
 package org.fxyz.tests;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import static javafx.animation.Animation.INDEFINITE;
 import javafx.animation.AnimationTimer;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.RotateTransition;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.scene.AmbientLight;
 import javafx.scene.Group;
@@ -13,9 +18,12 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.PhongMaterial;
+import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.SegmentedTorusMesh;
@@ -39,6 +47,7 @@ public class SegmentedTorusTest extends Application {
     private double mouseDeltaY;
     private Rotate rotateY;
     private SegmentedTorusMesh torus;
+    private SegmentedTorusMesh banner;
     private DensityFunction<Point3D> dens = p->(double)p.x;
     private long lastEffect;
     
@@ -54,13 +63,13 @@ public class SegmentedTorusTest extends Application {
         cameraTransform.getChildren().add(camera);
         camera.setNearClip(0.1);
         camera.setFarClip(10000.0);
-        camera.setTranslateZ(-2000);
+        camera.setTranslateZ(-4000);
         cameraTransform.ry.setAngle(-45.0);
-        cameraTransform.rx.setAngle(-10.0);
+        cameraTransform.rx.setAngle(-30.0);
         //add a Point Light for better viewing of the grid coordinate system
         PointLight light = new PointLight(Color.WHITE);
         cameraTransform.getChildren().add(light);
-        cameraTransform.getChildren().add(new AmbientLight(Color.WHITE));
+//        cameraTransform.getChildren().add(new AmbientLight(Color.WHITE));
         light.setTranslateX(camera.getTranslateX());
         light.setTranslateY(camera.getTranslateY());
         light.setTranslateZ(camera.getTranslateZ());        
@@ -70,22 +79,30 @@ public class SegmentedTorusTest extends Application {
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
         
-        torus = new SegmentedTorusMesh(50, 42, 0, 500d, 150d); 
+        torus = new SegmentedTorusMesh(50, 42, 0, 500d, 300d); 
+//        PhongMaterial matTorus = new PhongMaterial(Color.FIREBRICK);
+//        torus.setMaterial(matTorus);
+//        banner = new SegmentedTorusMesh(50, 42, 14, 500d, 300d); 
+//        PhongMaterial matBanner = new PhongMaterial();
+//        matBanner.setDiffuseMap(new Image(getClass().getResource("res/Duke3DprogressionSmall.jpg").toExternalForm()));
+//        banner.setMaterial(matBanner);
 //        torus.setDrawMode(DrawMode.LINE);
     // NONE
-//        torus.setTextureModeNone(Color.ROYALBLUE);
+        torus.setTextureModeNone(Color.FORESTGREEN);
     // IMAGE
-//        torus.setTextureModeImage(getClass().getResource("res/grid.png").toExternalForm());
+//        torus.setTextureModeImage(getClass().getResource("res/grid1.png").toExternalForm());
+//        banner.setTextureModeImage(getClass().getResource("res/Duke3DprogressionSmall.jpg").toExternalForm());
     // PATTERN
-       torus.setTextureModePattern(1.0d);
+//       torus.setTextureModePattern(1.0d);
     // DENSITY
 //        torus.setTextureModeVertices3D(256*256,dens);
     // FACES
 //        torus.setTextureModeFaces(256*256);
         
         torus.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
+//        banner.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
         
-        group.getChildren().add(torus);
+        group.getChildren().addAll(torus); //,banner);
         
         sceneRoot.getChildren().addAll(group);        
         
@@ -140,6 +157,13 @@ public class SegmentedTorusTest extends Application {
             }
         });
         
+        final Timeline bannerEffect = new Timeline();
+        bannerEffect.setCycleCount(Timeline.INDEFINITE);
+        final KeyValue kv1 = new KeyValue(rotateY.angleProperty(), 360);
+        final KeyFrame kf1 = new KeyFrame(Duration.millis(10000), kv1);
+        bannerEffect.getKeyFrames().addAll(kf1);
+        bannerEffect.play();
+        
         lastEffect = System.nanoTime();
         AtomicInteger count=new AtomicInteger();
         AnimationTimer timerEffect = new AnimationTimer() {
@@ -167,7 +191,7 @@ public class SegmentedTorusTest extends Application {
         };
         
         
-        primaryStage.setTitle("F(X)yz - Torus");
+        primaryStage.setTitle("F(X)yz - Segmented Torus");
         primaryStage.setScene(scene);
         primaryStage.show();   
         
