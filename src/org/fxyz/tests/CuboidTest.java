@@ -77,17 +77,17 @@ public class CuboidTest extends Application {
         rotateY = new Rotate(0, 0, 0, 0, Rotate.Y_AXIS);
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
-        cuboid = new CuboidMesh(10f,12f,4f,2);
-//        cuboid.setDrawMode(DrawMode.LINE);
+        cuboid = new CuboidMesh(10f,12f,4f,5);
+        cuboid.setDrawMode(DrawMode.LINE);
 //        cuboid.setCullFace(CullFace.NONE);
     // NONE
 //        cuboid.setTextureModeNone(Color.ROYALBLUE);
         // IMAGE
 //        cuboid.setTextureModeImage(getClass().getResource("res/netCuboid.png").toExternalForm());
     // DENSITY
-        cuboid.setTextureModeVertices3D(256*256,p->(double)p.x*p.y*p.z);
+//        cuboid.setTextureModeVertices3D(256*256,p->(double)p.x*p.y*p.z);
     // FACES
-//        ico.setTextureModeFaces(256*256);
+        cuboid.setTextureModeFaces(1530);
 
         
         cuboid.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);

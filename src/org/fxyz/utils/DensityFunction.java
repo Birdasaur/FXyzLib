@@ -8,6 +8,7 @@ package org.fxyz.utils;
 /**
  *
  * @author jpereda
+ * @param <T> Point3D, Double
  */
 @FunctionalInterface
 public interface DensityFunction<T> {

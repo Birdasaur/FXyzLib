@@ -8,6 +8,7 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Material;
 import javafx.scene.paint.PhongMaterial;
+import org.fxyz.geometry.Face3;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.utils.DensityFunction;
 import org.fxyz.utils.FloatCollector;
@@ -130,6 +131,7 @@ public class TriangleMeshHelper {
     /*
     Colors, palette
     */
+    public final static Color DEFAULT_DIFFUSE_COLOR = Color.WHITE;
     public final static int DEFAULT_COLORS = 16;
     public final static boolean DEFAULT_SAVE_PALETTE = false;
     public final static COLOR_PALETTE DEFAULT_COLOR_PALETTE = COLOR_PALETTE.HSB;
@@ -183,6 +185,8 @@ public class TriangleMeshHelper {
             Image img = new Image(image);
             mat.setDiffuseMap(img);
             NormalMap normal = new NormalMap(img);
+//            normal.setIntensity(10);
+//            normal.setIntensityScale(2);
             mat.setBumpMap(normal);
         }
         mat.setSpecularPower(32);
@@ -376,92 +380,72 @@ public class TriangleMeshHelper {
         return textureCoords;
     }
     
-    public int[] updateFacesWithoutTexture(List<Point3D> faces){
-        return faces.parallelStream().map(f->{
-                int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
-                return IntStream.of(p0, 0, p1, 0, p2, 0);
-            }).flatMapToInt(i->i).toArray();
+    public int[] updateFacesWithoutTexture(List<Face3> faces){
+        return faces.parallelStream().map(Face3::getFace).flatMapToInt(i->i).toArray();
     }
     
-    public int[] updateFacesWithVertices(List<Point3D> faces){
-        return faces.parallelStream().map(f->{
-                int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
-                return IntStream.of(p0, p0, p1, p1, p2, p2);
-            }).flatMapToInt(i->i).toArray();
+    public int[] updateFacesWithVertices(List<Face3> faces){
+        return faces.parallelStream().map(f->f.getFace(f)).flatMapToInt(i->i).toArray();
     }
     
-    public int[] updateFacesWithTextures(List<Point3D> faces, List<Point3D> textures){
+    public int[] updateFacesWithTextures(List<Face3> faces, List<Face3> textures){
         if(faces.size()>textures.size()){
             return null;
         }
         AtomicInteger count=new AtomicInteger();
-        return faces.stream().map(f->{
-                Point3D t=textures.get(count.getAndIncrement());
-                int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
-                int t0=(int)t.x; int t1=(int)t.y; int t2=(int)t.z;
-                return IntStream.of(p0, t0, p1, t1, p2, t2);
-            }).flatMapToInt(i->i).toArray();
+        return faces.stream().map(f->f.getFace(textures.get(count.getAndIncrement()))).flatMapToInt(i->i).toArray();
     }
     
-    public int[] updateFacesWithDensityMap(List<Point3D> points, List<Point3D> faces){
+    public int[] updateFacesWithDensityMap(List<Point3D> points, List<Face3> faces){
         updateExtremes(points);
         return faces.parallelStream().map(f->{
-                int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
-                int t0=mapDensity(points.get(p0));
-                int t1=mapDensity(points.get(p1));
-                int t2=mapDensity(points.get(p2));
-                return IntStream.of(p0, t0, p1, t1, p2, t2);
+                int t0=mapDensity(points.get(f.p0));
+                int t1=mapDensity(points.get(f.p1));
+                int t2=mapDensity(points.get(f.p2));
+                return f.getFace(t0, t1, t2);
             }).flatMapToInt(i->i).toArray();
     }
     
-    public int[] updateFacesWithDensityMap(List<Point3D> points, List<Point3D> faces, double min, double max){
+    public int[] updateFacesWithDensityMap(List<Point3D> points, List<Face3> faces, double min, double max){
         updateExtremes(min, max);
         return faces.parallelStream().map(f->{
-                int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
-                int t0=mapDensity(points.get(p0));
-                int t1=mapDensity(points.get(p1));
-                int t2=mapDensity(points.get(p2));
-                return IntStream.of(p0, t0, p1, t1, p2, t2);
+                int t0=mapDensity(points.get(f.p0));
+                int t1=mapDensity(points.get(f.p1));
+                int t2=mapDensity(points.get(f.p2));
+                return f.getFace(t0, t1, t2);
             }).flatMapToInt(i->i).toArray();
     }
        
-    public int[] updateFacesWithFunctionMap(List<Point3D> points, List<Point3D> faces){
+    public int[] updateFacesWithFunctionMap(List<Point3D> points, List<Face3> faces){
         updateExtremesByFunction(points);
         return faces.parallelStream().map(f->{
-                int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
-                int t0=mapFunction(points.get(p0).f);
-                int t1=mapFunction(points.get(p1).f);
-                int t2=mapFunction(points.get(p2).f);
-                return IntStream.of(p0, t0, p1, t1, p2, t2);
+                int t0=mapFunction(points.get(f.p0).f);
+                int t1=mapFunction(points.get(f.p1).f);
+                int t2=mapFunction(points.get(f.p2).f);
+                return f.getFace(t0, t1, t2);
             }).flatMapToInt(i->i).toArray();
     }
-    public int[] updateFacesWithFunctionMap(List<Point3D> points, List<Point3D> faces, double min, double max){
+    public int[] updateFacesWithFunctionMap(List<Point3D> points, List<Face3> faces, double min, double max){
         updateExtremes(min, max);
         return faces.parallelStream().map(f->{
-                int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
-                int t0=mapFunction(points.get(p0).f);
-                int t1=mapFunction(points.get(p1).f);
-                int t2=mapFunction(points.get(p2).f);
-                return IntStream.of(p0, t0, p1, t1, p2, t2);
+                int t0=mapFunction(points.get(f.p0).f);
+                int t1=mapFunction(points.get(f.p1).f);
+                int t2=mapFunction(points.get(f.p2).f);
+                return f.getFace(t0, t1, t2);
             }).flatMapToInt(i->i).toArray();
     }
-    public int[] updateFacesWithFaces(List<Point3D> faces){
+    public int[] updateFacesWithFaces(List<Face3> faces){
         AtomicInteger count=new AtomicInteger();
-        return faces.stream().map(f->{
-                int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
-                int t0=mapFaces(count.getAndIncrement(),faces.size());
-                return IntStream.of(p0, t0, p1, t0, p2, t0);
-            }).flatMapToInt(i->i).toArray();
+        return faces.stream().map(f->f.getFace(mapFaces(count.getAndIncrement(),faces.size()))).flatMapToInt(i->i).toArray();
     }
     /*
     utils
     */
-    public double getMeshArea(List<Point3D> points, List<Point3D> faces){
+    public double getMeshArea(List<Point3D> points, List<Face3> faces){
         return faces.parallelStream().mapToDouble(f->{
-                int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
-                Point3D a = points.get(p0);
-                Point3D b = points.get(p1);
-                Point3D c = points.get(p2);
+                Point3D a = points.get(f.p0);
+                Point3D b = points.get(f.p1);
+                Point3D c = points.get(f.p2);
                 return b.substract(a).crossProduct((c.substract(a))).magnitude()/2.0;
             }).reduce(Double::sum).getAsDouble();
     }
@@ -477,12 +461,11 @@ public class TriangleMeshHelper {
       
     * This sets the texture of every face: 0 without intersection, 1 intersected
     */
-    public int[] updateFacesWithIntersections(Point3D origin, Point3D direction,List<Point3D> points, List<Point3D> faces){
+    public int[] updateFacesWithIntersections(Point3D origin, Point3D direction,List<Point3D> points, List<Face3> faces){
         return faces.parallelStream().map(f->{
-                int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
-                Point3D a = points.get(p0);
-                Point3D b = points.get(p1);
-                Point3D c = points.get(p2);
+                Point3D a = points.get(f.p0);
+                Point3D b = points.get(f.p1);
+                Point3D c = points.get(f.p2);
                 
                 Point3D edge1 = b.substract(a);
                 Point3D edge2 = c.substract(a);
@@ -504,19 +487,18 @@ public class TriangleMeshHelper {
                         }
                     }
                 }
-                return IntStream.of(p0, t0, p1, t0, p2, t0);
+                return f.getFace(t0);
             }).flatMapToInt(i->i).toArray();
     }
     
     /*
     Return a list of interesected faces (with their 3 vertices)
     */
-    public List<Point3D> getListIntersections(Point3D origin, Point3D direction,List<Point3D> points, List<Point3D> faces){
+    public List<Face3> getListIntersections(Point3D origin, Point3D direction,List<Point3D> points, List<Face3> faces){
         return faces.parallelStream().filter(f->{
-            int p0=(int)f.x; int p1=(int)f.y; int p2=(int)f.z;
-            Point3D a = points.get(p0);
-            Point3D b = points.get(p1);
-            Point3D c = points.get(p2);
+            Point3D a = points.get(f.p0);
+            Point3D b = points.get(f.p1);
+            Point3D c = points.get(f.p2);
 
             Point3D edge1 = b.substract(a);
             Point3D edge2 = c.substract(a);

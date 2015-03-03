@@ -1,8 +1,14 @@
 package org.fxyz.tests;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import static javafx.animation.Animation.INDEFINITE;
 import javafx.animation.AnimationTimer;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.RotateTransition;
+import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.scene.AmbientLight;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
@@ -14,27 +20,21 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.CullFace;
-import javafx.scene.shape.Cylinder;
 import javafx.scene.shape.DrawMode;
-import javafx.scene.shape.Sphere;
-import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
-import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
-import org.fxyz.shapes.primitives.CylinderMesh;
-import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
+import org.fxyz.shapes.primitives.SegmentedTorusMesh;
+import org.fxyz.shapes.primitives.SurfacePlotMesh;
 import org.fxyz.utils.DensityFunction;
-import org.fxyz.utils.OBJWriter;
-import org.fxyz.utils.Palette;
-import org.fxyz.utils.Palette.COLOR_PALETTE;
 
 /**
  *
  * @author jpereda
  */
-public class CylinderTest extends Application {
+public class Function2DPlotTest extends Application {
     private PerspectiveCamera camera;
     private final double sceneWidth = 600;
     private final double sceneHeight = 600;
@@ -46,10 +46,10 @@ public class CylinderTest extends Application {
     private double mouseOldY;
     private double mouseDeltaX;
     private double mouseDeltaY;
-    private CylinderMesh cylinder;
     private Rotate rotateY;
-    
-    private DensityFunction<Point3D> dens = p-> (double)p.x;
+    private SurfacePlotMesh surface;
+    private DensityFunction<Point3D> dens = p->(double)p.x;
+    private long lastEffect;
     
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -63,54 +63,42 @@ public class CylinderTest extends Application {
         cameraTransform.getChildren().add(camera);
         camera.setNearClip(0.1);
         camera.setFarClip(10000.0);
-        camera.setTranslateZ(-30);
-//        cameraTransform.ry.setAngle(-45.0);
-//        cameraTransform.rx.setAngle(-10.0);
+        camera.setTranslateZ(-20);
+        cameraTransform.ry.setAngle(-45.0);
+        cameraTransform.rx.setAngle(-30.0);
         //add a Point Light for better viewing of the grid coordinate system
         PointLight light = new PointLight(Color.WHITE);
         cameraTransform.getChildren().add(light);
+//        cameraTransform.getChildren().add(new AmbientLight(Color.WHITE));
         light.setTranslateX(camera.getTranslateX());
         light.setTranslateY(camera.getTranslateY());
-        light.setTranslateZ(10*camera.getTranslateZ());        
+        light.setTranslateZ(camera.getTranslateZ());        
         scene.setCamera(camera);
         
         rotateY = new Rotate(0, 0, 0, 0, Rotate.Y_AXIS);
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
-//        cylinder = new CylinderMesh(2,5,4);
-        cylinder = new CylinderMesh(0.2,2,3,new Point3D(-5,5,0),new Point3D(0,0,5));
-//        cylinder.setDrawMode(DrawMode.LINE);
-    // SECTION TYPE
-//        cylinder.setSectionType(TriangleMeshHelper.SectionType.TRIANGLE);
+        
+        surface = new SurfacePlotMesh(p->Math.sin(p.magnitude()+ 0.00000000000000001)/(p.magnitude()+ 0.00000000000000001),10,10,10,10,5d); 
+//        PhongMaterial matTorus = new PhongMaterial(Color.FIREBRICK);
+//        torus.setMaterial(matTorus);
+        surface.setDrawMode(DrawMode.LINE);
+        surface.setCullFace(CullFace.NONE);
     // NONE
-        cylinder.setTextureModeNone(Color.ROYALBLUE);
+        surface.setTextureModeNone(Color.FORESTGREEN);
     // IMAGE
-//        cylinder.setTextureModeImage(getClass().getResource("res/netCylinder.png").toExternalForm());
-//        cylinder.setTextureModeVertices1D(6, t->t);
-//        cylinder.setColorPalette(COLOR_PALETTE.GREEN);
+//        torus.setTextureModeImage(getClass().getResource("res/grid1.png").toExternalForm());
+//        banner.setTextureModeImage(getClass().getResource("res/Duke3DprogressionSmall.jpg").toExternalForm());
+    // PATTERN
+//       torus.setTextureModePattern(1.0d);
     // DENSITY
-//        cylinder.setTextureModeVertices3D(1530,p->(double)p.magnitude());
-//        cylinder.setTextureModeVertices3D(1530,p->(double)cylinder.unTransform(p).magnitude());
+//        surface.setTextureModeVertices3D(256*256,dens);
     // FACES
-//        cylinder.setTextureModeFaces(1530);
-
+//        torus.setTextureModeFaces(256*256);
         
-        cylinder.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
-        group.getChildren().add(cylinder);
+        surface.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
         
-        boolean showKnots =true;
-        if(showKnots){
-            Sphere s=new Sphere(cylinder.getRadius()/10d);
-            Point3D k0=cylinder.getIni();
-            s.getTransforms().add(new Translate(k0.x, k0.y, k0.z));
-            s.setMaterial(new PhongMaterial(Color.GREENYELLOW));
-            group.getChildren().add(s);
-            s=new Sphere(cylinder.getRadius()/10d);
-            Point3D k3=cylinder.getEnd();
-            s.getTransforms().add(new Translate(k3.x, k3.y, k3.z));
-            s.setMaterial(new PhongMaterial(Color.ROSYBROWN));
-            group.getChildren().add(s);
-        }
+        group.getChildren().addAll(surface);
         
         sceneRoot.getChildren().addAll(group);        
         
@@ -165,36 +153,40 @@ public class CylinderTest extends Application {
             }
         });
         
-        primaryStage.setTitle("F(X)yz - Cylinder Test");
-        primaryStage.setScene(scene);
-        primaryStage.show();        
-        
-//        OBJWriter writer=new OBJWriter((TriangleMesh) cylinder.getMesh(),"cylinder2");
-////        writer.setMaterialColor(Color.AQUA);
-////        writer.setTextureImage(getClass().getResource("res/netCylinder.png").toExternalForm());
-//        writer.setTextureColors(6,COLOR_PALETTE.GREEN);
-//        writer.exportMesh();
-        
         lastEffect = System.nanoTime();
-        AtomicInteger count=new AtomicInteger(0);
+        AtomicInteger count=new AtomicInteger();
         AnimationTimer timerEffect = new AnimationTimer() {
 
             @Override
             public void handle(long now) {
-                if (now > lastEffect + 100_000_000l) {
-                    func=t->Math.pow(Math.sin(8d*Math.PI*(10d*(1-t)+count.get()%11)/20d),6); //<=1/6d)?1d:0d;
-//                    cylinder.setFunction(func);
+                if (now > lastEffect + 1_000_000_000l) {
+//                    dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
+//                    torus.setDensity(dens);
                     
-//                    mapBez.values().forEach(b->b.setDensity(dens));
+//                    if(count.get()%100<50){
+//                        torus.setDrawMode(DrawMode.LINE);
+//                    } else {
+//                        torus.setDrawMode(DrawMode.FILL);
+//                    }
+//                    spring.setLength(100+20*(count.get()%10));
+//                    torus.setColors((int)Math.pow(2,count.get()%16));
+//                    torus.setMajorRadius(500+100*(count.get()%10));
+//                    torus.setMinorRadius(150+10*(count.get()%10));
+//                    torus.setPatternScale(1d+(count.get()%10)*5d);
                     count.getAndIncrement();
                     lastEffect = now;
                 }
             }
         };
+        
+        
+        primaryStage.setTitle("F(X)yz - Surface Plot 2D");
+        primaryStage.setScene(scene);
+        primaryStage.show();   
+        
 //        timerEffect.start();
+        
     }
-    private DensityFunction<Double> func = t->(double)t;
-    private long lastEffect;
     /**
      * @param args the command line arguments
      */

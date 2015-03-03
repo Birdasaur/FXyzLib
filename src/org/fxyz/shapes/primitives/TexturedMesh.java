@@ -13,12 +13,14 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.TriangleMesh;
+import org.fxyz.geometry.Face3;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.utils.DensityFunction;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
 import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_COLORS;
 import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_COLOR_PALETTE;
 import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_DENSITY_FUNCTION;
+import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_DIFFUSE_COLOR;
 import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_PATTERN_SCALE;
 import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_UNIDIM_FUNCTION;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.SectionType;
@@ -45,8 +47,8 @@ public abstract class TexturedMesh extends MeshView {
     protected TriangleMesh mesh;
     
     protected final List<Point3D> listVertices = new ArrayList<>();
-    protected final List<Point3D> listTextures = new ArrayList<>();
-    protected final List<Point3D> listFaces = new ArrayList<>();
+    protected final List<Face3> listTextures = new ArrayList<>();
+    protected final List<Face3> listFaces = new ArrayList<>();
     protected float[] textureCoords;
     protected int[] smoothingGroups;
     
@@ -234,6 +236,25 @@ public abstract class TexturedMesh extends MeshView {
     public ObjectProperty colorPaletteProperty() {
         return colorPalette;
     }
+    private final ObjectProperty<Color> diffuseColor = new SimpleObjectProperty<Color>(DEFAULT_DIFFUSE_COLOR){
+        
+        @Override protected void invalidated() {
+            updateMaterial();
+        }
+    };
+
+    public Color getDiffuseColor() {
+        return diffuseColor.get();
+    }
+
+    public void setDiffuseColor(Color value) {
+        diffuseColor.set(value);
+    }
+
+    public ObjectProperty diffuseColorProperty() {
+        return diffuseColor;
+    }
+    
     
     private final ObjectProperty<DensityFunction> density = new SimpleObjectProperty<DensityFunction>(DEFAULT_DENSITY_FUNCTION){
         
@@ -304,6 +325,10 @@ public abstract class TexturedMesh extends MeshView {
     private void createPalette(int colors, COLOR_PALETTE colorPalette) {
         helper.createPalette(colors,false,colorPalette);        
         setMaterial(helper.getMaterialWithPalette());
+    }
+    
+    public void updateMaterial(){
+        setMaterial(helper.getMaterialWithColor(diffuseColor.get()));
     }
     
     public void updateVertices(float factor){
@@ -403,9 +428,7 @@ public abstract class TexturedMesh extends MeshView {
     
     protected TriangleMesh createMesh(){
         TriangleMesh triangleMesh = new TriangleMesh();
-        long time=System.nanoTime();
         triangleMesh.getPoints().setAll(helper.updateVertices(listVertices));
-        System.out.println("time: "+(System.nanoTime()-time)/1_000_000d);
         switch(textureType.get()){
             case NONE:
                 triangleMesh.getTexCoords().setAll(textureCoords);
@@ -457,7 +480,7 @@ public abstract class TexturedMesh extends MeshView {
             triangleMesh.getFaceSmoothingGroups().addAll(faceSmoothingGroups);
         }
         
-//        System.out.println("nodes: "+listVertices.size()+", faces: "+listFaces.size());
+        System.out.println("nodes: "+listVertices.size()+", faces: "+listFaces.size());
 //        System.out.println("area: "+helper.getMeshArea(listVertices, listFaces));
         return triangleMesh;
     }
@@ -491,7 +514,7 @@ public abstract class TexturedMesh extends MeshView {
         int[] faces= helper.updateFacesWithIntersections(origin, direction, listVertices, listFaces);
         mesh.getFaces().setAll(faces);
         long time=System.currentTimeMillis();
-        List<Point3D> listIntersections = helper.getListIntersections(origin, direction, listVertices, listFaces);
+        List<Face3> listIntersections = helper.getListIntersections(origin, direction, listVertices, listFaces);
         System.out.println("t: "+(System.currentTimeMillis()-time));
         listIntersections.forEach(System.out::println);
         return listIntersections.size();        

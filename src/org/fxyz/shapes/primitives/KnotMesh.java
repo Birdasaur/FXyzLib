@@ -8,6 +8,7 @@ import javafx.scene.DepthTest;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.TriangleMesh;
+import org.fxyz.geometry.Face3;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.helper.KnotHelper;
 import org.fxyz.utils.GaussianQuadrature;
@@ -412,8 +413,8 @@ public class KnotMesh extends TexturedMesh {
                 int p01 = p00 + 1;
                 int p10 = p00 + numDivWire;
                 int p11 = p10 + 1;
-                listTextures.add(new Point3D(p00,p01,p11));
-                listTextures.add(new Point3D(p11,p10,p00));            
+                listTextures.add(new Face3(p00,p01,p11));
+                listTextures.add(new Face3(p11,p10,p00));            
             }
         }
         
@@ -428,8 +429,8 @@ public class KnotMesh extends TexturedMesh {
                     p01-=subDivWire;
                     p11-=subDivWire;
                 }
-                listFaces.add(new Point3D(p00,p01,p11));
-                listFaces.add(new Point3D(p11,p10,p00));            
+                listFaces.add(new Face3(p00,p01,p11));
+                listFaces.add(new Face3(p11,p10,p00));            
             }
         }
         
