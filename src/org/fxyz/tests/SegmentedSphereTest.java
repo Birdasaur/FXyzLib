@@ -68,7 +68,7 @@ public class SegmentedSphereTest extends Application {
         cameraTransform.rx.setAngle(-30.0);
         //add a Point Light for better viewing of the grid coordinate system
         PointLight light = new PointLight(Color.WHITE);
-        cameraTransform.getChildren().add(light);
+//        cameraTransform.getChildren().add(light);
         cameraTransform.getChildren().add(new AmbientLight(Color.WHITE));
         light.setTranslateX(0);
         light.setTranslateY(1000);
@@ -81,8 +81,7 @@ public class SegmentedSphereTest extends Application {
         
         torus = new SegmentedSphereMesh(100, 0, 10, 2000d); 
 //        torus.setDrawMode(DrawMode.LINE);
-        torus.setExterior(false);
-//        torus.setCullFace(CullFace.NONE);
+        torus.setCullFace(CullFace.NONE);
     // NONE
 //        torus.setTextureModeNone(Color.FORESTGREEN);
     // IMAGE
@@ -191,7 +190,7 @@ public class SegmentedSphereTest extends Application {
         final KeyValue kv1 = new KeyValue(cameraTransform.ry.angleProperty(), 360);
         final KeyFrame kf1 = new KeyFrame(Duration.millis(20000), kv1);
         bannerEffect.getKeyFrames().addAll(kf1);
-//        bannerEffect.play();
+        bannerEffect.play();
     }
     /**
      * @param args the command line arguments

@@ -31,7 +31,6 @@ public class SegmentedSphereMesh extends TexturedMesh {
     private static final double DEFAULT_X_OFFSET = 0.0D;
     private static final double DEFAULT_Y_OFFSET = 0.0D;
     private static final double DEFAULT_Z_OFFSET = 1.0D;
-    private static final boolean DEFAULT_EXTERIOR = true;
     
     public SegmentedSphereMesh() {
         this(DEFAULT_DIVISIONS, DEFAULT_CROP_X, DEFAULT_CROP_Y, DEFAULT_RADIUS);
@@ -247,28 +246,6 @@ public class SegmentedSphereMesh extends TexturedMesh {
     public DoubleProperty zOffsetProperty() {
         return zOffset;
     }
-    private final BooleanProperty exterior = new SimpleBooleanProperty(DEFAULT_EXTERIOR) {
-
-        @Override
-        protected void invalidated() {
-            if(mesh!=null){
-                updateMesh();
-            }
-        }
-
-    };
-
-    public boolean isExterior() {
-        return exterior.get();
-    }
-
-    public void setExterior(boolean value) {
-        exterior.set(value);
-    }
-
-    public BooleanProperty exteriorProperty() {
-        return exterior;
-    }
     
     private TriangleMesh createSegmentedSphere(int subDivY, int cropX, int cropY,
             float radius, float tubeStartAngle, float xOffset, float yOffset, float zOffset) {
@@ -312,20 +289,11 @@ public class SegmentedSphereMesh extends TexturedMesh {
                 int p01 = p00 + 1;
                 int p10 = p00 + numDivX;
                 int p11 = p10 + 1;
-                if(exterior.get()){
-                    if(y<subDivY-1){
-                        listTextures.add(new Face3(p00,p10,p11));   
-                    }             
-                    if(y>0){
-                        listTextures.add(new Face3(p11,p01,p00));
-                    }
-                } else {
-                    if(y<subDivY-1){
-                        listTextures.add(new Face3(p00,p11,p10));                
-                    }
-                    if(y>0){
-                        listTextures.add(new Face3(p11,p00,p01));
-                    }
+                if(y<subDivY-1){
+                    listTextures.add(new Face3(p00,p10,p11));   
+                }             
+                if(y>0){
+                    listTextures.add(new Face3(p11,p01,p00));
                 }
             }
         }
@@ -345,20 +313,11 @@ public class SegmentedSphereMesh extends TexturedMesh {
                 if(cropX==0 && x==subDivX-1){
                     p11-=subDivX;
                 }                
-                if(exterior.get()){
-                    if(y<subDivY-1){
-                        listFaces.add(new Face3(p00,p10,p11));   
-                    }
-                    if(y>0){
-                        listFaces.add(new Face3(p11,p01,p00));
-                    }
-                } else {
-                    if(y<subDivY-1){
-                        listFaces.add(new Face3(p00,p11,p10));
-                    }                
-                    if(y>0){
-                        listFaces.add(new Face3(p11,p00,p01));
-                    }
+                if(y<subDivY-1){
+                    listFaces.add(new Face3(p00,p10,p11));   
+                }
+                if(y>0){
+                    listFaces.add(new Face3(p11,p01,p00));
                 }
             }
         }
