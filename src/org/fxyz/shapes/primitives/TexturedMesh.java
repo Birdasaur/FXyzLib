@@ -15,6 +15,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Face3;
 import org.fxyz.geometry.Point3D;
+import org.fxyz.shapes.primitives.helper.TextureMode;
 import org.fxyz.utils.DensityFunction;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
 import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_COLORS;
@@ -41,7 +42,7 @@ import org.fxyz.utils.Palette.COLOR_PALETTE;
  * 
  * @author jpereda
  */
-public abstract class TexturedMesh extends MeshView {
+public abstract class TexturedMesh extends MeshView implements TextureMode {
     
     private TriangleMeshHelper helper = new TriangleMeshHelper();
     protected TriangleMesh mesh;
@@ -90,11 +91,13 @@ public abstract class TexturedMesh extends MeshView {
     
     private final ObjectProperty<TextureType> textureType = new SimpleObjectProperty<>();
 
+    @Override
     public void setTextureModeNone() {
         helper.setTextureType(TextureType.NONE);
         setTextureType(TextureType.NONE);
     }
     
+    @Override
     public void setTextureModeNone(Color color) {
         if(color!=null){
             helper.setTextureType(TextureType.NONE);
@@ -103,6 +106,7 @@ public abstract class TexturedMesh extends MeshView {
         setTextureType(helper.getTextureType());
     }
     
+    @Override
     public void setTextureModeNone(Color color, String image) {
         if(color!=null){
             helper.setTextureType(TextureType.NONE);
@@ -111,6 +115,7 @@ public abstract class TexturedMesh extends MeshView {
         setTextureType(helper.getTextureType());
     }
     
+    @Override
     public void setTextureModeImage(String image) {
         if(image!=null && !image.isEmpty()){
             helper.setTextureType(TextureType.IMAGE);
@@ -119,6 +124,7 @@ public abstract class TexturedMesh extends MeshView {
         }
     }
     
+    @Override
     public void setTextureModePattern(double scale) {
         helper.setTextureType(TextureType.PATTERN);
         patternScale.set(scale);
@@ -126,6 +132,7 @@ public abstract class TexturedMesh extends MeshView {
         setTextureType(helper.getTextureType());
     }
     
+    @Override
     public void setTextureModeVertices3D(int colors, DensityFunction<Point3D> dens) {
         helper.setTextureType(TextureType.COLORED_VERTICES_3D);
         setColors(colors);
@@ -133,6 +140,7 @@ public abstract class TexturedMesh extends MeshView {
         setTextureType(helper.getTextureType());
     }
     
+    @Override
     public void setTextureModeVertices3D(int colors, DensityFunction<Point3D> dens, double min, double max) {
         helper.setTextureType(TextureType.COLORED_VERTICES_3D);
         setMinGlobal(min);
@@ -142,12 +150,14 @@ public abstract class TexturedMesh extends MeshView {
         setTextureType(helper.getTextureType());
     }
     
+    @Override
     public void setTextureModeVertices1D(int colors, DensityFunction<Double> function) {
         helper.setTextureType(TextureType.COLORED_VERTICES_1D);
         setColors(colors);
         setFunction(function);
         setTextureType(helper.getTextureType());
     }
+    @Override
     public void setTextureModeVertices1D(int colors, DensityFunction<Double> function, double min, double max) {
         helper.setTextureType(TextureType.COLORED_VERTICES_1D);
         setMinGlobal(min);
@@ -157,6 +167,7 @@ public abstract class TexturedMesh extends MeshView {
         setTextureType(helper.getTextureType());
     }
     
+    @Override
     public void setTextureModeFaces(int colors) {
         helper.setTextureType(TextureType.COLORED_FACES);
         setColors(colors);
