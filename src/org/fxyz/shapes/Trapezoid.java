@@ -10,47 +10,47 @@ import org.fxyz.shapes.containers.ShapeContainer;
 import org.fxyz.shapes.primitives.TrapezoidMesh;
 
 /**
- *
- * @author Moussaab AMRINE <dy_amrine@esi.dz>
- * @author  Yehya BELHAMRA <dy_belhamra@esi.dz>
+ * @author Moussaab AMRINE {dm_amrine@esi.dz}
+ * @author Amine OUBERKOUK {dm_ouberkouk@esi.dz}
+ * @author Yehya BELHAMRA  {dy_belhamra@esi.dz} {http://www.yahiab.com}
  */
 
 public class Trapezoid extends ShapeContainer<TrapezoidMesh> {
-	
-	private TrapezoidMesh mesh;
-	
-	public Trapezoid() {
+
+    private TrapezoidMesh mesh;
+
+    public Trapezoid() {
         super(new TrapezoidMesh());
         this.mesh = getShape();
     }
-	
-	public Trapezoid(double smallSize , double bigSize , double height ,double depth){
+
+    public Trapezoid(double smallSize , double bigSize , double height ,double depth){
         this();
         mesh.setSmallSize(smallSize);
         mesh.setBigSize(bigSize);
-        mesh.setheight(height); 
+        mesh.setHeight(height);
         mesh.setDepth(depth);
     }
-	
-	public Trapezoid(Color c){
+
+    public Trapezoid(Color c){
         this();
         this.setDiffuseColor(c);
     }
-	
-	public Trapezoid(double smallSize , double bigSize , double height ,double depth , Color c){
+
+    public Trapezoid(double smallSize , double bigSize , double height ,double depth , Color c){
         super(new TrapezoidMesh(smallSize ,bigSize , height , depth));
         this.mesh = getShape();
         this.setDiffuseColor(c);
     }
-	
-	public final void setSmallSize(double value) {
+
+    public final void setSmallSize(double value) {
         mesh.setSmallSize(value);
     }
-	public final void setBigSize(double value) {
+    public final void setBigSize(double value) {
         mesh.setBigSize(value);
     }
     public final void setHeight(double value) {
-        mesh.setheight(value);
+        mesh.setHeight(value);
     }
     public final void setDepth(int value) {
         mesh.setDepth(value);
