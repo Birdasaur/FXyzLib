@@ -1,8 +1,25 @@
+/*
+ * Copyright (C) 2013-2015 F(X)yz, 
+ * Sean Phillips, Jason Pollastrini and Jose Pereda
+ * All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.fxyz.tests;
 
 import eu.mihosoft.vrl.v3d.CSG;
 import eu.mihosoft.vrl.v3d.Cube;
-import eu.mihosoft.vrl.v3d.Sphere;
 import eu.mihosoft.vrl.v3d.Transform;
 import javafx.application.Application;
 import javafx.scene.Group;
@@ -13,9 +30,7 @@ import javafx.scene.SceneAntialiasing;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
-import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
@@ -24,8 +39,6 @@ import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.CSGMesh;
 import org.fxyz.shapes.primitives.CuboidMesh;
 import org.fxyz.shapes.primitives.PrismMesh;
-import org.fxyz.shapes.primitives.SegmentedSphereMesh;
-import org.fxyz.shapes.primitives.SegmentedTorusMesh;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
 import org.fxyz.utils.DensityFunction;
 import org.fxyz.utils.MeshUtils;
