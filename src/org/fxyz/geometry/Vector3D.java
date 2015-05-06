@@ -76,8 +76,8 @@ public final class Vector3D {
 
     public Vector3D add(Vector3D v) {
         double nx = x + v.x,
-                ny = y += v.y,
-                nz = z += v.z;
+                ny = y + v.y,
+                nz = z + v.z;
         return new Vector3D(nx, ny, nz);
     }
 
