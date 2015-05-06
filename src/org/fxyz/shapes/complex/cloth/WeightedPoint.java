@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2014 F(Y)zx :
- * Authored by : Jason Pollastrini aka jdub1581, 
+ * Copyright (C) 2013-2015 F(X)yz, 
+ * Sean Phillips, Jason Pollastrini and Jose Pereda
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
