@@ -28,6 +28,7 @@ import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 import javafx.scene.shape.PathElement;
+import javafx.scene.shape.QuadCurveTo;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.text.Font;
@@ -77,13 +78,16 @@ public class Text3DHelper {
             list.add(new Point3D((float)((LineTo)elem).getX(),(float)((LineTo)elem).getY(),0f));
         } else if(elem instanceof CubicCurveTo){
             Point3D ini = (list.size()>0?list.get(list.size()-1):p0);
-            IntStream.range(1, 11).forEach(i->list.add(evalBezier((CubicCurveTo)elem, ini, ((double)i)/10d)));
+            IntStream.range(1, 11).forEach(i->list.add(evalCubicBezier((CubicCurveTo)elem, ini, ((double)i)/10d)));
+        } else if(elem instanceof QuadCurveTo){
+            Point3D ini = (list.size()>0?list.get(list.size()-1):p0);
+            IntStream.range(1, 11).forEach(i->list.add(evalQuadBezier((QuadCurveTo)elem, ini, ((double)i)/10d)));
         } else if(elem instanceof ClosePath){
             paths.add(list);
         } 
     }
     
-    private Point3D evalBezier(CubicCurveTo c, Point3D ini, double t){
+    private Point3D evalCubicBezier(CubicCurveTo c, Point3D ini, double t){
         Point3D p=new Point3D((float)(Math.pow(1-t,3)*ini.x+
                 3*t*Math.pow(1-t,2)*c.getControlX1()+
                 3*(1-t)*t*t*c.getControlX2()+
@@ -92,6 +96,17 @@ public class Text3DHelper {
                 3*t*Math.pow(1-t, 2)*c.getControlY1()+
                 3*(1-t)*t*t*c.getControlY2()+
                 Math.pow(t, 3)*c.getY()),
+                0f);
+        return p;
+    }
+    
+    private Point3D evalQuadBezier(QuadCurveTo c, Point3D ini, double t){
+        Point3D p=new Point3D((float)(Math.pow(1-t,2)*ini.x+
+                2*(1-t)*t*c.getControlX()+
+                Math.pow(t, 2)*c.getX()),
+                (float)(Math.pow(1-t,2)*ini.y+
+                2*(1-t)*t*c.getControlY()+
+                Math.pow(t, 2)*c.getY()),
                 0f);
         return p;
     }
