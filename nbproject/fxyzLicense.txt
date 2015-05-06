@@ -2,7 +2,7 @@
 ${licenseFirst}
 </#if>
 ${licensePrefix}Copyright (C) 2013-${date?date?string("yyyy")} ${organization!user}, 
-${licensePrefix}Sean Phillips, Jason Pollastrini
+${licensePrefix}Sean Phillips, Jason Pollastrini and Jose Pereda
 ${licensePrefix}All rights reserved.
 ${licensePrefix?replace(" +$", "", "r")}
 ${licensePrefix}This program is free software: you can redistribute it and/or modify
