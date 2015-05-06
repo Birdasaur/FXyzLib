@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2013-2015 F(X)yz, 
+ * Sean Phillips, Jason Pollastrini and Jose Pereda
+ * All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.fxyz.tests;
 
 import java.util.ArrayList;
@@ -26,6 +44,7 @@ import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.BezierMesh;
+import org.fxyz.shapes.primitives.PrismMesh;
 import org.fxyz.shapes.primitives.KnotMesh;
 import org.fxyz.shapes.primitives.TexturedMesh;
 import org.fxyz.utils.DensityFunction;
@@ -51,6 +70,7 @@ public class BezierTest extends Application {
     private ArrayList<BezierMesh> beziers;
     private Rotate rotateY;
     private DensityFunction<Point3D> dens = p->(double)p.f;
+    private DensityFunction<Double> func = t->(double)t;
     private long lastEffect;
     
     @Override
@@ -113,34 +133,16 @@ public class BezierTest extends Application {
                     group.getChildren().add(s);
                 }
                 if(showControlPoints){
-                    Point3D dir=k1.substract(k0).crossProduct(new Point3D(0,-1,0));
-                    double angle=Math.acos(k1.substract(k0).normalize().dotProduct(new Point3D(0,-1,0)));
-                    double h1=k1.substract(k0).magnitude();
-                    Cylinder c=new Cylinder(0.03d,h1);
-                    c.getTransforms().addAll(new Translate(k0.x, k0.y-h1/2d, k0.z),
-                            new Rotate(-Math.toDegrees(angle), 0d,h1/2d,0d,
-                                    new javafx.geometry.Point3D(dir.x,-dir.y,dir.z)));
-                    c.setMaterial(new PhongMaterial(Color.GREEN));
+                    PrismMesh c = new PrismMesh(0.03d, 1d, 1, k0, k1);
+                    c.setTextureModeNone(Color.GREEN);
                     group.getChildren().add(c);
 
-                    dir=k2.substract(k1).crossProduct(new Point3D(0,-1,0));
-                    angle=Math.acos(k2.substract(k1).normalize().dotProduct(new Point3D(0,-1,0)));
-                    h1=k2.substract(k1).magnitude();
-                    c=new Cylinder(0.03d,h1);
-                    c.getTransforms().addAll(new Translate(k1.x, k1.y-h1/2d, k1.z),
-                            new Rotate(-Math.toDegrees(angle), 0d,h1/2d,0d,
-                                    new javafx.geometry.Point3D(dir.x,-dir.y,dir.z)));
-                    c.setMaterial(new PhongMaterial(Color.GREEN));
+                    c = new PrismMesh(0.03d, 1d, 1, k1, k2);
+                    c.setTextureModeNone(Color.GREEN);
                     group.getChildren().add(c);
 
-                    dir=k3.substract(k2).crossProduct(new Point3D(0,-1,0));
-                    angle=Math.acos(k3.substract(k2).normalize().dotProduct(new Point3D(0,-1,0)));
-                    h1=k3.substract(k2).magnitude();
-                    c=new Cylinder(0.03d,h1);
-                    c.getTransforms().addAll(new Translate(k2.x, k2.y-h1/2d, k2.z),
-                            new Rotate(-Math.toDegrees(angle), 0d,h1/2d,0d,
-                                    new javafx.geometry.Point3D(dir.x,-dir.y,dir.z)));
-                    c.setMaterial(new PhongMaterial(Color.GREEN));
+                    c = new PrismMesh(0.03d, 1d, 1, k2, k3);
+                    c.setTextureModeNone(Color.GREEN);
                     group.getChildren().add(c);
 
                     Sphere s=new Sphere(0.1d);
@@ -159,7 +161,7 @@ public class BezierTest extends Application {
             BezierMesh bezier = new BezierMesh(spline,0.1d,
                                     300,20,0,0);
 //            bezier.setDrawMode(DrawMode.LINE);
-            bezier.setCullFace(CullFace.NONE);
+//            bezier.setCullFace(CullFace.NONE);
 //            bezier.setSectionType(SectionType.TRIANGLE);
 
         // NONE
@@ -169,11 +171,12 @@ public class BezierTest extends Application {
         // PATTERN
 //           bezier.setTextureModePattern(3d);
         // FUNCTION
-//            bezier.setTextureModeVertices1D(256*256,t->spline.getKappa(t));
+            bezier.setTextureModeVertices1D(1530,t->spline.getKappa(t));
+//            bezier.setTextureModeVertices1D(1530,func);
         // DENSITY
 //            bezier.setTextureModeVertices3D(256*256,dens);
         // FACES
-            bezier.setTextureModeFaces(256*256);
+//            bezier.setTextureModeFaces(256*256);
 
             bezier.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
             beziers.add(bezier);
@@ -252,7 +255,8 @@ public class BezierTest extends Application {
 //                    cameraTransform.rx.setAngle(angle);
 //                    cameraTransform.rx.setAxis(new javafx.geometry.Point3D(cross.getX(),-cross.getY(),cross.getZ()));
 //                    dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
-//                    beziers.forEach(b->b.setDensity(dens));
+                    func=t->Math.pow(t,(count.get()%5d));
+                    beziers.forEach(b->b.setFunction(func));
 //                    knot.setP(1+(count.get()%5));
 //                    knot.setQ(2+(count.get()%15));
                     
@@ -276,7 +280,7 @@ public class BezierTest extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();   
         
-//        timerEffect.start();
+        timerEffect.start();
         
     }
     /**

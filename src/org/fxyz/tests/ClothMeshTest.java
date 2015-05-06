@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2014 F(Y)zx :
- * Authored by : Jason Pollastrini aka jdub1581, 
+ * Copyright (C) 2013-2015 F(X)yz, 
+ * Sean Phillips, Jason Pollastrini and Jose Pereda
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -75,9 +75,9 @@ public class ClothMeshTest extends Application {
         cloth.setBendStrength(0.5);
         cloth.setStretchStrength(1.0);
         cloth.setShearStrength(0.55);
-        cloth.setDrawMode(DrawMode.FILL);
+        cloth.setDrawMode(DrawMode.LINE);
         cloth.setCullFace(CullFace.NONE);
-        cloth.setDiffuseMap(new Image("https://kenai.com/attachments/wiki_images/duke/Duke3DprogressionSmall.jpg"));
+//        cloth.setDiffuseMap(new Image("https://kenai.com/attachments/wiki_images/duke/Duke3DprogressionSmall.jpg"));
         cloth.setSpecularPower(5);
 
         StackPane root = new StackPane();

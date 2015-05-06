@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2013-2015 F(X)yz, 
+ * Sean Phillips, Jason Pollastrini and Jose Pereda
+ * All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.fxyz.tests;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -44,7 +62,7 @@ public class SpringTest extends Application {
     private double mouseDeltaY;
     private SpringMesh spring;
     private Rotate rotateY;
-    private DensityFunction<Point3D> dens = p->(double)p.x;
+    private DensityFunction<Point3D> dens = p->Math.sin(p.x);
     private long lastEffect;
     
     @Override
@@ -75,14 +93,14 @@ public class SpringTest extends Application {
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
         
-        spring = new SpringMesh(50d,10d,20d,2*20d*2d*Math.PI,
-                                1000,60,0,0);
+        spring = new SpringMesh(5d,1d,2d,4*2d*Math.PI,
+                                303,54,0,0);
 //        spring.setDrawMode(DrawMode.LINE);
-        spring.setCullFace(CullFace.NONE);
-        spring.setSectionType(SectionType.TRIANGLE);
+//        spring.setCullFace(CullFace.NONE);
+//        spring.setSectionType(SectionType.TRIANGLE);
         
 //    // NONE
-//        spring.setTextureModeNone(Color.ROYALBLUE);
+        spring.setTextureModeNone(Color.web("#4169E180"));
     // IMAGE
 //        spring.setTextureModeImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
     // PATTERN
@@ -90,7 +108,7 @@ public class SpringTest extends Application {
     // FUNCTION
 //        spring.setTextureModeVertices1D(256*256,t->t);
     // DENSITY
-        spring.setTextureModeVertices3D(256*256,p->(double)p.magnitude());
+        spring.setTextureModeVertices3D(1530,dens);
     // FACES
 //        spring.setTextureModeFaces(256*256);
         
@@ -160,14 +178,14 @@ public class SpringTest extends Application {
                 if (now > lastEffect + 500_000_000l) {
 //                    dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
 //                    spring.setDensity(dens);
-//                    spring.setPitch(20+5*(count.get()%10));
+                    spring.setPitch(20+5*(count.get()%10));
                     
 //                    if(count.get()%100<50){
 //                        spring.setDrawMode(DrawMode.LINE);
 //                    } else {
 //                        spring.setDrawMode(DrawMode.FILL);
 //                    }
-                    spring.setLength(100+20*(count.get()%10));
+//                    spring.setLength(100+20*(count.get()%10));
 //                    spring.setPatternScale(1d+(count.get()%10)*2d);
 //                    spring.setSectionType(SectionType.values()[count.get()%SectionType.values().length]);
                     

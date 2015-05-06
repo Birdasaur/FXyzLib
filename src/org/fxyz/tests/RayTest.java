@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2013-2015 F(X)yz, 
+ * Sean Phillips, Jason Pollastrini and Jose Pereda
+ * All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.fxyz.tests;
 
 import java.util.Arrays;
@@ -136,8 +154,11 @@ public class RayTest extends Application {
 
         group.getChildren().add(new Axes(0.02));
         Box box=new Box(gloBounds.getWidth(), gloBounds.getHeight(), gloBounds.getDepth());
+        // If transparency is enabled (8u60+), comment:
         box.setDrawMode(DrawMode.LINE);
-        box.setMaterial(new PhongMaterial(Color.BLUEVIOLET));
+        box.setCullFace(CullFace.NONE);
+        // If transparency is enabled (8u60+), uncomment:
+//        box.setMaterial(new PhongMaterial(Color.web("8A2BE2",0.3)));
         box.getTransforms().add(new Translate(gloBounds.getMinX()+gloBounds.getWidth()/2d, 
                 gloBounds.getMinY()+gloBounds.getHeight()/2d, gloBounds.getMinZ()+gloBounds.getDepth()/2d));
         group.getChildren().add(box);

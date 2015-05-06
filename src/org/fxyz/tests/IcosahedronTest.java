@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2013-2015 F(X)yz, 
+ * Sean Phillips, Jason Pollastrini and Jose Pereda
+ * All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.fxyz.tests;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -14,6 +32,7 @@ import javafx.scene.SceneAntialiasing;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
@@ -42,7 +61,7 @@ public class IcosahedronTest extends Application {
     private IcosahedronMesh ico;
     private Rotate rotateY;
     
-    private DensityFunction<Point3D> dens = p-> (double)p.x;
+    private DensityFunction<Point3D> dens = p-> (double)p.x*p.y*p.z;
 //                (float)(3d*Math.pow(Math.sin(p.phi),2)*Math.pow(Math.abs(Math.cos(p.theta)),0.1)+
 //                Math.pow(Math.cos(p.phi),2)*Math.pow(Math.abs(Math.sin(p.theta)),0.1));
 //    private Density dens = p->p.x*p.y*p.z;
@@ -52,23 +71,23 @@ public class IcosahedronTest extends Application {
     public void start(Stage primaryStage) throws Exception {
         Group sceneRoot = new Group();
         Scene scene = new Scene(sceneRoot, sceneWidth, sceneHeight, true, SceneAntialiasing.BALANCED);
-        scene.setFill(Color.BLACK);
+//        scene.setFill(Color.BLACK);
         camera = new PerspectiveCamera(true);        
      
         //setup camera transform for rotational support
         cameraTransform.setTranslate(0, 0, 0);
         cameraTransform.getChildren().add(camera);
-        camera.setNearClip(0.1);
+        camera.setNearClip(0.001);
         camera.setFarClip(10000.0);
-        camera.setTranslateZ(-5);
+        camera.setTranslateZ(0);
         cameraTransform.ry.setAngle(-45.0);
         cameraTransform.rx.setAngle(-10.0);
         //add a Point Light for better viewing of the grid coordinate system
-        PointLight light = new PointLight(Color.WHITE);
-        cameraTransform.getChildren().add(light);
-        light.setTranslateX(camera.getTranslateX());
-        light.setTranslateY(camera.getTranslateY());
-        light.setTranslateZ(camera.getTranslateZ());        
+//        PointLight light = new PointLight(Color.WHITE);
+//        cameraTransform.getChildren().add(light);
+//        light.setTranslateX(camera.getTranslateX());
+//        light.setTranslateY(camera.getTranslateY());
+//        light.setTranslateZ(camera.getTranslateZ());        
         scene.setCamera(camera);
         
         rotateY = new Rotate(0, 0, 0, 0, Rotate.Y_AXIS);
@@ -76,6 +95,7 @@ public class IcosahedronTest extends Application {
         group.getChildren().add(cameraTransform);    
         ico = new IcosahedronMesh(5,1f);
 //                ico.setDrawMode(DrawMode.LINE);
+                ico.setCullFace(CullFace.NONE);
     // NONE
 //        ico.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
@@ -83,7 +103,7 @@ public class IcosahedronTest extends Application {
     // PATTERN
 //        ico.setTextureModePattern(2d);
     // DENSITY
-        ico.setTextureModeVertices3D(256*256,dens);
+        ico.setTextureModeVertices3D(1530,dens);
     // FACES
 //        ico.setTextureModeFaces(256);
 
@@ -150,12 +170,14 @@ public class IcosahedronTest extends Application {
 
             @Override
             public void handle(long now) {
-                if (now > lastEffect + 50_000_000l) {
+                if (now > lastEffect + 100_000_000l) {
                     double cont1=0.1+(count.get()%60)/10d;
                     double cont2=0.1+(count.getAndIncrement()%30)/10d;
 //                    dens = p->(float)(3d*Math.pow(Math.sin(p.phi),2)*Math.pow(Math.abs(Math.cos(p.theta)),cont1)+
 //                            Math.pow(Math.cos(p.phi),2)*Math.pow(Math.abs(Math.sin(p.theta)),cont2));
-                    dens = p->10*cont1*Math.pow(Math.abs(p.x),cont1)*Math.pow(Math.abs(p.y),cont2)*Math.pow(p.z,2);
+                    //dens = p->10*cont1*Math.pow(Math.abs(p.x),cont1)*Math.pow(Math.abs(p.y),cont2)*Math.pow(p.z,2);
+                    double t=count.getAndIncrement()%10;
+                    dens = p->(double)(p.x+t)*(p.y+t)*(p.z+t);
                     ico.setDensity(dens);
 //                    ico.setColors((int)Math.pow(2,count.get()%16));
 //                    ico.setLevel(count.get()%8);
