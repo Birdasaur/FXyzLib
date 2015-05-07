@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.AmbientLight;
@@ -34,9 +35,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
-import javafx.scene.shape.CullFace;
-import javafx.scene.shape.Cylinder;
-import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
@@ -45,11 +43,7 @@ import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.BezierMesh;
 import org.fxyz.shapes.primitives.PrismMesh;
-import org.fxyz.shapes.primitives.KnotMesh;
-import org.fxyz.shapes.primitives.TexturedMesh;
-import org.fxyz.utils.DensityFunction;
 import org.fxyz.shapes.primitives.helper.InterpolateBezier;
-import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.SectionType;
 
 /**
  *
@@ -69,8 +63,8 @@ public class BezierTest extends Application {
     private double mouseDeltaY;
     private ArrayList<BezierMesh> beziers;
     private Rotate rotateY;
-    private DensityFunction<Point3D> dens = p->(double)p.f;
-    private DensityFunction<Double> func = t->(double)t;
+    private Function<Point3D, Number> dens = p->p.f;
+    private Function<Number, Number> func = t->t;
     private long lastEffect;
     
     @Override
@@ -171,7 +165,7 @@ public class BezierTest extends Application {
         // PATTERN
 //           bezier.setTextureModePattern(3d);
         // FUNCTION
-            bezier.setTextureModeVertices1D(1530,t->spline.getKappa(t));
+            bezier.setTextureModeVertices1D(1530,t->spline.getKappa(t.doubleValue()));
 //            bezier.setTextureModeVertices1D(1530,func);
         // DENSITY
 //            bezier.setTextureModeVertices3D(256*256,dens);
@@ -255,7 +249,7 @@ public class BezierTest extends Application {
 //                    cameraTransform.rx.setAngle(angle);
 //                    cameraTransform.rx.setAxis(new javafx.geometry.Point3D(cross.getX(),-cross.getY(),cross.getZ()));
 //                    dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
-                    func=t->Math.pow(t,(count.get()%5d));
+                    func=t->Math.pow(t.doubleValue(),(count.get()%5d));
                     beziers.forEach(b->b.setFunction(func));
 //                    knot.setP(1+(count.get()%5));
 //                    knot.setQ(2+(count.get()%15));

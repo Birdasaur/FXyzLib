@@ -19,6 +19,7 @@
 package org.fxyz.tests;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.AmbientLight;
@@ -30,7 +31,6 @@ import javafx.scene.SceneAntialiasing;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
@@ -38,10 +38,9 @@ import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.KnotMesh;
-import org.fxyz.shapes.primitives.TexturedMesh;
-import org.fxyz.utils.DensityFunction;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.SectionType;
 import org.fxyz.utils.OBJWriter;
+import org.fxyz.utils.Palette.ColorPalette;
 
 /**
  *
@@ -61,7 +60,7 @@ public class KnotTest extends Application {
     private double mouseDeltaY;
     private KnotMesh knot;
     private Rotate rotateY;
-    private DensityFunction<Point3D> dens = p->(double)p.x;
+    private Function<Point3D, Number> dens = p->(double)p.x;
     private long lastEffect;
     
     @Override
@@ -105,7 +104,8 @@ public class KnotTest extends Application {
     // PATTERN
 //       knot.setTextureModePattern(3d);
     // FUNCTION
-        knot.setTextureModeVertices1D(256*256,t->knot.getTau(t));
+//        knot.setTextureModeVertices1D(1530,t->knot.getTau(t));
+        knot.setTextureModeVertices1D(ColorPalette.GREEN,8,t->knot.getTau(t.doubleValue()));
     // DENSITY
 //        knot.setTextureModeVertices3D(256*256,dens);
     // FACES
@@ -200,7 +200,7 @@ public class KnotTest extends Application {
 //                    knot.setMinorRadius(2d+(count.get()%60));
 //                    knot.setWireRadius(0.1d+(count.get()%6)/10d);
 //                    knot.setPatternScale(1d+(count.get()%10)*3d);
-//                    knot.setSectionType(SectionType.values()[count.get()%SectionType.values().length]);
+                    knot.setSectionType(SectionType.values()[count.get()%SectionType.values().length]);
                     count.getAndIncrement();
                     lastEffect = now;
                 }
@@ -215,7 +215,7 @@ public class KnotTest extends Application {
         OBJWriter writer=new OBJWriter((TriangleMesh) knot.getMesh(),"knot");
         writer.setMaterialColor(Color.BROWN);
         writer.exportMesh();
-//        timerEffect.start();
+        timerEffect.start();
         
     }
     /**

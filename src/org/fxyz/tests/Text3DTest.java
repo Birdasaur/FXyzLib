@@ -19,6 +19,7 @@
 package org.fxyz.tests;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.AmbientLight;
@@ -37,7 +38,6 @@ import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.Text3DMesh;
-import org.fxyz.utils.DensityFunction;
 
 /**
  *
@@ -55,7 +55,7 @@ public class Text3DTest extends Application {
     private double mouseOldY;
     private double mouseDeltaX;
     private double mouseDeltaY;
-    private DensityFunction<Point3D> dens = p->(double)p.magnitude();
+    private Function<Point3D, Number> dens = p->p.magnitude();
     private Rotate rotateY;
     private long lastEffect;
     
@@ -93,9 +93,9 @@ public class Text3DTest extends Application {
     // IMAGE
 //        letters.setTextureModeImage(getClass().getResource("res/steel-background1.jpg").toExternalForm());
     // DENSITY
-        letters.setTextureModeVertices3D(1530,p->(double)Math.sin(p.y/50)*Math.cos(p.x/40)*p.z);
+//        letters.setTextureModeVertices3D(1530,p->(double)Math.sin(p.y/50)*Math.cos(p.x/40)*p.z);
     // FACES
-//        letters.setTextureModeFaces(1530);
+        letters.setTextureModeFaces(1530);
         
         group.getChildren().add(letters);         
         sceneRoot.getChildren().addAll(group);        

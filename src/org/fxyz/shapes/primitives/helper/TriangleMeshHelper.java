@@ -20,6 +20,7 @@ package org.fxyz.shapes.primitives.helper;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javafx.scene.image.Image;
@@ -28,12 +29,12 @@ import javafx.scene.paint.Material;
 import javafx.scene.paint.PhongMaterial;
 import org.fxyz.geometry.Face3;
 import org.fxyz.geometry.Point3D;
-import org.fxyz.utils.DensityFunction;
 import org.fxyz.utils.FloatCollector;
 import org.fxyz.utils.NormalMap;
 import org.fxyz.utils.Palette;
-import org.fxyz.utils.Palette.COLOR_PALETTE;
+import org.fxyz.utils.Palette.ColorPalette;
 import org.fxyz.utils.Patterns;
+import org.fxyz.utils.Patterns.CarbonPatterns;
 
 /**
  *
@@ -79,6 +80,7 @@ public class TriangleMeshHelper {
     private SectionType sectionType=DEFAULT_SECTION_TYPE;
     
     public TriangleMeshHelper(){
+        material.setDiffuseColor(DEFAULT_DIFFUSE_COLOR);
     }
     
     public void setSectionType(SectionType sectionType){
@@ -100,7 +102,7 @@ public class TriangleMeshHelper {
                 density=DEFAULT_DENSITY_FUNCTION;        
                 break;
             case PATTERN: 
-                createPattern();
+                createCarbonPattern();
                 break;
         }
     }
@@ -108,9 +110,18 @@ public class TriangleMeshHelper {
     public TextureType getTextureType() { return textureType; }
     
     /*
+    Material
+    */
+    private final PhongMaterial material = new PhongMaterial();
+    
+    public final PhongMaterial getMaterial() {
+        return material;
+    }
+    /*
     Patterns
     */
-    public static final double DEFAULT_PATTERN_SCALE = 0d;
+    public static final double DEFAULT_PATTERN_SCALE = 1d;
+    public static final CarbonPatterns DEFAULT_CARBON_PATTERN = CarbonPatterns.DARK_CARBON;
     public static final int DEFAULT_WIDTH =  12;
     public static final int DEFAULT_HEIGHT = 12;
     public final static boolean DEFAULT_SAVE_PATTERN = false;
@@ -118,41 +129,49 @@ public class TriangleMeshHelper {
     private int patternWidth;
     private int patternHeight;
     
-    public final void createPattern(){
-        createPattern(DEFAULT_WIDTH,DEFAULT_HEIGHT,DEFAULT_SAVE_PATTERN);
+    public final void createCarbonPattern(){
+        createCarbonPattern(DEFAULT_CARBON_PATTERN,DEFAULT_WIDTH,DEFAULT_HEIGHT,DEFAULT_SAVE_PATTERN);
     }
-    public void createPattern(boolean save){
-        createPattern(DEFAULT_WIDTH,DEFAULT_HEIGHT,save);
+    public final void createCarbonPattern(CarbonPatterns cp){
+        createCarbonPattern(cp,DEFAULT_WIDTH,DEFAULT_HEIGHT,DEFAULT_SAVE_PATTERN);
     }
-    public void createPattern(int width, int height, boolean save){
+    public void createCarbonPattern(boolean save){
+        createCarbonPattern(DEFAULT_CARBON_PATTERN,DEFAULT_WIDTH,DEFAULT_HEIGHT,save);
+    }
+    public void createCarbonPattern(CarbonPatterns cp, int width, int height, boolean save){
         this.patternWidth=width;
         this.patternHeight=height;
         patterns=new Patterns(width,height);
-        patterns.createPattern(save);
+        patterns.createPattern(cp, save);
     }
     public Image getPatternImage() {
-        if(patterns==null){
-            createPattern();
-        }
+        return getPatternImage(DEFAULT_CARBON_PATTERN);
+    }
+    public Image getPatternImage(CarbonPatterns cp) {
+        createCarbonPattern(cp);
         return patterns.getPatternImage();
     }
-    
-    public Material getMaterialWithPattern(){
-        PhongMaterial mat = new PhongMaterial();
-        mat.setDiffuseMap(getPatternImage());
-        mat.setSpecularPower(32);
-        mat.setDiffuseColor(Color.WHITE);
-        mat.setSpecularColor(Color.WHITE);
-        return mat;
+    public void getMaterialWithPattern(){
+        getMaterialWithPattern(DEFAULT_CARBON_PATTERN);
+    }
+    public void setMaterialWithPattern(Material mat, CarbonPatterns cp){
+        Image img = getPatternImage(cp);  
+        clearMaterialAndSetDiffMap(material, img);
+    }
+    public void getMaterialWithPattern(CarbonPatterns cp){
+        Image img = getPatternImage(cp);  
+        clearMaterialAndSetDiffMap(material, img);
     }
     
     /*
     Colors, palette
     */
     public final static Color DEFAULT_DIFFUSE_COLOR = Color.WHITE;
-    public final static int DEFAULT_COLORS = 16;
+    public final static Color DEFAULT_SPECULAR_COLOR = Color.BLACK;
+    public final static int DEFAULT_COLORS = 1530;
     public final static boolean DEFAULT_SAVE_PALETTE = false;
-    public final static COLOR_PALETTE DEFAULT_COLOR_PALETTE = COLOR_PALETTE.HSB;
+    public final static ColorPalette DEFAULT_COLOR_PALETTE = ColorPalette.HSB;
+    public final static CarbonPatterns DEFAULT_PATTERN = CarbonPatterns.DARK_CARBON;
     private Palette palette;
     private int colors;
     
@@ -168,7 +187,7 @@ public class TriangleMeshHelper {
     public void createPalette(int colors,boolean save){
         createPalette(DEFAULT_COLORS,save,DEFAULT_COLOR_PALETTE);
     }
-    public void createPalette(int colors, boolean save, COLOR_PALETTE palette_colors){
+    public void createPalette(int colors, boolean save, ColorPalette palette_colors){
         this.colors=colors;
         palette=new Palette(colors,palette_colors);
         palette.createPalette(save);
@@ -181,20 +200,13 @@ public class TriangleMeshHelper {
         return palette.getPaletteImage();
     }
     
-    public Material getMaterialWithPalette(){
-        PhongMaterial mat = new PhongMaterial();
-        mat.setDiffuseMap(getPaletteImage());
-        mat.setSpecularPower(20);
-        mat.setDiffuseColor(Color.WHITE);
-        mat.setSpecularColor(Color.WHITE);
-        return mat;
+    public void getMaterialWithPalette(){
+        Image img = getPaletteImage();
+        clearMaterialAndSetDiffMap(material, img);  
     }
     
-    public Material getMaterialWithColor(Color color){
-        PhongMaterial mat = new PhongMaterial(color);
-        mat.setSpecularPower(32);
-        mat.setSpecularColor(Color.WHITE);
-        return mat;
+    public void getMaterialWithColor(Color color){
+        clearMaterialAndSetColor(material, color);
     }
     
     public Material getMaterialWithColor(Color color, String image){
@@ -222,20 +234,40 @@ public class TriangleMeshHelper {
             .toArray();
     }
     
+    private void clearMaterialAndSetDiffMap(PhongMaterial mat, Image diff){
+        mat.setBumpMap(null);
+        mat.setSpecularMap(null);
+        mat.setSelfIlluminationMap(null);
+        
+        mat.setDiffuseColor(DEFAULT_DIFFUSE_COLOR);
+        mat.setSpecularColor(DEFAULT_SPECULAR_COLOR);
+        
+        mat.setDiffuseMap(diff);        
+    }
+    
+    private void clearMaterialAndSetColor(PhongMaterial mat, Color col){
+        mat.setBumpMap(null);
+        mat.setSpecularMap(null);
+        mat.setSelfIlluminationMap(null);
+        mat.setDiffuseMap(null);
+        
+        mat.setDiffuseColor(col);
+    }
+    
     /*
     density functions
     */
-    public final static DensityFunction<Point3D> DEFAULT_DENSITY_FUNCTION= p->0d;
-    private DensityFunction<Point3D> density;
+    public final static Function<Point3D,Number> DEFAULT_DENSITY_FUNCTION= p->0d;
+    private Function<Point3D,Number> density;
     private double min = 0d;
     private double max = 1d;
     
-    public void setDensity(DensityFunction<Point3D> density){
+    public void setDensity(Function<Point3D,Number> density){
         this.density=density;
     }
     
     public int mapDensity(Point3D p){
-        int f=(int)(((density.eval(p)-min)/(max-min))*colors);
+        int f=(int)(((density.apply(p).doubleValue()-min)/(max-min))*colors);
         if(f<0){
             f=0;
         }
@@ -245,15 +277,15 @@ public class TriangleMeshHelper {
         return f;
     }
 
-    public final static DensityFunction<Double> DEFAULT_UNIDIM_FUNCTION= x->0d;
-    private DensityFunction<Double> function;
+    public final static Function<Number,Number> DEFAULT_UNIDIM_FUNCTION= x->0d;
+    private Function<Number,Number> function;
     
-    public void setFunction(DensityFunction<Double> function){
+    public void setFunction(Function<Number,Number> function){
         this.function=function;
     }
     
     public int mapFunction(double x){
-        int f=(int)(((function.eval(x)-min)/(max-min))*colors);
+        int f=(int)(((function.apply(x).doubleValue()-min)/(max-min))*colors);
         if(f<0){
             f=0;
         }
@@ -283,8 +315,8 @@ public class TriangleMeshHelper {
     }
     
     public void updateExtremes(List<Point3D> points){
-        max=points.parallelStream().mapToDouble(density::eval).max().orElse(1.0);
-        min=points.parallelStream().mapToDouble(density::eval).min().orElse(0.0);
+        max=points.parallelStream().mapToDouble(p->density.apply(p).doubleValue()).max().orElse(1.0);
+        min=points.parallelStream().mapToDouble(p->density.apply(p).doubleValue()).min().orElse(0.0);
         max=(float)Math.round(max*1e6)/1e6;
         min=(float)Math.round(min*1e6)/1e6;
         if(max==min){
@@ -294,8 +326,8 @@ public class TriangleMeshHelper {
     }
     
     public void updateExtremesByFunction(List<Point3D> points){
-        max=points.parallelStream().mapToDouble(p->function.eval(new Double(p.f))).max().orElse(1.0);
-        min=points.parallelStream().mapToDouble(p->function.eval(new Double(p.f))).min().orElse(0.0);
+        max=points.parallelStream().mapToDouble(p->function.apply((double) p.f).doubleValue()).max().orElse(1.0);
+        min=points.parallelStream().mapToDouble(p->function.apply((double) p.f).doubleValue()).min().orElse(0.0);
         max=(float)Math.round(max*1e6)/1e6;
         min=(float)Math.round(min*1e6)/1e6;
         if(max==min){
@@ -306,10 +338,8 @@ public class TriangleMeshHelper {
     /*
     image
     */
-    public Material getMaterialWithImage(String image){
-        PhongMaterial mat = new PhongMaterial();
-        mat.setDiffuseMap(new Image(image));
-        return mat;
+    public void getMaterialWithImage(String image){
+        clearMaterialAndSetDiffMap(material, new Image(image));
     }
     
     /*

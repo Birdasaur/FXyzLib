@@ -29,7 +29,6 @@ import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Face3;
-import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.helper.BezierHelper;
 
 /**

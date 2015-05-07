@@ -20,6 +20,7 @@ package org.fxyz.utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  *
@@ -77,9 +78,9 @@ public class GaussianQuadrature {
         }
     }
     
-    public double NIntegrate(DensityFunction<Double> f){ // f[t]
+    public double NIntegrate(Function<Double,Number> f){ // f[t]
         return gauss.parallelStream()
-            .mapToDouble(p->p.getWeight()*f.eval((b-a)/2d*p.getAbscissa()+(b+a)/2d))
+            .mapToDouble(p->p.getWeight()*f.apply((b-a)/2d*p.getAbscissa()+(b+a)/2d).doubleValue())
             .reduce(Double::sum).getAsDouble()*(b-a)/2d;
     }
     

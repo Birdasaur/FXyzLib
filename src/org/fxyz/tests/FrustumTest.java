@@ -19,6 +19,7 @@
 package org.fxyz.tests;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Group;
@@ -26,27 +27,17 @@ import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
 import javafx.scene.Scene;
 import javafx.scene.SceneAntialiasing;
-import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
-import javafx.scene.shape.CullFace;
-import javafx.scene.shape.Cylinder;
-import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.Sphere;
-import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.FrustumMesh;
-import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
-import org.fxyz.utils.DensityFunction;
-import org.fxyz.utils.OBJWriter;
-import org.fxyz.utils.Palette;
-import org.fxyz.utils.Palette.COLOR_PALETTE;
 
 /**
  *
@@ -67,7 +58,7 @@ public class FrustumTest extends Application {
     private FrustumMesh cylinder;
     private Rotate rotateY;
     
-    private DensityFunction<Point3D> dens = p-> (double)p.x;
+    private Function<Point3D, Number> dens = p->p.x;
     
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -101,11 +92,11 @@ public class FrustumTest extends Application {
     // SECTION TYPE
 //        cylinder.setSectionType(TriangleMeshHelper.SectionType.TRIANGLE);
     // NONE
-        cylinder.setTextureModeNone(Color.ROYALBLUE);
+//        cylinder.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
-        cylinder.setTextureModeImage(getClass().getResource("res/netCylinder.png").toExternalForm());
-//        cylinder.setTextureModeVertices1D(1530, t->t);
-//        cylinder.setColorPalette(COLOR_PALETTE.GREEN);
+//        cylinder.setTextureModeImage(getClass().getResource("res/netCylinder.png").toExternalForm());
+        cylinder.setTextureModeVertices1D(1530, t->t);
+//        cylinder.setColorPalette(ColorPalette.GREEN);
     // DENSITY
 //        cylinder.setTextureModeVertices3D(1530,p->(double)p.y);
 //        cylinder.setTextureModeVertices3D(1530,p->(double)cylinder.unTransform(p).magnitude());
@@ -190,7 +181,7 @@ public class FrustumTest extends Application {
 //        OBJWriter writer=new OBJWriter((TriangleMesh) cylinder.getMesh(),"cylinder2");
 ////        writer.setMaterialColor(Color.AQUA);
 ////        writer.setTextureImage(getClass().getResource("res/netCylinder.png").toExternalForm());
-//        writer.setTextureColors(6,COLOR_PALETTE.GREEN);
+//        writer.setTextureColors(6,ColorPalette.GREEN);
 //        writer.exportMesh();
         
         lastEffect = System.nanoTime();
@@ -200,8 +191,8 @@ public class FrustumTest extends Application {
             @Override
             public void handle(long now) {
                 if (now > lastEffect + 100_000_000l) {
-                    func=t->Math.pow(Math.sin(8d*Math.PI*(10d*(1-t)+count.get()%11)/20d),6); //<=1/6d)?1d:0d;
-//                    cylinder.setFunction(func);
+                    func=t->Math.pow(Math.sin(8d*Math.PI*(10d*(1-t.doubleValue())+count.get()%11)/20d),6); //<=1/6d)?1d:0d;
+                    cylinder.setFunction(func);
                     
 //                    mapBez.values().forEach(b->b.setDensity(dens));
                     count.getAndIncrement();
@@ -209,9 +200,9 @@ public class FrustumTest extends Application {
                 }
             }
         };
-//        timerEffect.start();
+        timerEffect.start();
     }
-    private DensityFunction<Double> func = t->(double)t;
+    private Function<Number, Number> func = t->(double)t;
     private long lastEffect;
     /**
      * @param args the command line arguments

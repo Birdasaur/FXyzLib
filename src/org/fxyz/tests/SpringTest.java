@@ -19,9 +19,9 @@
 package org.fxyz.tests;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
-import javafx.scene.AmbientLight;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
@@ -30,18 +30,12 @@ import javafx.scene.SceneAntialiasing;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.CullFace;
-import javafx.scene.shape.DrawMode;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.SpringMesh;
-import org.fxyz.utils.DensityFunction;
-import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
-import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.SectionType;
 import org.fxyz.utils.OBJWriter;
 
 /**
@@ -62,7 +56,7 @@ public class SpringTest extends Application {
     private double mouseDeltaY;
     private SpringMesh spring;
     private Rotate rotateY;
-    private DensityFunction<Point3D> dens = p->Math.sin(p.x);
+    private Function<Point3D, Number> dens = p->Math.sin(p.x);
     private long lastEffect;
     
     @Override
@@ -77,7 +71,7 @@ public class SpringTest extends Application {
         cameraTransform.getChildren().add(camera);
         camera.setNearClip(0.1);
         camera.setFarClip(10000.0);
-        camera.setTranslateZ(-500);
+        camera.setTranslateZ(-100);
         cameraTransform.ry.setAngle(-45.0);
         cameraTransform.rx.setAngle(-10.0);
         //add a Point Light for better viewing of the grid coordinate system

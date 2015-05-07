@@ -19,6 +19,7 @@
 package org.fxyz.tests;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -26,21 +27,17 @@ import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
-import javafx.scene.PointLight;
 import javafx.scene.Scene;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.CullFace;
-import javafx.scene.shape.DrawMode;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.IcosahedronMesh;
-import org.fxyz.utils.DensityFunction;
 
 /**
  *
@@ -61,7 +58,7 @@ public class IcosahedronTest extends Application {
     private IcosahedronMesh ico;
     private Rotate rotateY;
     
-    private DensityFunction<Point3D> dens = p-> (double)p.x*p.y*p.z;
+    private Function<Point3D, Number> dens = p-> p.x*p.y*p.z;
 //                (float)(3d*Math.pow(Math.sin(p.phi),2)*Math.pow(Math.abs(Math.cos(p.theta)),0.1)+
 //                Math.pow(Math.cos(p.phi),2)*Math.pow(Math.abs(Math.sin(p.theta)),0.1));
 //    private Density dens = p->p.x*p.y*p.z;
@@ -79,7 +76,7 @@ public class IcosahedronTest extends Application {
         cameraTransform.getChildren().add(camera);
         camera.setNearClip(0.001);
         camera.setFarClip(10000.0);
-        camera.setTranslateZ(0);
+        camera.setTranslateZ(-10);
         cameraTransform.ry.setAngle(-45.0);
         cameraTransform.rx.setAngle(-10.0);
         //add a Point Light for better viewing of the grid coordinate system

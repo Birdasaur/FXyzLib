@@ -34,7 +34,7 @@ import javafx.scene.shape.TriangleMesh;
 import javax.imageio.ImageIO;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.TextureType;
-import org.fxyz.utils.Palette.COLOR_PALETTE;
+import org.fxyz.utils.Palette.ColorPalette;
 
 /**
  *
@@ -69,7 +69,7 @@ public class OBJWriter {
             diffuseMap="palette_"+numColors+".png";
         }
     }
-    public void setTextureColors(int numColors,COLOR_PALETTE colorPalette){
+    public void setTextureColors(int numColors,ColorPalette colorPalette){
         if(numColors>0){
             defaultTexture=TextureType.COLORED_VERTICES_3D;
             Palette palette=new Palette(numColors,colorPalette);

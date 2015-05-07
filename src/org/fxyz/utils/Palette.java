@@ -38,7 +38,7 @@ import javax.imageio.ImageIO;
  */
 public class Palette {
     
-    public enum COLOR_PALETTE {
+    public enum ColorPalette {
         HSB,GREEN
     }
     
@@ -46,12 +46,12 @@ public class Palette {
             Color.rgb(35,80,33,1),Color.rgb(56,122,54,1),Color.rgb(45,187,40,1),Color.rgb(8,231,0,1));
     
     private final int numColors;
-    private final COLOR_PALETTE colorPalette;
+    private final ColorPalette colorPalette;
     private int width;
     private int height;
     private Image imgPalette;
     
-    private final static COLOR_PALETTE DEFAULT_COLOR_PALETTE = COLOR_PALETTE.HSB;
+    private final static ColorPalette DEFAULT_COLOR_PALETTE = ColorPalette.HSB;
     private final static int DEFAULT_NUMCOLORS = 10000; // 100x100 palette image
     
     public Palette(){
@@ -62,7 +62,7 @@ public class Palette {
         this(numColors, DEFAULT_COLOR_PALETTE);
     }
     
-    public Palette(int numColors, COLOR_PALETTE colorPalette){
+    public Palette(int numColors, ColorPalette colorPalette){
         this.numColors=numColors;
         this.colorPalette = colorPalette;
     }
@@ -137,12 +137,12 @@ public class Palette {
         return imgPalette;
     }
     
-    public COLOR_PALETTE getColorPalette(){
+    public ColorPalette getColorPalette(){
         return colorPalette;
     }
     
     public static void main(String[] args){
-        Palette p=new Palette(4,COLOR_PALETTE.HSB);
+        Palette p=new Palette(4,ColorPalette.HSB);
         p.createPalette(true);
         System.out.println("p: "+p.getWidth()+" "+p.getHeight());
         IntStream.range(0,10).boxed().forEach(i->p.getTextureLocation(i).forEach(d->System.out.print(" "+d)));

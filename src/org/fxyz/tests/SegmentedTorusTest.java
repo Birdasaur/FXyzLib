@@ -19,6 +19,7 @@
 package org.fxyz.tests;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import static javafx.animation.Animation.INDEFINITE;
 import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
@@ -45,7 +46,6 @@ import javafx.util.Duration;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.SegmentedTorusMesh;
-import org.fxyz.utils.DensityFunction;
 
 /**
  *
@@ -66,7 +66,7 @@ public class SegmentedTorusTest extends Application {
     private Rotate rotateY;
     private SegmentedTorusMesh torus;
     private SegmentedTorusMesh banner;
-    private DensityFunction<Point3D> dens = p->(double)p.x;
+    private Function<Point3D, Number> dens = p->p.x;
     private long lastEffect;
     
     @Override
@@ -100,27 +100,27 @@ public class SegmentedTorusTest extends Application {
         torus = new SegmentedTorusMesh(50, 42, 0, 500d, 300d); 
 //        PhongMaterial matTorus = new PhongMaterial(Color.FIREBRICK);
 //        torus.setMaterial(matTorus);
-//        banner = new SegmentedTorusMesh(50, 42, 14, 500d, 300d); 
+        banner = new SegmentedTorusMesh(50, 42, 14, 500d, 300d); 
 //        PhongMaterial matBanner = new PhongMaterial();
 //        matBanner.setDiffuseMap(new Image(getClass().getResource("res/Duke3DprogressionSmall.jpg").toExternalForm()));
 //        banner.setMaterial(matBanner);
 //        torus.setDrawMode(DrawMode.LINE);
     // NONE
-        torus.setTextureModeNone(Color.FORESTGREEN);
+//        torus.setTextureModeNone(Color.FORESTGREEN);
     // IMAGE
 //        torus.setTextureModeImage(getClass().getResource("res/grid1.png").toExternalForm());
-//        banner.setTextureModeImage(getClass().getResource("res/Duke3DprogressionSmall.jpg").toExternalForm());
+        banner.setTextureModeImage(getClass().getResource("res/office.jpg").toExternalForm());
     // PATTERN
 //       torus.setTextureModePattern(1.0d);
     // DENSITY
-//        torus.setTextureModeVertices3D(256*256,dens);
+        torus.setTextureModeVertices3D(1530,dens);
     // FACES
 //        torus.setTextureModeFaces(256*256);
         
         torus.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
-//        banner.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
+        banner.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
         
-        group.getChildren().addAll(torus); //,banner);
+        group.getChildren().addAll(torus,banner);
         
         sceneRoot.getChildren().addAll(group);        
         
@@ -188,9 +188,9 @@ public class SegmentedTorusTest extends Application {
 
             @Override
             public void handle(long now) {
-                if (now > lastEffect + 1_000_000_000l) {
-//                    dens = p->(float)(p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d));
-//                    torus.setDensity(dens);
+                if (now > lastEffect + 100_000_000l) {
+                    dens = p->p.x*Math.cos(count.get()%100d*2d*Math.PI/50d)+p.y*Math.sin(count.get()%100d*2d*Math.PI/50d);
+                    torus.setDensity(dens);
                     
 //                    if(count.get()%100<50){
 //                        torus.setDrawMode(DrawMode.LINE);
@@ -213,7 +213,7 @@ public class SegmentedTorusTest extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();   
         
-//        timerEffect.start();
+        timerEffect.start();
         
     }
     /**

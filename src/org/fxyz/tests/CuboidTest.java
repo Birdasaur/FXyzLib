@@ -21,6 +21,7 @@ package org.fxyz.tests;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 import javafx.application.Application;
 import javafx.geometry.Bounds;
@@ -45,7 +46,6 @@ import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.CuboidMesh;
 import org.fxyz.utils.Axes;
-import org.fxyz.utils.DensityFunction;
 import org.fxyz.utils.OBJWriter;
 
 /**
@@ -67,7 +67,7 @@ public class CuboidTest extends Application {
     private CuboidMesh cuboid;
     private Rotate rotateY;
     
-    private DensityFunction<Point3D> dens = p-> (double)p.x;
+    private Function<Point3D, Number> dens = p->p.x;
     
     @Override
     public void start(Stage primaryStage) throws Exception {

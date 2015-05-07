@@ -29,7 +29,6 @@ import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Face3;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.helper.KnotHelper;
-import org.fxyz.utils.GaussianQuadrature;
 
 /**
  *  Spring based on this model:  http://en.wikipedia.org/wiki/Trefoil_knot
@@ -213,7 +212,7 @@ public class KnotMesh extends TexturedMesh {
         return p.get();
     }
 
-    public void setP(double value) {
+    public final void setP(double value) {
         p.set(value);
     }
 

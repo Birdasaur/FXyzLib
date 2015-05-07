@@ -21,6 +21,7 @@ package org.fxyz.shapes.primitives;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -34,17 +35,18 @@ import javafx.scene.shape.TriangleMesh;
 import org.fxyz.geometry.Face3;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.helper.TextureMode;
-import org.fxyz.utils.DensityFunction;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
 import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_COLORS;
 import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_COLOR_PALETTE;
 import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_DENSITY_FUNCTION;
 import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_DIFFUSE_COLOR;
+import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_PATTERN;
 import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_PATTERN_SCALE;
 import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_UNIDIM_FUNCTION;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.SectionType;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.TextureType;
-import org.fxyz.utils.Palette.COLOR_PALETTE;
+import org.fxyz.utils.Palette.ColorPalette;
+import org.fxyz.utils.Patterns.CarbonPatterns;
 
 /**
  * TexturedMesh is a base class that provides support for different mesh implementations
@@ -75,16 +77,9 @@ public abstract class TexturedMesh extends MeshView implements TextureMode {
     protected final Rectangle areaMesh=new Rectangle(0,0);
     
     protected TexturedMesh(){
-        sectionType.set(SectionType.CIRCLE);
-        textureType.set(TextureType.NONE);
-        textureType.addListener((ob,o,o1)->{
-            if(mesh!=null){
-                updateTexture();
-                updateTextureOnFaces();
-            }
-        });
+        setMaterial(helper.getMaterial());
     }
-    private final ObjectProperty<SectionType> sectionType = new SimpleObjectProperty<SectionType>(){
+    private final ObjectProperty<SectionType> sectionType = new SimpleObjectProperty<SectionType>(SectionType.CIRCLE){
 
         @Override
         protected void invalidated() {
@@ -107,19 +102,27 @@ public abstract class TexturedMesh extends MeshView implements TextureMode {
         return sectionType;
     }
     
-    private final ObjectProperty<TextureType> textureType = new SimpleObjectProperty<>();
+    private final ObjectProperty<TextureType> textureType = new SimpleObjectProperty<TextureType>(TextureType.NONE){
+        
+        @Override
+        protected void invalidated() {
+            if(mesh!=null){
+                updateTexture();
+                updateTextureOnFaces();
+            }
+        }
+    };
 
     @Override
     public void setTextureModeNone() {
-        helper.setTextureType(TextureType.NONE);
-        setTextureType(TextureType.NONE);
+        setTextureModeNone(Color.WHITE);
     }
     
     @Override
     public void setTextureModeNone(Color color) {
         if(color!=null){
             helper.setTextureType(TextureType.NONE);
-            setMaterial(helper.getMaterialWithColor(color));
+            helper.getMaterialWithColor(color);
         }
         setTextureType(helper.getTextureType());
     }
@@ -137,51 +140,83 @@ public abstract class TexturedMesh extends MeshView implements TextureMode {
     public void setTextureModeImage(String image) {
         if(image!=null && !image.isEmpty()){
             helper.setTextureType(TextureType.IMAGE);
-            setMaterial(helper.getMaterialWithImage(image));
+            helper.getMaterialWithImage(image);
             setTextureType(helper.getTextureType());
         }
     }
     
     @Override
-    public void setTextureModePattern(double scale) {
+    public void setTextureModePattern(CarbonPatterns pattern, double scale) {
         helper.setTextureType(TextureType.PATTERN);
         patternScale.set(scale);
-        setMaterial(helper.getMaterialWithPattern());
+        carbonPatterns.set(pattern);
+        helper.getMaterialWithPattern(pattern);
         setTextureType(helper.getTextureType());
     }
     
     @Override
-    public void setTextureModeVertices3D(int colors, DensityFunction<Point3D> dens) {
+    public void setTextureModeVertices3D(int colors, Function<Point3D, Number> dens) {
         helper.setTextureType(TextureType.COLORED_VERTICES_3D);
         setColors(colors);
+        createPalette(getColors());
         setDensity(dens);
+        helper.setDensity(dens);
         setTextureType(helper.getTextureType());
     }
     
     @Override
-    public void setTextureModeVertices3D(int colors, DensityFunction<Point3D> dens, double min, double max) {
+    public void setTextureModeVertices3D(ColorPalette palette, int colors, Function<Point3D, Number> dens) {
+        helper.setTextureType(TextureType.COLORED_VERTICES_3D);
+        setColors(colors);
+        setColorPalette(palette);
+        createPalette(getColors());
+        setDensity(dens);
+        helper.setDensity(dens);
+        setTextureType(helper.getTextureType());
+    }
+    
+    @Override
+    public void setTextureModeVertices3D(int colors, Function<Point3D, Number> dens, double min, double max) {
         helper.setTextureType(TextureType.COLORED_VERTICES_3D);
         setMinGlobal(min);
         setMaxGlobal(max);
         setColors(colors);
+        createPalette(getColors());
         setDensity(dens);
+        helper.setDensity(dens);
         setTextureType(helper.getTextureType());
     }
     
     @Override
-    public void setTextureModeVertices1D(int colors, DensityFunction<Double> function) {
+    public void setTextureModeVertices1D(int colors, Function<Number, Number> function) {
         helper.setTextureType(TextureType.COLORED_VERTICES_1D);
         setColors(colors);
+        createPalette(getColors());
         setFunction(function);
+        helper.setFunction(function);
         setTextureType(helper.getTextureType());
     }
+    
     @Override
-    public void setTextureModeVertices1D(int colors, DensityFunction<Double> function, double min, double max) {
+    public void setTextureModeVertices1D(ColorPalette palette, int colors, Function<Number, Number> function) {
+        helper.setTextureType(TextureType.COLORED_VERTICES_1D);
+        setColors(colors);
+        setColorPalette(palette);
+        createPalette(getColors());
+        setFunction(function);
+        helper.setFunction(function);
+        setTextureType(helper.getTextureType());
+    }
+    
+    @Override
+    public void setTextureModeVertices1D(int colors, Function<Number, Number> function, double min, double max) {
         helper.setTextureType(TextureType.COLORED_VERTICES_1D);
         setMinGlobal(min);
         setMaxGlobal(max);
         setColors(colors);
+        createPalette(getColors());
         setFunction(function);
+        helper.setFunction(function);
         setTextureType(helper.getTextureType());
     }
     
@@ -189,6 +224,16 @@ public abstract class TexturedMesh extends MeshView implements TextureMode {
     public void setTextureModeFaces(int colors) {
         helper.setTextureType(TextureType.COLORED_FACES);
         setColors(colors);
+        createPalette(getColors());
+        setTextureType(helper.getTextureType());
+    }
+    
+    @Override
+    public void setTextureModeFaces(ColorPalette palette, int colors) {
+        helper.setTextureType(TextureType.COLORED_FACES);
+        setColors(colors);
+        setColorPalette(palette);
+        createPalette(getColors());
         setTextureType(helper.getTextureType());
     }
     
@@ -228,9 +273,7 @@ public abstract class TexturedMesh extends MeshView implements TextureMode {
     private final IntegerProperty colors = new SimpleIntegerProperty(DEFAULT_COLORS){
 
         @Override protected void invalidated() {
-            createPalette(getColors(),getColorPalette());
-            updateTexture();
-            updateTextureOnFaces();
+            createPalette(getColors());
         }
     };
 
@@ -245,20 +288,20 @@ public abstract class TexturedMesh extends MeshView implements TextureMode {
     public IntegerProperty colorsProperty() {
         return colors;
     }
-    private final ObjectProperty<COLOR_PALETTE> colorPalette = new SimpleObjectProperty<COLOR_PALETTE>(DEFAULT_COLOR_PALETTE){
+    private final ObjectProperty<ColorPalette> colorPalette = new SimpleObjectProperty<ColorPalette>(DEFAULT_COLOR_PALETTE){
         
         @Override protected void invalidated() {
-            createPalette(getColors(),getColorPalette());
+            createPalette(getColors());
             updateTexture();
             updateTextureOnFaces();
         }
     };
 
-    public COLOR_PALETTE getColorPalette() {
+    public ColorPalette getColorPalette() {
         return colorPalette.get();
     }
 
-    public void setColorPalette(COLOR_PALETTE value) {
+    public final void setColorPalette(ColorPalette value) {
         colorPalette.set(value);
     }
 
@@ -272,6 +315,23 @@ public abstract class TexturedMesh extends MeshView implements TextureMode {
         }
     };
 
+    private final ObjectProperty<CarbonPatterns> carbonPatterns = new SimpleObjectProperty<CarbonPatterns>(DEFAULT_PATTERN){
+        @Override
+        protected void invalidated() {
+            helper.getMaterialWithPattern(get());
+        }
+    };
+    public final CarbonPatterns getCarbonPattern(){
+        return carbonPatterns.get();
+    }
+    public final void setCarbonPattern(CarbonPatterns cp){
+        carbonPatterns.set(cp);
+    }
+
+    public ObjectProperty<CarbonPatterns> getCarbonPatterns() {
+        return carbonPatterns;
+    }
+    
     public Color getDiffuseColor() {
         return diffuseColor.get();
     }
@@ -285,7 +345,7 @@ public abstract class TexturedMesh extends MeshView implements TextureMode {
     }
     
     
-    private final ObjectProperty<DensityFunction> density = new SimpleObjectProperty<DensityFunction>(DEFAULT_DENSITY_FUNCTION){
+    private final ObjectProperty<Function<Point3D, Number>> density = new SimpleObjectProperty<Function<Point3D, Number>>(DEFAULT_DENSITY_FUNCTION){
         
         @Override protected void invalidated() {
             helper.setDensity(density.get());
@@ -293,19 +353,19 @@ public abstract class TexturedMesh extends MeshView implements TextureMode {
         }
     };
     
-    public final DensityFunction getDensity(){
+    public final Function<Point3D, Number> getDensity(){
         return density.get();
     }
     
-    public final void setDensity(DensityFunction value){
+    public final void setDensity(Function<Point3D, Number> value){
         this.density.set(value);
     }
     
-    public final ObjectProperty<DensityFunction> densityProperty() {
+    public final ObjectProperty<Function<Point3D, Number>> densityProperty() {
         return density;
     }
     
-    private final ObjectProperty<DensityFunction<Double>> function = new SimpleObjectProperty<DensityFunction<Double>>(DEFAULT_UNIDIM_FUNCTION){
+    private final ObjectProperty<Function<Number, Number>> function = new SimpleObjectProperty<Function<Number, Number>>(DEFAULT_UNIDIM_FUNCTION){
         
         @Override protected void invalidated() {
             helper.setFunction(function.get());
@@ -313,11 +373,11 @@ public abstract class TexturedMesh extends MeshView implements TextureMode {
         }
     };
 
-    public DensityFunction<Double> getFunction() {
+    public Function<Number, Number> getFunction() {
         return function.get();
     }
 
-    public void setFunction(DensityFunction<Double> value) {
+    public void setFunction(Function<Number, Number> value) {
         function.set(value);
     }
 
@@ -351,13 +411,13 @@ public abstract class TexturedMesh extends MeshView implements TextureMode {
         return maxGlobal;
     }
     
-    private void createPalette(int colors, COLOR_PALETTE colorPalette) {
-        helper.createPalette(colors,false,colorPalette);        
-        setMaterial(helper.getMaterialWithPalette());
+    private void createPalette(int colors) {
+        helper.createPalette(colors, false, colorPalette.get());
+        helper.getMaterialWithPalette();
     }
     
     public void updateMaterial(){
-        setMaterial(helper.getMaterialWithColor(diffuseColor.get()));
+        helper.getMaterialWithColor(diffuseColor.get());
     }
     
     public void updateVertices(float factor){

@@ -21,14 +21,14 @@ package org.fxyz.shapes.primitives;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.DepthTest;
@@ -40,12 +40,12 @@ import javafx.scene.transform.Translate;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.helper.Text3DHelper;
 import org.fxyz.shapes.primitives.helper.TextureMode;
-import org.fxyz.utils.DensityFunction;
+import org.fxyz.utils.Palette.ColorPalette;
+import org.fxyz.utils.Patterns;
 
 /**
  *
- * @author José Pereda Llamas
- * Created on 06-may-2015 - 12:35:40
+ * @author José Pereda 
  */
 public class Text3DMesh extends Group implements TextureMode {
     
@@ -239,55 +239,74 @@ public class Text3DMesh extends Group implements TextureMode {
 
     @Override
     public void setTextureModeNone() {
-        getChildren().stream().map(TriangulatedMesh.class::cast).forEach(m->m.setTextureModeNone());
+        getStream().forEach(m->m.setTextureModeNone());
     }
 
     @Override
     public void setTextureModeNone(Color color) {
-        getChildren().stream().map(TriangulatedMesh.class::cast).forEach(m->m.setTextureModeNone(color));
+        getStream().forEach(m->m.setTextureModeNone(color));
     }
 
     @Override
     public void setTextureModeNone(Color color, String image) {
-        getChildren().stream().map(TriangulatedMesh.class::cast).forEach(m->m.setTextureModeNone(color,image));
+        getStream().forEach(m->m.setTextureModeNone(color,image));
     }
 
     @Override
     public void setTextureModeImage(String image) {
-        getChildren().stream().map(TriangulatedMesh.class::cast).forEach(m->m.setTextureModeImage(image));
+        getStream().forEach(m->m.setTextureModeImage(image));
     }
 
     @Override
-    public void setTextureModePattern(double scale) {
-        getChildren().stream().map(TriangulatedMesh.class::cast).forEach(m->m.setTextureModePattern(scale));
+    public void setTextureModePattern(Patterns.CarbonPatterns pattern, double scale) {
+        getStream().forEach(m->m.setTextureModePattern(pattern, scale));
     }
 
     @Override
-    public void setTextureModeVertices3D(int colors, DensityFunction<Point3D> dens) {
-        getChildren().stream().map(TriangulatedMesh.class::cast).forEach(m->m.setTextureModeVertices3D(colors, dens));
+    public void setTextureModeVertices3D(int colors, Function<Point3D, Number> dens) {
+        getStream().forEach(m->m.setTextureModeVertices3D(colors, dens));
     }
 
     @Override
-    public void setTextureModeVertices3D(int colors, DensityFunction<Point3D> dens, double min, double max) {
-        getChildren().stream().map(TriangulatedMesh.class::cast).forEach(m->m.setTextureModeVertices3D(colors, dens, min, max));
+    public void setTextureModeVertices3D(ColorPalette palette, int colors, Function<Point3D, Number> dens) {
+        getStream().forEach(m->m.setTextureModeVertices3D(palette, colors, dens));
     }
 
     @Override
-    public void setTextureModeVertices1D(int colors, DensityFunction<Double> function) {
-        getChildren().stream().map(TriangulatedMesh.class::cast).forEach(m->m.setTextureModeVertices1D(colors, function));
+    public void setTextureModeVertices3D(int colors, Function<Point3D, Number> dens, double min, double max) {
+        getStream().forEach(m->m.setTextureModeVertices3D(colors, dens, min, max));
     }
 
     @Override
-    public void setTextureModeVertices1D(int colors, DensityFunction<Double> function, double min, double max) {
-        getChildren().stream().map(TriangulatedMesh.class::cast).forEach(m->m.setTextureModeVertices1D(colors, function, min, max));
+    public void setTextureModeVertices1D(int colors, Function<Number, Number> function) {
+        getStream().forEach(m->m.setTextureModeVertices1D(colors, function));
+    }
+
+    @Override
+    public void setTextureModeVertices1D(ColorPalette palette, int colors, Function<Number, Number> function) {
+        getStream().forEach(m->m.setTextureModeVertices1D(palette, colors, function));
+    }
+
+    @Override
+    public void setTextureModeVertices1D(int colors, Function<Number, Number> function, double min, double max) {
+        getStream().forEach(m->m.setTextureModeVertices1D(colors, function, min, max));
     }
 
     @Override
     public void setTextureModeFaces(int colors) {
-        getChildren().stream().map(TriangulatedMesh.class::cast).forEach(m->m.setTextureModeFaces(colors));
+        getStream().forEach(m->m.setTextureModeFaces(colors));
+    }
+    
+    @Override
+    public void setTextureModeFaces(ColorPalette palette, int colors) {
+        getStream().forEach(m->m.setTextureModeFaces(palette, colors));
     }
     
     public void setDrawMode(DrawMode mode) {
-        getChildren().stream().map(TriangulatedMesh.class::cast).forEach(m->m.setDrawMode(mode));
+        getStream().forEach(m->m.setDrawMode(mode));
+    }
+    
+    private Stream<TriangulatedMesh> getStream() {
+        return getChildren().stream().map(TriangulatedMesh.class::cast);
     }
 }

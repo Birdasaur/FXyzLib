@@ -19,6 +19,7 @@
 package org.fxyz.tests;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Group;
@@ -36,7 +37,8 @@ import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.SurfacePlotMesh;
-import org.fxyz.utils.DensityFunction;
+import org.fxyz.utils.Patterns;
+import org.fxyz.utils.Patterns.CarbonPatterns;
 
 /**
  *
@@ -56,7 +58,7 @@ public class Function2DPlotTest extends Application {
     private double mouseDeltaY;
     private Rotate rotateY;
     private SurfacePlotMesh surface;
-    private DensityFunction<Point3D> dens = p->(double)p.x;
+    private Function<Point3D, Number> dens = p->p.x;
     private long lastEffect;
     
     @Override
@@ -90,17 +92,17 @@ public class Function2DPlotTest extends Application {
         surface = new SurfacePlotMesh(p->Math.sin(p.magnitude()+ 0.00000000000000001)/(p.magnitude()+ 0.00000000000000001),10,10,10,10,5d); 
 //        PhongMaterial matTorus = new PhongMaterial(Color.FIREBRICK);
 //        torus.setMaterial(matTorus);
-        surface.setDrawMode(DrawMode.LINE);
+//        surface.setDrawMode(DrawMode.LINE);
         surface.setCullFace(CullFace.NONE);
     // NONE
-        surface.setTextureModeNone(Color.FORESTGREEN);
+//        surface.setTextureModeNone(Color.FORESTGREEN);
     // IMAGE
 //        torus.setTextureModeImage(getClass().getResource("res/grid1.png").toExternalForm());
 //        banner.setTextureModeImage(getClass().getResource("res/Duke3DprogressionSmall.jpg").toExternalForm());
     // PATTERN
-//       torus.setTextureModePattern(1.0d);
+       surface.setTextureModePattern(CarbonPatterns.CARBON_KEVLAR,1.0d);
     // DENSITY
-//        surface.setTextureModeVertices3D(256*256,dens);
+//        surface.setTextureModeVertices3D(1530,dens);
     // FACES
 //        torus.setTextureModeFaces(256*256);
         

@@ -18,9 +18,11 @@
  */
 package org.fxyz.shapes.primitives.helper;
 
+import java.util.function.Function;
 import javafx.scene.paint.Color;
 import org.fxyz.geometry.Point3D;
-import org.fxyz.utils.DensityFunction;
+import org.fxyz.utils.Palette.ColorPalette;
+import org.fxyz.utils.Patterns.CarbonPatterns;
 
 /**
  *
@@ -32,10 +34,13 @@ public interface TextureMode {
     public void setTextureModeNone(Color color);
     public void setTextureModeNone(Color color, String image);
     public void setTextureModeImage(String image);
-    public void setTextureModePattern(double scale);
-    public void setTextureModeVertices3D(int colors, DensityFunction<Point3D> dens);
-    public void setTextureModeVertices3D(int colors, DensityFunction<Point3D> dens, double min, double max);
-    public void setTextureModeVertices1D(int colors, DensityFunction<Double> function);
-    public void setTextureModeVertices1D(int colors, DensityFunction<Double> function, double min, double max);
+    public void setTextureModePattern(CarbonPatterns pattern, double scale);
+    public void setTextureModeVertices3D(int colors, Function<Point3D, Number> dens);
+    public void setTextureModeVertices3D(ColorPalette palette, int colors, Function<Point3D, Number> dens);
+    public void setTextureModeVertices3D(int colors, Function<Point3D, Number> dens, double min, double max);
+    public void setTextureModeVertices1D(int colors, Function<Number, Number> function);
+    public void setTextureModeVertices1D(ColorPalette palette, int colors, Function<Number, Number> function);
+    public void setTextureModeVertices1D(int colors, Function<Number, Number> function, double min, double max);
     public void setTextureModeFaces(int colors);
+    public void setTextureModeFaces(ColorPalette palette, int colors);
 }

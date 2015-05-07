@@ -19,6 +19,7 @@
 package org.fxyz.tests;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import static javafx.animation.Animation.INDEFINITE;
 import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
@@ -45,7 +46,6 @@ import javafx.util.Duration;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.SegmentedSphereMesh;
-import org.fxyz.utils.DensityFunction;
 
 /**
  *
@@ -65,7 +65,7 @@ public class SegmentedSphereTest extends Application {
     private double mouseDeltaY;
     private Rotate rotateY;
     private SegmentedSphereMesh torus;
-    private DensityFunction<Point3D> dens = p->(double)p.x;
+    private Function<Point3D, Number> dens = p->p.x;
     private long lastEffect;
     
     @Override

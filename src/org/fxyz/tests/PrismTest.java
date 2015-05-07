@@ -19,6 +19,7 @@
 package org.fxyz.tests;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Group;
@@ -43,10 +44,9 @@ import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.PrismMesh;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
-import org.fxyz.utils.DensityFunction;
 import org.fxyz.utils.OBJWriter;
 import org.fxyz.utils.Palette;
-import org.fxyz.utils.Palette.COLOR_PALETTE;
+import org.fxyz.utils.Palette.ColorPalette;
 
 /**
  *
@@ -67,7 +67,7 @@ public class PrismTest extends Application {
     private PrismMesh cylinder;
     private Rotate rotateY;
     
-    private DensityFunction<Point3D> dens = p-> (double)p.x;
+    private Function<Point3D, Number> dens = p-> p.x;
     
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -97,15 +97,15 @@ public class PrismTest extends Application {
         group.getChildren().add(cameraTransform);    
         cylinder = new PrismMesh(2,5,4);
 //        cylinder = new PrismMesh(0.2,2,3); //,new Point3D(-5,5,0),new Point3D(0,0,5));
-        cylinder.setDrawMode(DrawMode.LINE);
+//        cylinder.setDrawMode(DrawMode.LINE);
     // SECTION TYPE
         cylinder.setSectionType(TriangleMeshHelper.SectionType.TRIANGLE);
     // NONE
-        cylinder.setTextureModeNone(Color.ROYALBLUE);
+//        cylinder.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
 //        cylinder.setTextureModeImage(getClass().getResource("res/netCylinder.png").toExternalForm());
-//        cylinder.setTextureModeVertices1D(6, t->t);
-//        cylinder.setColorPalette(COLOR_PALETTE.GREEN);
+        cylinder.setTextureModeVertices1D(6, t->t);
+//        cylinder.setColorPalette(ColorPalette.GREEN);
     // DENSITY
 //        cylinder.setTextureModeVertices3D(1530,p->(double)p.magnitude());
 //        cylinder.setTextureModeVertices3D(1530,p->(double)cylinder.unTransform(p).magnitude());
@@ -190,7 +190,7 @@ public class PrismTest extends Application {
 //        OBJWriter writer=new OBJWriter((TriangleMesh) cylinder.getMesh(),"cylinder2");
 ////        writer.setMaterialColor(Color.AQUA);
 ////        writer.setTextureImage(getClass().getResource("res/netCylinder.png").toExternalForm());
-//        writer.setTextureColors(6,COLOR_PALETTE.GREEN);
+//        writer.setTextureColors(6,ColorPalette.GREEN);
 //        writer.exportMesh();
         
         lastEffect = System.nanoTime();
@@ -200,7 +200,7 @@ public class PrismTest extends Application {
             @Override
             public void handle(long now) {
                 if (now > lastEffect + 100_000_000l) {
-                    func=t->Math.pow(Math.sin(8d*Math.PI*(10d*(1-t)+count.get()%11)/20d),6); //<=1/6d)?1d:0d;
+                    func=t->Math.pow(Math.sin(8d*Math.PI*(10d*(1-t.doubleValue())+count.get()%11)/20d),6); //<=1/6d)?1d:0d;
 //                    cylinder.setFunction(func);
                     
 //                    mapBez.values().forEach(b->b.setDensity(dens));
@@ -211,7 +211,7 @@ public class PrismTest extends Application {
         };
 //        timerEffect.start();
     }
-    private DensityFunction<Double> func = t->(double)t;
+    private Function<Number, Number> func = t->t;
     private long lastEffect;
     /**
      * @param args the command line arguments

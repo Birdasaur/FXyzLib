@@ -21,6 +21,7 @@ package org.fxyz.tests;
 import eu.mihosoft.vrl.v3d.CSG;
 import eu.mihosoft.vrl.v3d.Cube;
 import eu.mihosoft.vrl.v3d.Transform;
+import java.util.function.Function;
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
@@ -40,7 +41,6 @@ import org.fxyz.shapes.primitives.CSGMesh;
 import org.fxyz.shapes.primitives.CuboidMesh;
 import org.fxyz.shapes.primitives.PrismMesh;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
-import org.fxyz.utils.DensityFunction;
 import org.fxyz.utils.MeshUtils;
 import org.fxyz.utils.OBJWriter;
 
@@ -63,7 +63,7 @@ public class CuboidCSGTest extends Application {
     private CuboidMesh cuboid;
     private Rotate rotateY;
     
-    private DensityFunction<Point3D> dens = p-> (double)p.x;
+    private Function<Point3D, Number> dens = p-> p.x;
     
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -113,7 +113,7 @@ public class CuboidCSGTest extends Application {
 //        cuboid.setTextureModeImage(getClass().getResource("res/netCuboid.png").toExternalForm());
     // DENSITY
 //        cuboid.setTextureModeVertices3D(1530,p->(double)p.x*p.y);
-//        unionMesh.setTextureModeVertices3D(1530,p->(double)p.x*p.y);
+        unionMesh.setTextureModeVertices3D(1530,p->(double)p.x*p.y);
 //        unionMesh.setTextureModeVertices1D(1530,p->(double)p);
     // FACES
 //        cuboid.setTextureModeFaces(1530);
