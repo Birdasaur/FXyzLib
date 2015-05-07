@@ -19,6 +19,7 @@
 package org.fxyz.tests;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.AmbientLight;
@@ -38,7 +39,6 @@ import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.shapes.primitives.CurvedSpringMesh;
-import org.fxyz.utils.DensityFunction;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper.SectionType;
 import org.fxyz.utils.OBJWriter;
@@ -61,7 +61,7 @@ public class CurvedSpringTest extends Application {
     private double mouseDeltaY;
     private CurvedSpringMesh spring;
     private Rotate rotateY;
-    private DensityFunction<Point3D> dens = p->(double)p.x;
+    private Function<Point3D, Number> dens = p->p.x;
     private long lastEffect;
     
     @Override
