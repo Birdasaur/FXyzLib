@@ -18,6 +18,11 @@ import javafx.scene.shape.TriangleMesh;
 /**
  *
  * @author Dub
+ * 
+ * bug fix by Yehya BELHAMRA {dy_belhamra@esi.dz} {http://www.yahiab.com}
+ * the bug was in the getMajorRadius() and getMinorRadius(), its return type was Double, which caused an exception 
+ * when trying to export this shape as FXML file using the FXMLExporter.java class from the OpenJFX project.
+ * Its return type should be a 'double', the primitive type, and not 'Double'.
  */
 public class SpheroidMesh extends MeshView{
     
@@ -228,7 +233,7 @@ public class SpheroidMesh extends MeshView{
         
     };
 
-    public final Double getMajorRadius() {
+    public final double getMajorRadius() {
         return majorRadius.get();
     }
 
@@ -250,7 +255,7 @@ public class SpheroidMesh extends MeshView{
         
     };
 
-    public final Double getMinorRadius() {
+    public final double getMinorRadius() {
         return minorRadius.get();
     }
 
