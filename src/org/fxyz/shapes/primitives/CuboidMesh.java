@@ -27,13 +27,19 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Point2D;
 import javafx.scene.DepthTest;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.TriangleMesh;
+import javafx.scene.transform.Affine;
+import javafx.scene.transform.NonInvertibleTransformException;
+import javafx.scene.transform.Transform;
+import javafx.scene.transform.Translate;
 import org.fxyz.geometry.Face3;
 import org.fxyz.geometry.Point3D;
 import org.fxyz.utils.FloatCollector;
@@ -50,20 +56,22 @@ public class CuboidMesh extends TexturedMesh {
     private final static double DEFAULT_DEPTH = 10;
     
     private final static int DEFAULT_LEVEL = 1;
+    private final static Point3D DEFAULT_CENTER = new Point3D(0f,0f,0f);
     
     
     public CuboidMesh(){
-        this(DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_DEPTH, DEFAULT_LEVEL);
+        this(DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_DEPTH, DEFAULT_LEVEL,null);
     }
     public CuboidMesh(double width, double height, double depth){
-        this(width, height, depth, DEFAULT_LEVEL);
+        this(width, height, depth, DEFAULT_LEVEL, null);
     }
     
-    public CuboidMesh(double width, double height, double depth, int level){
+    public CuboidMesh(double width, double height, double depth, int level, Point3D center){
         setWidth(width);        
         setHeight(height);        
         setDepth(depth);        
         setLevel(level);
+        setCenter(center);
         
         updateMesh();
         setCullFace(CullFace.BACK);
@@ -160,6 +168,29 @@ public class CuboidMesh extends TexturedMesh {
         return level;
     }
     
+    private final ObjectProperty<Point3D> center = new SimpleObjectProperty<Point3D>(DEFAULT_CENTER){
+
+        @Override
+        protected void invalidated() {
+            if(mesh!=null){
+                updateMesh();
+            }
+        }
+
+    };
+
+    public Point3D getCenter() {
+        return center.get();
+    }
+
+    public final void setCenter(Point3D value) {
+        center.set(value);
+    }
+
+    public ObjectProperty<Point3D> centerProperty() {
+        return center;
+    }
+    
     @Override
     protected final void updateMesh() {
         setMesh(null);
@@ -171,6 +202,7 @@ public class CuboidMesh extends TexturedMesh {
     private float[] points0, texCoord0;
     private int[] faces0;
     private List<Point2D> texCoord1;
+    private Transform a = new Affine();
     
     private TriangleMesh createCube(float width, float height, float depth, 
             int level){
@@ -181,9 +213,16 @@ public class CuboidMesh extends TexturedMesh {
         }
         
         if(level==0){
+            a = new Affine();
             float L=2f*width+2f*depth;
             float H=height+2f*depth;
             float hw=width/2f, hh=height/2f, hd=depth/2f;        
+            if(center.get()!=null){
+                a=a.createConcatenation(new Translate(center.get().x,center.get().y,center.get().z));
+//                hw+=center.get().x;
+//                hh+=center.get().y;
+//                hd+=center.get().z;
+            }
             final float[] baseVertices = new float[]{
                 hw, hh, hd,             hw, hh, -hd,
                 hw, -hh, hd,            hw, -hh, -hd,
@@ -219,6 +258,12 @@ public class CuboidMesh extends TexturedMesh {
                 1,3,5,            5,3,7
             );
             
+            for(int i=0; i<baseVertices.length/3; i++){
+                Point3D ta = transform(baseVertices[3*i],baseVertices[3*i+1],baseVertices[3*i+2]);
+                baseVertices[3*i]=ta.x;
+                baseVertices[3*i+1]=ta.y;
+                baseVertices[3*i+2]=ta.z;
+            }
             points0 = baseVertices; 
             numVertices=baseVertices.length/3;
             
@@ -340,6 +385,23 @@ public class CuboidMesh extends TexturedMesh {
 //            smoothingGroups=SmoothingGroups.calcSmoothGroups(new TriangleMesh(), newFaces, newFaceNormals, normals);
         }
         return createMesh();
+    }
+    private Point3D transform(Point3D p){
+        javafx.geometry.Point3D ta = a.transform(p.x,p.y,p.z);
+        return new Point3D((float)ta.getX(), (float)ta.getY(), (float)ta.getZ());        
+    }
+    private Point3D transform(double x, double y, double z){
+        javafx.geometry.Point3D ta = a.transform(x,y,z);
+        return new Point3D((float)ta.getX(), (float)ta.getY(), (float)ta.getZ());        
+    }
+    public Point3D unTransform(Point3D p){
+        try {
+            javafx.geometry.Point3D ta = a.inverseTransform(p.x,p.y,p.z);
+            return new Point3D((float)ta.getX(), (float)ta.getY(), (float)ta.getZ());
+        } catch (NonInvertibleTransformException ex) {
+            System.out.println("p not invertible "+p);
+        }
+        return p;
     }
 
     private final AtomicInteger index = new AtomicInteger();
