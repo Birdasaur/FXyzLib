@@ -91,7 +91,7 @@ public class CuboidCSGTest extends Application {
         rotateY = new Rotate(0, 0, 0, 0, Rotate.Y_AXIS);
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
-        cuboid = new CuboidMesh(10f,12f,4f,2);
+        cuboid = new CuboidMesh(10f,12f,4f,2,new Point3D(1f, -1f, 2f));
         cuboid.setDrawMode(DrawMode.LINE);
         
         CSG cuboidCSG = MeshUtils.mesh2CSG(cuboid.getMesh());

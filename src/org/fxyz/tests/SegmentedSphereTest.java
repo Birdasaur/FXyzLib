@@ -64,8 +64,8 @@ public class SegmentedSphereTest extends Application {
     private double mouseDeltaX;
     private double mouseDeltaY;
     private Rotate rotateY;
-    private SegmentedSphereMesh torus;
-    private Function<Point3D, Number> dens = p->p.x;
+    private SegmentedSphereMesh sphere;
+    private Function<Point3D, Number> dens = p->p.y>0?1:0;
     private long lastEffect;
     
     @Override
@@ -89,32 +89,33 @@ public class SegmentedSphereTest extends Application {
 //        cameraTransform.getChildren().add(light);
         cameraTransform.getChildren().add(new AmbientLight(Color.WHITE));
         light.setTranslateX(0);
-        light.setTranslateY(1000);
-        light.setTranslateZ(0);        
+        light.setTranslateY(0);
+        light.setTranslateZ(-1000);        
         scene.setCamera(camera);
         
         rotateY = new Rotate(0, 0, 0, 0, Rotate.Y_AXIS);
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
         
-        torus = new SegmentedSphereMesh(100, 0, 10, 2000d); 
+//        torus = new SegmentedSphereMesh(100, 0, 10, 2000d, new Point3D(20f,4f,-2f)); 
+        sphere = new SegmentedSphereMesh(200,0,0,100,new Point3D(0f,0f,0f)); 
 //        torus.setDrawMode(DrawMode.LINE);
-        torus.setCullFace(CullFace.NONE);
+//        torus.setCullFace(CullFace.NONE);
     // NONE
 //        torus.setTextureModeNone(Color.FORESTGREEN);
     // IMAGE
-        torus.setTextureModeImage(getClass().getResource("res/share-carousel_In.png").toExternalForm());
+//        torus.setTextureModeImage(getClass().getResource("res/share-carousel_In.png").toExternalForm());
     // PATTERN
 //       torus.setTextureModePattern(20.0d);
     // DENSITY
-//        torus.setTextureModeVertices3D(1530,dens);
+        sphere.setTextureModeVertices3D(2,dens);
     // FACES
 //        torus.setTextureModeFaces(256*256);
         
-        torus.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
+        sphere.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
 //        banner.getTransforms().addAll(new Rotate(0,Rotate.X_AXIS),rotateY);
         
-        group.getChildren().addAll(torus); //,banner);
+        group.getChildren().addAll(sphere); //,banner);
         
         sceneRoot.getChildren().addAll(group);        
         
@@ -198,7 +199,7 @@ public class SegmentedSphereTest extends Application {
         };
         
         
-        primaryStage.setTitle("F(X)yz - Segmented Torus");
+        primaryStage.setTitle("F(X)yz - Segmented Sphere");
         primaryStage.setScene(scene);
         primaryStage.show();   
         
@@ -208,7 +209,7 @@ public class SegmentedSphereTest extends Application {
         final KeyValue kv1 = new KeyValue(cameraTransform.ry.angleProperty(), 360);
         final KeyFrame kf1 = new KeyFrame(Duration.millis(20000), kv1);
         bannerEffect.getKeyFrames().addAll(kf1);
-        bannerEffect.play();
+//        bannerEffect.play();
     }
     /**
      * @param args the command line arguments
