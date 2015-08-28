@@ -18,10 +18,19 @@
  */
 package org.fxyz.tests;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 import javafx.animation.AnimationTimer;
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.geometry.Bounds;
 import javafx.scene.AmbientLight;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
@@ -30,14 +39,23 @@ import javafx.scene.Scene;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.DrawMode;
+import javafx.scene.shape.TriangleMesh;
 import javafx.scene.text.Font;
-import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.geometry.Point3D;
+import org.fxyz.shapes.primitives.CuboidMesh;
 import org.fxyz.shapes.primitives.Text3DMesh;
+import org.fxyz.shapes.primitives.TexturedMesh;
+import org.fxyz.shapes.primitives.TriangulatedMesh;
+import org.fxyz.utils.OBJWriter;
+import org.fxyz.utils.Palette;
+import org.fxyz.utils.Palette.ColorPalette;
+import org.fxyz.utils.Patterns;
 
 /**
  *
@@ -55,8 +73,7 @@ public class Text3DTest extends Application {
     private double mouseOldY;
     private double mouseDeltaX;
     private double mouseDeltaY;
-    private Function<Point3D, Number> dens = p->p.magnitude();
-    private Rotate rotateY;
+//    private Function<Point3D, Number> dens = p->p.magnitude();
     private long lastEffect;
     
     @Override
@@ -71,34 +88,30 @@ public class Text3DTest extends Application {
         cameraTransform.getChildren().add(camera);
         camera.setNearClip(0.1);
         camera.setFarClip(10000.0);
-        camera.setTranslateX(1000);
-        camera.setTranslateZ(-5000);
-        cameraTransform.ry.setAngle(-25.0);
-        cameraTransform.rx.setAngle(-10.0);
+        camera.setTranslateX(800);
+        camera.setTranslateZ(-3000);
+//        cameraTransform.ry.setAngle(-25.0);
+        cameraTransform.rx.setAngle(10.0);
         //add a Point Light for better viewing of the grid coordinate system
-        PointLight light = new PointLight(Color.WHITE);
+//        PointLight light1 = new PointLight(Color.WHITE);
         cameraTransform.getChildren().add(new AmbientLight());
-        light.setTranslateX(camera.getTranslateX());
-        light.setTranslateY(camera.getTranslateY());
-        light.setTranslateZ(camera.getTranslateZ());        
         scene.setCamera(camera);
         
-        rotateY = new Rotate(0, 0, 0, 0, Rotate.Y_AXIS);
-        Group group = new Group();
-        group.getChildren().add(cameraTransform);   
-        Text3DMesh letters = new Text3DMesh("#Text3D",Font.getFontNames().get(0),500,120,2);
-        
+        Group group = new Group(cameraTransform);   
+        Text3DMesh letters = new Text3DMesh("3DMesh","Gadugi Bold",400,true,120,0,1);
+//        letters.setDrawMode(DrawMode.LINE);
         // NONE
 //        letters.setTextureModeNone(Color.ROYALBLUE);
     // IMAGE
 //        letters.setTextureModeImage(getClass().getResource("res/steel-background1.jpg").toExternalForm());
+//        letters.setTextureModeImage(getClass().getResource("res/marvel1.jpg").toExternalForm());
     // DENSITY
-//        letters.setTextureModeVertices3D(1530,p->(double)Math.sin(p.y/50)*Math.cos(p.x/40)*p.z);
+        letters.setTextureModeVertices3D(1530,p->p.magnitude());
+//        letters.setTextureModeVertices3D(1530,p->Math.sin(p.y/50)*Math.cos(p.x/40)*p.z);
     // FACES
-        letters.setTextureModeFaces(1530);
-        
+//        letters.setTextureModeFaces(Palette.ColorPalette.HSB,16);
         group.getChildren().add(letters);         
-        sceneRoot.getChildren().addAll(group);        
+        sceneRoot.getChildren().addAll(group);    
         
         //First person shooter keyboard movement 
         scene.setOnKeyPressed(event -> {
@@ -150,11 +163,55 @@ public class Text3DTest extends Application {
                 cameraTransform.t.setY(cameraTransform.t.getY() + mouseDeltaY * modifierFactor * modifier * 0.3);  // -
             }
         });
-        
                
         primaryStage.setTitle("F(X)yz - Text3D");
         primaryStage.setScene(scene);
-        primaryStage.show();      
+        primaryStage.show();     
+        
+        // Letter transformations
+        
+        IntStream.range(0,letters.getChildren().size()) 
+                .forEach(i->{
+                    double y=(((double)i)/((double)letters.getChildren().size())*3d*Math.PI);
+                    ((TexturedMesh)(letters.getChildren().get(i))).getTranslate().setY(100d*Math.sin(y));
+//                    ((TexturedMesh)(letters.getChildren().get(i))).getRotateZ().setAngle(Math.cos(y)*180d/Math.PI);
+//                    ((TexturedMesh)(letters.getChildren().get(i))).getRotateX().setAngle(Math.cos(y)*180d/Math.PI);
+                });
+        
+        // Letter animations
+        
+        final Timeline rotateEffect1 = new Timeline();
+        rotateEffect1.setCycleCount(Timeline.INDEFINITE);
+        TexturedMesh t0 = letters.getMeshFromLetter("M");
+        final KeyValue kv1 = new KeyValue(t0.getRotateY().angleProperty(), 360);
+        final KeyFrame kf1 = new KeyFrame(Duration.millis(3000), kv1);
+        rotateEffect1.getKeyFrames().addAll(kf1);
+        rotateEffect1.play();
+        
+        final Timeline rotateEffect2 = new Timeline();
+        TexturedMesh t1 = letters.getMeshFromLetter("3");
+        final KeyValue kv2 = new KeyValue(t1.getRotateX().angleProperty(), 360);
+        final KeyFrame kf2 = new KeyFrame(Duration.millis(2000), kv2);
+        rotateEffect2.getKeyFrames().addAll(kf2);
+        rotateEffect2.play();
+//        
+        final Timeline rotateEffect3 = new Timeline();
+        rotateEffect3.setCycleCount(Timeline.INDEFINITE);
+        TexturedMesh t5 = letters.getMeshFromLetter("h");
+        final KeyValue kv1x = new KeyValue(t5.getScale().xProperty(), 1.2, Interpolator.EASE_BOTH);
+        final KeyValue kv1y = new KeyValue(t5.getScale().yProperty(), 1.2, Interpolator.EASE_BOTH);
+        final KeyValue kv1z = new KeyValue(t5.getScale().zProperty(), 1.2, Interpolator.EASE_BOTH);
+        final KeyFrame kfs1 = new KeyFrame(Duration.millis(500), kv1x,kv1y,kv1z);
+        final KeyValue kv2x = new KeyValue(t5.getScale().xProperty(), 0.3, Interpolator.EASE_BOTH);
+        final KeyValue kv2y = new KeyValue(t5.getScale().yProperty(), 0.3, Interpolator.EASE_BOTH);
+        final KeyValue kv2z = new KeyValue(t5.getScale().zProperty(), 0.3, Interpolator.EASE_BOTH);
+        final KeyFrame kfs2 = new KeyFrame(Duration.millis(2000), kv2x,kv2y,kv2z);
+        final KeyValue kv3x = new KeyValue(t5.getScale().xProperty(), 1, Interpolator.EASE_BOTH);
+        final KeyValue kv3y = new KeyValue(t5.getScale().yProperty(), 1, Interpolator.EASE_BOTH);
+        final KeyValue kv3z = new KeyValue(t5.getScale().zProperty(), 1, Interpolator.EASE_BOTH);
+        final KeyFrame kfs3 = new KeyFrame(Duration.millis(3000), kv3x,kv3y,kv3z);
+        rotateEffect3.getKeyFrames().addAll(kfs1,kfs2,kfs3);
+        rotateEffect3.play();
         
         lastEffect = System.nanoTime();
         AtomicInteger count=new AtomicInteger(1);
@@ -163,6 +220,7 @@ public class Text3DTest extends Application {
             @Override
             public void handle(long now) {
                 if (now > lastEffect + 1_000_000_000l) {
+                    System.out.println("*** "+count.get());
                     letters.setFont(Font.getFontNames().get(count.get()%Font.getFontNames().size()));
                     if(count.get()%10<2){
                         letters.setTextureModeNone(Color.hsb(count.get()%360, 1, 1));
@@ -179,17 +237,19 @@ public class Text3DTest extends Application {
                     } else {
                         letters.setDrawMode(DrawMode.FILL);
                     }
+                    letters.getChildren().forEach(m->((TexturedMesh)m).setDensity(p->p.magnitude()*Math.cos(p.y/100d*(count.get()%5))));
                     count.getAndIncrement();
                     lastEffect = now;
                 }
             }
         };
-        timerEffect.start();
-//        OBJWriter writer=new OBJWriter((TriangleMesh)polygon.getMesh(), "gear");
-//        //writer.setTextureColors(256*256);
-//        //writer.setTexturePattern();
+//        timerEffect.start();
+        OBJWriter writer=new OBJWriter((TriangleMesh)((TexturedMesh)(letters.getChildren().get(0))).getMesh(),
+                "letter");
+        writer.setTextureColors(6);
+        //writer.setTexturePattern();
 //        writer.setTextureImage(getClass().getResource("res/LaminateSteel.jpg").toExternalForm());
-//        writer.exportMesh();
+        writer.exportMesh();
         
     }
     /**
