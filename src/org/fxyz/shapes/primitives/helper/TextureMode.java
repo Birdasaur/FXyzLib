@@ -18,6 +18,7 @@
  */
 package org.fxyz.shapes.primitives.helper;
 
+import java.util.List;
 import java.util.function.Function;
 import javafx.scene.paint.Color;
 import org.fxyz.geometry.Point3D;
@@ -43,4 +44,6 @@ public interface TextureMode {
     public void setTextureModeVertices1D(int colors, Function<Number, Number> function, double min, double max);
     public void setTextureModeFaces(int colors);
     public void setTextureModeFaces(ColorPalette palette, int colors);
+    
+    public void updateF(List<Number> values);
 }

@@ -22,18 +22,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Bounds;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.TriangleMesh;
+import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Scale;
+import javafx.scene.transform.Translate;
 import org.fxyz.geometry.Face3;
 import org.fxyz.geometry.Point3D;
+import org.fxyz.shapes.primitives.helper.MeshHelper;
 import org.fxyz.shapes.primitives.helper.TextureMode;
 import org.fxyz.shapes.primitives.helper.TriangleMeshHelper;
 import static org.fxyz.shapes.primitives.helper.TriangleMeshHelper.DEFAULT_COLORS;
@@ -67,7 +74,7 @@ public abstract class TexturedMesh extends MeshView implements TextureMode {
     private TriangleMeshHelper helper = new TriangleMeshHelper();
     protected TriangleMesh mesh;
     
-    protected final List<Point3D> listVertices = new ArrayList<>();
+    protected List<Point3D> listVertices = new ArrayList<>();
     protected final List<Face3> listTextures = new ArrayList<>();
     protected final List<Face3> listFaces = new ArrayList<>();
     protected float[] textureCoords;
@@ -75,6 +82,10 @@ public abstract class TexturedMesh extends MeshView implements TextureMode {
     
     protected final Rectangle rectMesh=new Rectangle(0,0);
     protected final Rectangle areaMesh=new Rectangle(0,0);
+    
+    protected Rotate rotateX, rotateY, rotateZ;
+    protected Translate translate;
+    protected Scale scale;
     
     protected TexturedMesh(){
         setMaterial(helper.getMaterial());
@@ -235,6 +246,17 @@ public abstract class TexturedMesh extends MeshView implements TextureMode {
         setColorPalette(palette);
         createPalette(getColors());
         setTextureType(helper.getTextureType());
+    }
+    
+    @Override
+    public void updateF(List<Number> values) {
+        listVertices=IntStream.range(0,values.size()).mapToObj(i->{
+            Point3D p=listVertices.get(i);
+            p.f=values.get(i).floatValue();
+            return p;
+        }).collect(Collectors.toList());
+        updateTextureOnFaces();
+        
     }
     
     public TextureType getTextureType() {
@@ -503,6 +525,18 @@ public abstract class TexturedMesh extends MeshView implements TextureMode {
     
     protected abstract void updateMesh();
     
+    /*
+    This method allows replacing the original mesh with one given by a TriangleMesh
+    being set with MeshHelper.
+    
+    This allows combining several meshes into one, creating one single node.
+    */
+    protected void updateMesh(MeshHelper meshHelper){
+        setMesh(null);
+        mesh=createMesh(meshHelper);
+        setMesh(mesh);
+    }
+    
     protected void createTexCoords(int width, int height){
         rectMesh.setWidth(width);
         rectMesh.setHeight(height);
@@ -513,6 +547,90 @@ public abstract class TexturedMesh extends MeshView implements TextureMode {
         rectMesh.setWidth(width);
         rectMesh.setHeight(height);
         textureCoords=helper.createReverseTexCoords(width, height);
+    }
+    
+    protected MeshHelper precreateMesh() {
+        MeshHelper mh = new MeshHelper();
+        mh.setPoints(helper.updateVertices(listVertices));
+        switch (textureType.get()) {
+            case NONE:
+                mh.setTexCoords(textureCoords);
+                mh.setFaces(helper.updateFacesWithTextures(listFaces, listTextures));
+                break;
+            case PATTERN:
+                if (areaMesh.getHeight() > 0 && areaMesh.getWidth() > 0) {
+                    mh.setTexCoords(
+                            helper.updateTexCoordsWithPattern((int) rectMesh.getWidth(),
+                                    (int) rectMesh.getHeight(), patternScale.get(),
+                                    areaMesh.getHeight() / areaMesh.getWidth()));
+                } else {
+                    mh.setTexCoords(
+                            helper.updateTexCoordsWithPattern((int) rectMesh.getWidth(),
+                                    (int) rectMesh.getHeight(), patternScale.get()));
+                }
+                mh.setFaces(helper.updateFacesWithTextures(listFaces, listTextures));
+                break;
+            case IMAGE:
+                mh.setTexCoords(textureCoords);
+                if (listTextures.size() > 0) {
+                    mh.setFaces(helper.updateFacesWithTextures(listFaces, listTextures));
+                } else {
+                    mh.setFaces(helper.updateFacesWithVertices(listFaces));
+                }
+                break;
+            case COLORED_VERTICES_1D:
+                mh.setTexCoords(helper.getTexturePaletteArray());
+                mh.setFaces(helper.updateFacesWithFunctionMap(listVertices, listFaces));
+                break;
+            case COLORED_VERTICES_3D:
+                mh.setTexCoords(helper.getTexturePaletteArray());
+                mh.setFaces(helper.updateFacesWithDensityMap(listVertices, listFaces));
+                break;
+            case COLORED_FACES:
+                mh.setTexCoords(helper.getTexturePaletteArray());
+                mh.setFaces(helper.updateFacesWithFaces(listFaces));
+                break;
+        }
+
+        int[] faceSmoothingGroups = new int[listFaces.size()]; // 0 == hard edges
+        Arrays.fill(faceSmoothingGroups, 1); // 1: soft edges, all the faces in same surface
+        if (smoothingGroups != null) {
+//            for(int i=0; i<smoothingGroups.length; i++){
+//                System.out.println("i: "+smoothingGroups[i]);
+//            }
+            mh.setFaceSmoothingGroups(smoothingGroups);
+        } else {
+            mh.setFaceSmoothingGroups(faceSmoothingGroups);
+        }
+
+        return mh;
+    }
+
+    protected TriangleMesh createMesh(MeshHelper mh) {
+        float[] points0=mh.getPoints();
+        float[] f = mh.getF();
+        listVertices.clear();
+        listVertices.addAll(IntStream.range(0, points0.length/3)
+                        .mapToObj(i -> new Point3D(points0[3*i], points0[3*i+1], points0[3*i+2],f[i]))
+                        .collect(Collectors.toList()));
+        
+        textureCoords=mh.getTexCoords();
+        
+        int[] faces0 = mh.getFaces();
+        listFaces.clear();
+        listFaces.addAll(IntStream.range(0, faces0.length/6)
+                        .mapToObj(i -> new Face3(faces0[6*i+0], faces0[6*i+2], faces0[6*i+4]))
+                        .collect(Collectors.toList()));
+        
+        listTextures.clear();
+//        listTextures.addAll(listFaces);  
+        listTextures.addAll(IntStream.range(0, faces0.length/6)
+                        .mapToObj(i -> new Face3(faces0[6*i+1], faces0[6*i+3], faces0[6*i+5]))
+                        .collect(Collectors.toList()));
+        
+        smoothingGroups=mh.getFaceSmoothingGroups();
+        
+        return createMesh();
     }
     
     protected TriangleMesh createMesh(){
@@ -571,7 +689,54 @@ public abstract class TexturedMesh extends MeshView implements TextureMode {
         
         System.out.println("nodes: "+listVertices.size()+", faces: "+listFaces.size());
 //        System.out.println("area: "+helper.getMeshArea(listVertices, listFaces));
+        
         return triangleMesh;
+    }
+    
+    protected void updateTransforms(){
+        getTransforms().removeAll(rotateX,rotateY,rotateZ,scale);
+        Bounds bounds=getBoundsInLocal();
+        javafx.geometry.Point3D p = new javafx.geometry.Point3D(
+                (bounds.getMaxX()+bounds.getMinX())/2d, 
+                (bounds.getMaxY()+bounds.getMinY())/2d, 
+                (bounds.getMaxZ()+bounds.getMinZ())/2d);
+        translate = new Translate(0,0,0);
+        rotateX = new Rotate(0, p.getX(), p.getY(), p.getZ(), Rotate.X_AXIS);
+        rotateY = new Rotate(0, p.getX(), p.getY(), p.getZ(), Rotate.Y_AXIS);
+        rotateZ = new Rotate(0, p.getX(), p.getY(), p.getZ(), Rotate.Z_AXIS);
+        scale = new Scale(1,1,1, p.getX(), p.getY(), p.getZ());
+        getTransforms().addAll(translate,rotateZ,rotateY,rotateX,scale);
+    }
+    
+    public Translate getTranslate() { 
+        if(translate==null){
+            updateTransforms();
+        }
+        return translate; 
+    }
+    public Rotate getRotateX() { 
+        if(rotateX==null){
+            updateTransforms();
+        }
+        return rotateX; 
+    }
+    public Rotate getRotateY() { 
+        if(rotateY==null){
+            updateTransforms();
+        }
+        return rotateY; 
+    }
+    public Rotate getRotateZ() { 
+        if(rotateZ==null){
+            updateTransforms();
+        }
+        return rotateZ; 
+    }
+    public Scale getScale() {
+        if(scale==null){
+            updateTransforms();
+        }
+        return scale; 
     }
     
     protected double polygonalSection(double angle){
