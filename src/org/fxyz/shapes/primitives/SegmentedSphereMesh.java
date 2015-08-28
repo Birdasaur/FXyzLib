@@ -18,16 +18,20 @@
  */
 package org.fxyz.shapes.primitives;
 
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.DepthTest;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.TriangleMesh;
+import javafx.scene.transform.Affine;
+import javafx.scene.transform.NonInvertibleTransformException;
+import javafx.scene.transform.Transform;
+import javafx.scene.transform.Translate;
 import org.fxyz.geometry.Face3;
 import org.fxyz.geometry.Point3D;
 
@@ -49,21 +53,23 @@ public class SegmentedSphereMesh extends TexturedMesh {
     private static final double DEFAULT_X_OFFSET = 0.0D;
     private static final double DEFAULT_Y_OFFSET = 0.0D;
     private static final double DEFAULT_Z_OFFSET = 1.0D;
-    
+    private final static Point3D DEFAULT_CENTER = new Point3D(0f,0f,0f);
+
     public SegmentedSphereMesh() {
-        this(DEFAULT_DIVISIONS, DEFAULT_CROP_X, DEFAULT_CROP_Y, DEFAULT_RADIUS);
+        this(DEFAULT_DIVISIONS, DEFAULT_CROP_X, DEFAULT_CROP_Y, DEFAULT_RADIUS,null);
     }
 
     public SegmentedSphereMesh(double radius) {
-        this(DEFAULT_DIVISIONS, DEFAULT_CROP_X, DEFAULT_CROP_Y, radius);
+        this(DEFAULT_DIVISIONS, DEFAULT_CROP_X, DEFAULT_CROP_Y, radius,null);
     }
 
-    public SegmentedSphereMesh(int tDivs, int cropX, int cropY, double radius) {
+    public SegmentedSphereMesh(int tDivs, int cropX, int cropY, double radius, Point3D center) {
         setRadiusDivisions(tDivs);
         setRadiusCropX(cropX);
         setRadiusCropY(cropY);
         setRadius(radius);
         setzOffset(1);
+        setCenter(center);
         
         updateMesh();
         setCullFace(CullFace.BACK);
@@ -265,6 +271,31 @@ public class SegmentedSphereMesh extends TexturedMesh {
         return zOffset;
     }
     
+    private final ObjectProperty<Point3D> center = new SimpleObjectProperty<Point3D>(DEFAULT_CENTER){
+
+        @Override
+        protected void invalidated() {
+            if(mesh!=null){
+                updateMesh();
+            }
+        }
+
+    };
+
+    public Point3D getCenter() {
+        return center.get();
+    }
+
+    public final void setCenter(Point3D value) {
+        center.set(value);
+    }
+
+    public ObjectProperty<Point3D> centerProperty() {
+        return center;
+    }
+    
+    private Transform a = new Affine();
+    
     private TriangleMesh createSegmentedSphere(int subDivY, int cropX, int cropY,
             float radius, float tubeStartAngle, float xOffset, float yOffset, float zOffset) {
  
@@ -279,7 +310,10 @@ public class SegmentedSphereMesh extends TexturedMesh {
         
         areaMesh.setWidth((1-2*cropX/subDivX)*2d*Math.PI*radius);
         areaMesh.setHeight((1-2*cropY/subDivY)*2d*Math.PI*radius);
-        
+        a = new Affine();
+        if(center.get()!=null){            
+            a=a.createConcatenation(new Translate(center.get().x,center.get().y,center.get().z));
+        }
         // Create points
         for (int y = cropY; y <= subDivY-cropY; y++) {
             float dy = (float) y / subDivY;
@@ -289,7 +323,8 @@ public class SegmentedSphereMesh extends TexturedMesh {
                     pointX = (float) ((radius*Math.sin((-1d+dy)*Math.PI))*(Math.cos((-1d+2d*dx)*Math.PI)+ xOffset));
                     pointZ = (float) ((radius*Math.sin((-1d+dy)*Math.PI))*(Math.sin((-1d+2d*dx)*Math.PI)+ yOffset));
                     pointY = (float) (radius*Math.cos((-1d+dy)*Math.PI)*zOffset);
-                    listVertices.add(new Point3D(pointX, pointY, pointZ));
+                    Point3D ta = transform(pointX, pointY, pointZ);
+                    listVertices.add(ta);
                 }
             }
         }
@@ -342,4 +377,21 @@ public class SegmentedSphereMesh extends TexturedMesh {
         return createMesh();
     }
 
+    private Point3D transform(Point3D p){
+        javafx.geometry.Point3D ta = a.transform(p.x,p.y,p.z);
+        return new Point3D((float)ta.getX(), (float)ta.getY(), (float)ta.getZ());        
+    }
+    private Point3D transform(double x, double y, double z){
+        javafx.geometry.Point3D ta = a.transform(x,y,z);
+        return new Point3D((float)ta.getX(), (float)ta.getY(), (float)ta.getZ());        
+    }
+    public Point3D unTransform(Point3D p){
+        try {
+            javafx.geometry.Point3D ta = a.inverseTransform(p.x,p.y,p.z);
+            return new Point3D((float)ta.getX(), (float)ta.getY(), (float)ta.getZ());
+        } catch (NonInvertibleTransformException ex) {
+            System.out.println("p not invertible "+p);
+        }
+        return p;
+    }
 }
