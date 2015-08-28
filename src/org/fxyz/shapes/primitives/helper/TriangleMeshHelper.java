@@ -296,7 +296,7 @@ public class TriangleMeshHelper {
     }
     
     public int mapFaces(int face, int numFaces){
-        int f=(int)((((double)face)/((double)numFaces)) *colors);
+        int f=(int)((((double)face)/((double)numFaces)) * colors);
         if(f<0){
             f=0;
         }
@@ -486,6 +486,7 @@ public class TriangleMeshHelper {
         AtomicInteger count=new AtomicInteger();
         return faces.stream().map(f->f.getFace(mapFaces(count.getAndIncrement(),faces.size()))).flatMapToInt(i->i).toArray();
     }
+    
     /*
     utils
     */

@@ -28,8 +28,11 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.DepthTest;
 import javafx.scene.shape.CullFace;
@@ -47,8 +50,7 @@ import org.poly2tri.triangulation.delaunay.DelaunayTriangle;
 
 /**
  *
- * @author José Pereda Llamas
- * Created on 19-nov-2014 - 14:28:20
+ * @author José Pereda 
  */
 public class TriangulatedMesh extends TexturedMesh {
 
@@ -77,11 +79,15 @@ public class TriangulatedMesh extends TexturedMesh {
         this(points,null,level,height,holeRadius);
     }
     public TriangulatedMesh(List<Point3D> points, List<List<Point3D>> pointsHole, int level, double height, double holeRadius) {
+        this(points,pointsHole,level,height,holeRadius,null);
+    }
+    public TriangulatedMesh(List<Point3D> points, List<List<Point3D>> pointsHole, int level, double height, double holeRadius, Bounds bounds) {
         this.pointsExterior=points;
         this.pointsHoles=pointsHole;
         setLevel(level);
         setHeight(height);
         setHoleRadius(holeRadius);
+        setBounds(bounds);
         
         updateMesh();
         setCullFace(CullFace.BACK);
@@ -159,6 +165,26 @@ public class TriangulatedMesh extends TexturedMesh {
     public DoubleProperty holeRadiusProperty() {
         return holeRadius;
     }
+    private final ObjectProperty<Bounds> bounds = new SimpleObjectProperty<Bounds>(){
+        @Override
+        protected void invalidated() {
+            if(mesh!=null){
+                updateMesh();
+            }
+        }
+    };
+
+    public Bounds getBounds() {
+        return bounds.get();
+    }
+
+    public final void setBounds(Bounds value) {
+        bounds.set(value);
+    }
+
+    public ObjectProperty<Bounds> boundsProperty() {
+        return bounds;
+    }
     
     private int numVertices, numTexCoords, numFaces;
     private float[] points0, texCoord0;
@@ -172,8 +198,9 @@ public class TriangulatedMesh extends TexturedMesh {
     private int steinerPoints=0*8;
     private int numHoles=0;
     private final List<Integer> holePoints=new ArrayList<>();
-    private final double EPSILON = 0.00001;
-            
+    private final double EPSILON = 0.001;
+    private double maxX=0d, maxY=0d, minX=0d, minY=0d;
+    
     private TriangleMesh createMesh(int level){
         TriangleMesh m0=null;
         if(level>0){
@@ -190,11 +217,17 @@ public class TriangulatedMesh extends TexturedMesh {
             List<PolygonPoint> list = pointsExterior.stream().map(p->new PolygonPoint(p.x, p.y)).collect(Collectors.toList());
             Polygon poly=new Polygon(list);
             
-            // middle point of polygon
-            double maxX = pointsExterior.stream().mapToDouble(p->p.x).max().orElse(0d);
-            double maxY = pointsExterior.stream().mapToDouble(p->p.y).max().orElse(0d);
-            double minX = pointsExterior.stream().mapToDouble(p->p.x).min().orElse(0d);
-            double minY = pointsExterior.stream().mapToDouble(p->p.y).min().orElse(0d);
+            if(bounds.get()!=null){
+                maxX=bounds.get().getMaxX();
+                minX=bounds.get().getMinX();
+                maxY=bounds.get().getMaxY();
+                minY=bounds.get().getMinY();
+            } else {
+                maxX = pointsExterior.stream().mapToDouble(p->p.x).max().getAsDouble();
+                maxY = pointsExterior.stream().mapToDouble(p->p.y).max().getAsDouble();
+                minX = pointsExterior.stream().mapToDouble(p->p.x).min().getAsDouble();
+                minY = pointsExterior.stream().mapToDouble(p->p.y).min().getAsDouble();
+            }
             double rad = getHoleRadius();
             
             if(pointsHoles!=null){
@@ -203,11 +236,11 @@ public class TriangulatedMesh extends TexturedMesh {
                 
                 // holes
                 pointsHoles.forEach(pHole->{
-                    holePoints.add(pHole.size());
                     // hole                
-                    List<PolygonPoint> hole = IntStream.range(0,pHole.size())
-                            .mapToObj(i->new PolygonPoint(pHole.get(i).x,pHole.get(i).y))
+                    List<PolygonPoint> hole = pHole.stream().distinct()
+                            .map(p->new PolygonPoint(p.x,p.y))
                             .collect(Collectors.toList());
+                    holePoints.add(hole.size());
                     Polygon polyIn = new Polygon(hole);
                     poly.addHole(polyIn);
                     holes.add(hole);
@@ -242,7 +275,6 @@ public class TriangulatedMesh extends TexturedMesh {
             
             Polygon polRes = ps.getPolygons().get(0);
             List<DelaunayTriangle> tri = polRes.getTriangles();
-//            tri.forEach(t->t.printDebug());
             points1 = polRes.getPoints();
             extPoints=points1.size();
             if(pointsHoles!=null || rad>0d){
@@ -430,11 +462,6 @@ public class TriangulatedMesh extends TexturedMesh {
         numTexCoords=texCoord0.length/2;
         textureCoords=texCoord0;
         if(level==getLevel()){
-            double maxX = pointsExterior.stream().mapToDouble(p->p.x).max().orElse(0d);
-            double maxY = pointsExterior.stream().mapToDouble(p->p.y).max().orElse(0d);
-            double minX = pointsExterior.stream().mapToDouble(p->p.x).min().orElse(0d);
-            double minY = pointsExterior.stream().mapToDouble(p->p.y).min().orElse(0d);
-
             areaMesh.setWidth(maxX-minX);
             areaMesh.setHeight(maxY-minY);
             rectMesh.setWidth((int)Math.sqrt(texCoord0.length));
