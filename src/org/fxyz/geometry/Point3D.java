@@ -42,6 +42,13 @@ public class Point3D {
         this.z = z;
     }
     
+    public Point3D(float x, float y, float z, float f) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.f = f;
+    }
+    
     public DoubleStream getCoordinates() { return DoubleStream.of(x,y,z); }
     public DoubleStream getCoordinates(float factor) { return DoubleStream.of(factor*x,factor*y,factor*z); }
     
@@ -130,6 +137,10 @@ public class Point3D {
             return false;
         }
         return true;
+    }
+
+    public String toCSV() {
+        return "" + x + ";" + y + ";" + z + ";"+f;
     }
     
     
