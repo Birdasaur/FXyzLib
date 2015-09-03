@@ -18,7 +18,6 @@
  */
 package org.fxyz.tests;
 
-import com.sun.javafx.Utils;
 import java.util.Random;
 import javafx.application.Application;
 import javafx.scene.DepthTest;
@@ -38,6 +37,7 @@ import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 import org.fxyz.cameras.CameraTransformer;
 import org.fxyz.shapes.Spheroid;
+import org.fxyz.utils.MathUtils;
 
 /**
  *
@@ -168,7 +168,7 @@ public class SpheroidTest extends Application {
             if (me.isPrimaryButtonDown()) {
                 cameraTransform.ry.setAngle(((cameraTransform.ry.getAngle() + mouseDeltaX * modifierFactor * modifier * 2.0) % 360 + 540) % 360 - 180); // +
                 cameraTransform.rx.setAngle(
-                        Utils.clamp(-90, 
+                        MathUtils.clamp(-90, 
                         (((cameraTransform.rx.getAngle() - mouseDeltaY * modifierFactor * modifier * 2.0) % 360 + 540) % 360 - 180),
                         90)); // - 
                 
