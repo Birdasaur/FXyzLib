@@ -21,10 +21,17 @@ package org.fxyz.cameras;
 // MoleculeSampleApp application that is built using the Getting Started with JavaFX
 // 3D Graphics tutorial. The method allows you to add your own transforms and rotation.
 // 
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Group;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
+import javafx.util.Duration;
 
 public class CameraTransformer extends Group {
 
@@ -158,4 +165,90 @@ public class CameraTransformer extends Group {
         ip.setY(0.0);
         ip.setZ(0.0);
     }
+
+    public void transitionCameraTo(double milliseconds, double tx, double ty, double tz, double rx, double ry, double rz) {
+        final Timeline timeline = new Timeline();
+        timeline.getKeyFrames().addAll(new KeyFrame[]{
+            new KeyFrame(Duration.millis(milliseconds), new KeyValue[]{// Frame End                
+                new KeyValue(xRotateProperty(), rx, Interpolator.EASE_BOTH),
+                new KeyValue(yRotateProperty(), ry, Interpolator.EASE_BOTH),
+                new KeyValue(zRotateProperty(), rz, Interpolator.EASE_BOTH),
+                new KeyValue(xTranslateProperty(), tx, Interpolator.EASE_BOTH),
+                new KeyValue(yTranslateProperty(), ty, Interpolator.EASE_BOTH),
+                new KeyValue(zTranslateProperty(), tz, Interpolator.EASE_BOTH)
+            })
+        });
+        timeline.playFromStart(); 
+    }
+    
+    private void updateTransforms() {
+        t.setX(getxTranslate());
+        t.setY(getyTranslate());
+        t.setZ(getzTranslate());        
+        
+        rx.setAngle(getxRotate());
+        ry.setAngle(getyRotate());
+        rz.setAngle(getzRotate());
+    }
+    
+    private final DoubleProperty xRotate = new SimpleDoubleProperty(0) {
+        @Override
+        protected void invalidated() {
+            updateTransforms();
+        }
+    };
+    public final double getxRotate() {  return xRotate.get();   }
+    public void setxRotate(double value) { xRotate.set(value);  }
+    public DoubleProperty xRotateProperty() { return xRotate;   }    
+
+    private final DoubleProperty yRotate = new SimpleDoubleProperty(0) {
+        @Override
+        protected void invalidated() {
+            updateTransforms();
+        }
+    };
+    public final double getyRotate() { return yRotate.get();   }
+    public void setyRotate(double value) { yRotate.set(value); }
+    public DoubleProperty yRotateProperty() { return yRotate;  }    
+    
+    private final DoubleProperty zRotate = new SimpleDoubleProperty(0) {
+        @Override
+        protected void invalidated() {
+            updateTransforms();
+        }
+    };
+    public final double getzRotate() { return zRotate.get(); }
+    public void setzRotate(double value) { zRotate.set(value); }
+    public DoubleProperty zRotateProperty() { return zRotate; }    
+
+    
+    private final DoubleProperty xTranslate = new SimpleDoubleProperty(0) {
+        @Override
+        protected void invalidated() {
+            updateTransforms();
+        }
+    };
+    public final double getxTranslate() {  return xTranslate.get();   }
+    public void setxTranslate(double value) { xTranslate.set(value);  }
+    public DoubleProperty xTranslateProperty() { return xTranslate;   }    
+
+    private final DoubleProperty yTranslate = new SimpleDoubleProperty(0) {
+        @Override
+        protected void invalidated() {
+            updateTransforms();
+        }
+    };
+    public final double getyTranslate() { return yTranslate.get();   }
+    public void setyTranslate(double value) { yTranslate.set(value); }
+    public DoubleProperty yTranslateProperty() { return yTranslate;  }    
+    
+    private final DoubleProperty zTranslate = new SimpleDoubleProperty(0) {
+        @Override
+        protected void invalidated() {
+            updateTransforms();
+        }
+    };
+    public final double getzTranslate() { return zTranslate.get(); }
+    public void setzTranslate(double value) { zTranslate.set(value); }
+    public DoubleProperty zTranslateProperty() { return zTranslate; }    
 }
