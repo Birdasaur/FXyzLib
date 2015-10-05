@@ -95,7 +95,7 @@ public class CuboidTest extends Application {
         rotateY = new Rotate(0, 0, 0, 0, Rotate.Y_AXIS);
         Group group = new Group();
         group.getChildren().add(cameraTransform);    
-        cuboid = new CuboidMesh(10f,12f,4f,5,null);
+        cuboid = new CuboidMesh(10f,12f,4f,5, new Point3D(0f,0f,0f));
 //        cuboid.setDrawMode(DrawMode.LINE);
 //        cuboid.setCullFace(CullFace.NONE);
     // NONE

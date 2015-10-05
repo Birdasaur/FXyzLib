@@ -18,7 +18,6 @@
  */
 package org.fxyz.tests;
 
-import com.sun.javafx.Utils;
 import java.util.Random;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -49,6 +48,7 @@ import org.fxyz.shapes.primitives.TorusMesh;
 import org.fxyz.extras.BillboardBehavior;
 import org.fxyz.tools.CameraView;
 import org.fxyz.extras.Skybox;
+import org.fxyz.utils.MathUtils;
 
 /**
  *
@@ -279,7 +279,7 @@ public class BillBoardBehaviorTest extends Application {
             if (me.isPrimaryButtonDown()) {
                 cameraTransform.ry.setAngle(((cameraTransform.ry.getAngle() + mouseDeltaX * modifierFactor * modifier * 2.0) % 360 + 540) % 360 - 180); // +
                 cameraTransform.rx.setAngle(
-                        Utils.clamp(-60, 
+                        MathUtils.clamp(-60, 
                         (((cameraTransform.rx.getAngle() - mouseDeltaY * modifierFactor * modifier * 2.0) % 360 + 540) % 360 - 180),
                         60)); // - 
                 
