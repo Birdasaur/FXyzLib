@@ -112,9 +112,10 @@ public class Point3D {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 79 * hash + Float.floatToIntBits(this.x);
-        hash = 79 * hash + Float.floatToIntBits(this.y);
-        hash = 79 * hash + Float.floatToIntBits(this.z);
+        hash = 29 * hash + Float.floatToIntBits(this.x);
+        hash = 29 * hash + Float.floatToIntBits(this.y);
+        hash = 29 * hash + Float.floatToIntBits(this.z);
+        hash = 29 * hash + Float.floatToIntBits(this.f);
         return hash;
     }
 
@@ -134,6 +135,9 @@ public class Point3D {
             return false;
         }
         if (Float.floatToIntBits(this.z) != Float.floatToIntBits(other.z)) {
+            return false;
+        }
+        if (Float.floatToIntBits(this.f) != Float.floatToIntBits(other.f)) {
             return false;
         }
         return true;
