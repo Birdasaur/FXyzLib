@@ -3,8 +3,12 @@ FXyz
 
 JavaFX 3D Visualization and Component Library
 
-F(X)yz is a new JavaFX 3D library that provides additional primitives, composite objects, controls and data 
-visualizations that the base JavaFX 8 3D packages do not have.
+This is the original F(X)yz project, the JavaFX 3D library that provides additional primitives, composite objects, controls and data visualizations that the base JavaFX 8 3D packages do not have.
+New development as of 2016 was moved to a dedicated project: (https://github.com/FXyz/FXyz), which is a gradle project and no longer uses Ant. Please adjust your projects accordingly.
+
+Thanks for using FXyz in the before times!!
+- Birdasaur
+
 
 Building FXyz
 ====================
