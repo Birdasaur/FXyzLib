@@ -24,27 +24,58 @@ import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
 
 /**
- *
- * @author Moussaab AMRINE <dy_amrine@esi.dz>
- * @author  Yehya BELHAMRA <dy_belhamra@esi.dz>
+ * @author Moussaab AMRINE {dm_amrine@esi.dz}
+ * @author Amine OUBERKOUK {dm_ouberkouk@esi.dz}
+ * @author Yehya BELHAMRA  {dy_belhamra@esi.dz} {http://www.yahiab.com}
  */
 
 public class TrapezoidMesh extends MeshView {
 
     private final static double DEFAULT_SMALLSIZE 	= 30 ;
-    private final static double DEFAULT_BIGSIZE         = 50 ;
+    private final static double DEFAULT_BIGSIZE     = 50 ;
     private final static double DEFAULT_HEIGHT		= 40 ;
     private final static double DEFAULT_DEPTH 		= 60 ;
+    private final DoubleProperty depth = new SimpleDoubleProperty(DEFAULT_DEPTH) {
 
+        @Override
+        protected void invalidated() {
+            setMesh(createTrapezoid((float) getSmallSize(), (float) getBigSize(), (float) getHeight(), (float) getDepth()));
+        }
 
-    public TrapezoidMesh (){
+    };
+    private final DoubleProperty height = new SimpleDoubleProperty(DEFAULT_SMALLSIZE) {
+
+        @Override
+        protected void invalidated() {
+            setMesh(createTrapezoid((float) getSmallSize(), (float) getBigSize(), (float) getHeight(), (float) getDepth()));
+        }
+
+    };
+    private final DoubleProperty sizeBig = new SimpleDoubleProperty(DEFAULT_BIGSIZE) {
+
+        @Override
+        protected void invalidated() {
+            setMesh(createTrapezoid((float) getSmallSize(), (float) getBigSize(), (float) getHeight(), (float) getDepth()));
+        }
+
+    };
+    private final DoubleProperty sizeSmall = new SimpleDoubleProperty(DEFAULT_SMALLSIZE) {
+
+        @Override
+        protected void invalidated() {
+            setMesh(createTrapezoid((float) getSmallSize(), (float) getBigSize(), (float) getHeight(), (float) getDepth()));
+        }
+
+    };
+
+    public TrapezoidMesh(){
         this(DEFAULT_SMALLSIZE,DEFAULT_BIGSIZE,DEFAULT_HEIGHT,DEFAULT_DEPTH);
     }
 
-    public TrapezoidMesh (double smallSize , double bigSize , double height ,double depth){
+    public TrapezoidMesh(double smallSize, double bigSize, double height, double depth){
         setSmallSize (smallSize);
         setBigSize (bigSize);
-        setheight (height);
+        setHeight (height);
         setDepth (depth);
 
     }
@@ -88,16 +119,6 @@ public class TrapezoidMesh extends MeshView {
         return m ;
     }
 
-
-    private final DoubleProperty sizeSmall = new SimpleDoubleProperty(DEFAULT_SMALLSIZE){
-
-        @Override
-        protected void invalidated() {
-            setMesh(createTrapezoid((float)getSmallSize(),(float)getBigSize(),(float)getHeight(),(float)getDepth()));
-        }
-
-    };
-
     public final double getSmallSize() {
         return sizeSmall.get();
     }
@@ -109,15 +130,6 @@ public class TrapezoidMesh extends MeshView {
     public DoubleProperty sizeSmallProperty() {
         return sizeSmall;
     }
-
-    private final DoubleProperty sizeBig = new SimpleDoubleProperty(DEFAULT_BIGSIZE){
-
-        @Override
-        protected void invalidated() {
-            setMesh(createTrapezoid((float)getSmallSize(),(float)getBigSize(),(float)getHeight(),(float)getDepth()));
-        }
-
-    };
 
     public final double getBigSize() {
         return sizeBig.get();
@@ -131,36 +143,17 @@ public class TrapezoidMesh extends MeshView {
         return sizeBig;
     }
 
-
-    private final DoubleProperty height = new SimpleDoubleProperty(DEFAULT_SMALLSIZE){
-
-        @Override
-        protected void invalidated() {
-            setMesh(createTrapezoid((float)getSmallSize(),(float)getBigSize(),(float)getHeight(),(float)getDepth()));
-        }
-
-    };
-
     public final double getHeight() {
         return height.get();
     }
 
-    public final void setheight(double value) {
+    public final void setHeight(double value) {
         height.set(value);
     }
 
     public DoubleProperty heightProperty() {
         return height;
     }
-
-    private final DoubleProperty depth = new SimpleDoubleProperty(DEFAULT_DEPTH){
-
-        @Override
-        protected void invalidated() {
-            setMesh(createTrapezoid((float)getSmallSize(),(float)getBigSize(),(float)getHeight(),(float)getDepth()));
-        }
-
-    };
 
     public final double getDepth() {
         return depth.get();
@@ -173,6 +166,5 @@ public class TrapezoidMesh extends MeshView {
     public DoubleProperty depthProperty() {
         return depth;
     }
-
 
 }
